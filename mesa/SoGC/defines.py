@@ -10,13 +10,14 @@ class RobotType(Enum):
     TRACKED_TARGET = 5
 
 class Direction():
-    dict = {
+    #Shouldn't you use this dict in the functions?
+    dict = { 
         "W": [-1, 0],
         "N": [0, 1],
         "E": [1, 0],
         "S": [0, -1]
     }
-    def getX(d):
+    def getX(d): 
         dict = {
             "W": [-1, 0],
             "N": [0, 1],
