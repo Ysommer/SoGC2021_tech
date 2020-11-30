@@ -23,7 +23,7 @@ class SoGC(Model):
             return
 
         # Use a simple grid, where edges wrap around.
-        self.grid = MultiGrid(100, 100, torus=False)
+        self.grid = MultiGrid(height, width, torus=False)
 
         self.schedule = SimultaneousActivation(self)
 
