@@ -28,5 +28,5 @@ while t != '':
     t = input("Track id: ")
 
 server = ModularServer(
-    SoGC, [canvas_element], "S10ppy J035", {"height": 50, "width": 50, "paths": paths , "tracked": tracked}
+    SoGC, [canvas_element], "S10ppy J035", {"height": size, "width": size, "paths": paths , "tracked": tracked}
 )
