@@ -30,16 +30,20 @@ class SoGC(Model):
         # Place a cell at each location, with some initialized to
 
         data = json.load(open(paths[0], "r"))
-        sol = json.load(open(paths[1], "r"))
+        if paths[1] == '':
+            sol = None
+        else:
+            sol = json.load(open(paths[1], "r"))
 
         for i in range(len(data["starts"])):
             robot = data["starts"][i]
             cell = Cell((int(robot[0]), int(robot[1])), self, i, RobotType.ROBOT)
             if i in tracked:
                 cell.type = RobotType.TRACKED_ROBOT
-            for s in sol["steps"]:
-                if str(i) in s:
-                    cell.addStep(s[str(i)])
+            if sol is not None:
+                for s in sol["steps"]:
+                    if str(i) in s:
+                        cell.addStep(s[str(i)])
 
             self.grid.place_agent(cell, (cell.x, cell.y))
             self.schedule.add(cell)

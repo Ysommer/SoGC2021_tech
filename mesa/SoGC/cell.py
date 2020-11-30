@@ -4,7 +4,6 @@ from .defines import Direction
 
 
 class Cell(Agent):
-    """Represents a single ALIVE or DEAD cell in the simulation."""
 
     def __init__(self, pos, model, _id, _type: RobotType):
         """
