@@ -1,6 +1,7 @@
 from mesa import Agent
 from .defines import RobotType
 from .defines import Direction
+from collections import deque
 
 
 class Cell(Agent):
@@ -13,7 +14,7 @@ class Cell(Agent):
         self.x, self.y = pos
         self.id = _id
         self.type = _type
-        self.steps = []
+        self.steps = deque()
 
     def addStep(self, step): # Why does a cell takes steps?
         self.steps.append(step)
@@ -25,7 +26,7 @@ class Cell(Agent):
         self.x += Direction.getX(self.steps[0])
         self.y += Direction.getY(self.steps[0])
 
-        del self.steps[0] # Takes O(n) and it will bite as in the future, use a pointer to the list (a counter) or collections.deque
+        self.steps.popleft()
 
         if len(self.steps) == 0: # Final target?
             self.type = RobotType.ROBOT_ON_TARGET
