@@ -1,4 +1,6 @@
 from typing import Iterator, Tuple, Optional, Type, NamedTuple, Union, Callable
+from ..defines import directions_to_coords
+
 
 class Cell:
 
@@ -35,3 +37,14 @@ class Cell:
         if self.occupied is not None and self.occupied >= 0:
             return self.occupied
         return None
+
+    def enter_cell(self, robot_id: int, direction: str, current_turn: int):  # this method is only
+        assert direction in directions_to_coords
+        assert not self.occupied and self.get_tail(current_turn) is None or self.get_tail(current_turn) == direction
+        self.occupied = robot_id
+        return
+
+    def exit_cell(self, direction: str, current_turn: int):
+        assert direction in directions_to_coords
+        self.occupied = None
+        self.tail = (direction, current_turn)
