@@ -42,10 +42,10 @@ class ControlCenter():
         #TODO
         return
 
-    def runAnInitiateAlgorithm(initiateAlgorithm:InitiateAlgorithm):
+    def runAnInitiateAlgorithm(self, initiateAlgorithm:InitiateAlgorithm):
         #TODO
         return
 
-    def runAnOptimizationAlgorithm(solution:Solution ,optAlgorithm:OptimizationAlgorithm):
+    def runAnOptimizationAlgorithm(self, solution:Solution ,optAlgorithm:OptimizationAlgorithm):
         #TODO
         return
