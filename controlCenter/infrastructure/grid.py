@@ -1,7 +1,7 @@
 from .cell import Cell
 
 class Grid:
-    def __init__(self, size: int, boundaries_percentage: int = 30):
+    def __init__(self, size: int):
         self.size = size
         self.grid = [[None for i in range(self.size)] for j in range(self.size)]
 
