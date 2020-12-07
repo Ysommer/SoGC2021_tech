@@ -55,3 +55,7 @@ class Cell:
         assert direction in directions_to_coords
         self.occupied = None
         self.tail = (direction, current_turn)
+
+    def place_robot(self, robot_id: int):  # for grid init only! places robot outside of algo step
+        assert self.occupied is None
+        self.occupied = robot_id

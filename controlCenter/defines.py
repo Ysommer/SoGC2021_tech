@@ -20,5 +20,5 @@ class SolutionResult(Enum):
     SUCCESS = 0
     EXCEEDED_MAX_MAKESPAN = 1
     EXCEEDED_MAX_SUM = 2
-    INTERRUPTED = 3
+    RUNNING = 3
 

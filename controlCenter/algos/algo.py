@@ -1,10 +1,12 @@
 import abc
-from ..solution import solution
+from ..solution.solution import Solution
+from ..infrastructure.grid import Grid
 
 
 class Algo(abc):
 
-    def __init__(self, grid, robots: list, targets: list, max_makespan: int = None, max_sum: int = None, preprocess= None):
+    def __init__(self, instance_name: str, grid: Grid, robots: list, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None):
+        self.instance_name = instance_name
         self.grid = grid
         self.robots = robots
         self.targets = targets
@@ -13,7 +15,7 @@ class Algo(abc):
         self.preprocess = preprocess
         self.current_turn = 0
         self.current_sum = 0
-        self.solution = solution()
+        self.solution = Solution(instance_name)
 
     @abc.abstractmethod
     def step(self):
@@ -23,19 +25,20 @@ class Algo(abc):
         ...
 
     @abc.abstractmethod
-    def run(self) -> solution:
+    def run(self) -> Solution:
         """
         defines the execution of the algorithm.
         should look something like this:
         while(True):
             if self.max_makespan is not None and self.max_makespan <= self.current_turn:
-                solution[Result] = SolutionResult.EXCEEDED_MAX_MAKESPAN
+                solution.result = SolutionResult.EXCEEDED_MAX_MAKESPAN
                 break
             if self.max_sum is not None and self.max_sum <= self.current_sum:
-                solution[Result] = SolutionResult.EXCEEDED_MAX_SUM
+                solution.result = SolutionResult.EXCEEDED_MAX_SUM
             self.step()
-            if solution.solution_found():
-                solution[Result] = SUCCESS
+            if grid.solution_found:
+                solution.result = SUCCESS
+                break
             self.current_turn += 1
 
         return solution
