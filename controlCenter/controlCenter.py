@@ -11,8 +11,7 @@ import json
 
 
 class ControlCenter():
-    def __init__(self, paths=None, boundaries_percentage=0, max_make_span = -1, max_sum = -1):
-
+    def __init__(self, paths=None, max_make_span=-1, max_sum=-1):
         # inputs
         if paths is None:
             paths = [input("Enter Jason Path: \n"), input("Enter Solution Path: \n")]
@@ -25,27 +24,33 @@ class ControlCenter():
         last_size_index = first_size_index + (self.name[first_size_index:]).find('_')
         self.size = int(self.name[first_size_index:last_size_index])
 
-        self.boundaries_size = int(self.size * boundaries_percentage)
-        self.real_size = self.size + self.boundaries_size * 2
-
         self.preprocess = Preprocess(self.inputDict)
         self.postprocess = Postprocess(self.inputDict)
 
-        self.grid = Grid(self.real_size)
-        self.initAlgorithms = []
-        self.optimizationAlgorithms = []
-        self.solutions = []
+        self.robots = []
+        for i in range(len(self.inputDict["starts"])):
+            start = self.inputDict["starts"][i]
+            end = self.inputDict["targets"][i]
+            pos = (start[0], start[1])
+            target_pos = (end[0], end[1])
+            self.robots.append(Robot(i, pos, target_pos))
+
+        self.grid = Grid(self.size, self.robots, self.inputDict["obstacles"])
+
+        self.init_algos = List[InitAlgo]
+        self.optimization_algos = List[OptimizationAlgo]
+        self.solutions = List[Solution]
         self.max_make_span = max_make_span
         self.max_sum = max_sum
 
-    def runAll(self):
-        #TODO
+    def run_all(self):
+        # TODO
         return
 
-    def runAnInitiateAlgorithm(self, initiateAlgorithm:InitiateAlgorithm):
-        #TODO
-        return
+    def run_an_init_algo(self, algo_id: int) -> Solution:
+        # TODO: After initAlgo will be ready
+        return self.init_algos[algo_id].run()
 
-    def runAnOptimizationAlgorithm(self, solution:Solution ,optAlgorithm:OptimizationAlgorithm):
-        #TODO
+    def run_an_optimization_algo(self, solution: Solution, opt_algo: OptimizationAlgo):
+        # TODO
         return

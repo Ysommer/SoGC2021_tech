@@ -6,7 +6,9 @@ from ..defines import *
 class Grid:
     def __init__(self, size: int, robots: List[Robot], obstacles: List[(int, int)]):
         self.size = size
-        self.robots = robots
+
+        # Copy robots to avoid different Grid instances using the same list
+        self.robots = robots.copy()
         self.obstacles = obstacles
         self.numOfRobots = len(robots)
         self.numOfRobotsArrived = len(robots)
