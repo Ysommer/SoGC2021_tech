@@ -7,4 +7,5 @@ class Solution:
                     "steps": []}
         self.result = SolutionResult.RUNNING
 
-
+    def update_robot(self, robot_id: int, direction: chr, current_turn: int):
+        self.out["steps"][current_turn][str(robot_id)] = direction
