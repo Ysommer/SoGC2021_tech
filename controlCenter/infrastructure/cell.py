@@ -4,12 +4,11 @@ from ..defines import directions_to_coords, EnterCellResult
 
 class Cell:
 
-    def __init__(self, pos: (int, int), target_id: int = None, is_obs: bool = False, dist_to_target = None):
+    def __init__(self, pos: (int, int)):
         self.pos = pos
-        self.target_id = target_id
-        self.occupied = -1 if is_obs else None
+        self.target_id = None
+        self.occupied = None
         self.tail: (str, int) = None
-        self.dist_to_target = dist_to_target
 
     def __eq__(self, other):
         assert isinstance(other, Cell)
@@ -59,3 +58,10 @@ class Cell:
     def place_robot(self, robot_id: int):  # for grid init only! places robot outside of algo step
         assert self.occupied is None
         self.occupied = robot_id
+
+    def place_target(self, target_id: int):  # for grid init only! places robot outside of algo step
+        self.target_id = target_id
+
+    def place_obstacle(self):  # for grid init only! places robot outside of algo step
+        self.occupied = -1
+

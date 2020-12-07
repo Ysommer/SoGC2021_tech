@@ -17,3 +17,6 @@ class Robot:
         assert(direction in directions_to_coords)
         self.pos += directions_to_coords(direction)
 
+    def robot_arrived(self):
+        return self.pos == self.target_pos
+
