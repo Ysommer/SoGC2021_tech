@@ -3,7 +3,7 @@ from .infrastructure.cell import *
 from .infrastructure.robot import *
 from  .dataCollection.preprocess import *
 from  .dataCollection.postprocess import *
-from .algos.algo import *
+from .algos.initAlgo import *
 from .algos.initAlgo import *
 from .algos.optimizationAlgo import *
 from .solution.solution import *
