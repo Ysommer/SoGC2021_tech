@@ -52,6 +52,7 @@ class BFS(InitAlgo):
         return []
 
     def step(self) -> int:
+        moved = 0
         shuffle(self.permutation)
         for i in self.permutation:
             if self.robots[i].robot_arrived:
@@ -59,10 +60,30 @@ class BFS(InitAlgo):
             if move_robot_to_dir(self.robots[i], self.grid, self.bfs_list[i][self.progress[i]],
                                  self.current_turn, self.solution):
                 self.progress[i] += 1
-
-
-
+                moved += 1
+        return moved
 
     def run(self):
-        # TODO
-        pass
+        while True:
+            if self.current_sum > self.max_sum:
+                self.solution.result = SolutionResult.EXCEEDED_MAX_SUM
+                return self.solution
+
+            if self.current_turn > self.max_makespan:
+                self.solution.result = SolutionResult.EXCEEDED_MAX_MAKESPAN
+                return self.solution
+
+            if self.grid.solution_found():
+                self.solution.result = SolutionResult.SUCCESS
+                return self.solution
+
+            self.solution.out["steps"].append({})
+
+            last_turn_sum = self.step()
+
+            if last_turn_sum == 0:
+                self.solution.result = SolutionResult.STUCK
+                return self.solution
+
+            self.current_turn += 1
+            self.current_sum += last_turn_sum
