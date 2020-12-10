@@ -45,7 +45,7 @@ class ControlCenter():
 
     def run_all(self):
         # TODO
-        return
+        pass
 
     def run_an_init_algo(self, algo_id: int) -> Solution:
         # TODO: After initAlgo will be ready
@@ -53,4 +53,4 @@ class ControlCenter():
 
     def run_an_optimization_algo(self, solution: Solution, opt_algo: OptimizationAlgo):
         # TODO
-        return
+        pass

@@ -47,7 +47,7 @@ class Grid:
         if robot.robot_arrived():
             self.numOfRobotsArrived -= 1
 
-        robot.pos = desired_pos
+        robot.step(direction)
         # Checking if robot arrived
         if robot.robot_arrived():
             self.numOfRobotsArrived += 1
