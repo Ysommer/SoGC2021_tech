@@ -1,9 +1,9 @@
 from algos.initAlgo import InitAlgo
 from infrastructure.grid import Grid
-from defines import directions_to_coords
+from defines import directions_to_coords, SolutionResult
 from infrastructure.robot import Robot
 from infrastructure.cell import *
-from utils import sum_tuples
+from utils import *
 import queue
 from typing import List
 from random import shuffle, randint
@@ -38,13 +38,13 @@ class BFS(InitAlgo):
             path = []
             while parents[pos] is not None:
                 path.append(parents[pos])
-                pos -= parents[pos]
+                pos = sub_tuples(pos, directions_to_coords[parents[pos]])
 
             return path[::-1]  # return reversed path
 
         while not q.empty():
             pos = q.get()
-            if pos == self.targets[i]:
+            if pos == tuple(self.targets[i]):
                 return construct_path(parents, pos)
             for direction in directions_to_coords:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
@@ -86,9 +86,9 @@ class BFS(InitAlgo):
         moved = 0
         shuffle(self.permutation)
         for i in self.permutation:
-            if self.robots[i].robot_arrived:
+            if self.robots[i].robot_arrived():
                 continue
-            if InitAlgo.move_robot_to_dir(self.robots[i], self.grid, self.bfs_list[i][self.progress[i]],
+            if InitAlgo.move_robot_to_dir(i, self.grid, self.bfs_list[i][self.progress[i]],
                                           self.current_turn, self.solution):
                 self.progress[i] += 1
                 moved += 1
