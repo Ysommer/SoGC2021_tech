@@ -3,6 +3,7 @@ from infrastructure.robot import Robot
 from defines import *
 from utils import sum_tuples
 
+
 class Grid:
     def __init__(self, size: int, robots: list, obstacles: list):
         self.size = size
@@ -25,7 +26,7 @@ class Grid:
         global directions_to_coords
 
     def get_cell(self, pos: (int, int)) -> Cell:
-        if (0 <= pos[0] < self.size) and ((0 <= pos[1] < self.size)):
+        if (0 <= pos[0] < self.size) and (0 <= pos[1] < self.size):
             if self.grid[pos[0]][pos[1]] is None:
                 self.grid[pos[0]][pos[1]] = Cell(pos)
             return self.grid[pos[0]][pos[1]]

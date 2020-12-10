@@ -2,8 +2,8 @@ from controlCenter.algos.initAlgo import InitAlgo
 from controlCenter.infrastructure.grid import Grid
 from controlCenter.defines import directions_to_coords
 from controlCenter.infrastructure.robot import Robot
-from controlCenter.utils import move_robot_to_dir
 from controlCenter.infrastructure.cell import Cell
+from controlCenter.utils import sum_tuples
 import queue
 from typing import List
 from random import shuffle, randint
@@ -46,7 +46,7 @@ class BFS(InitAlgo):
             if pos == self.targets[i]:
                 return construct_path(parents, pos)
             for direction in directions_to_coords:
-                next_pos = pos + directions_to_coords[direction]
+                next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if next_pos not in parents and legal_step(pos):
                     q.put(next_pos)
                     # visited.append(next_pos)
@@ -87,8 +87,8 @@ class BFS(InitAlgo):
         for i in self.permutation:
             if self.robots[i].robot_arrived:
                 continue
-            if move_robot_to_dir(self.robots[i], self.grid, self.bfs_list[i][self.progress[i]],
-                                 self.current_turn, self.solution):
+            if InitAlgo.move_robot_to_dir(self.robots[i], self.grid, self.bfs_list[i][self.progress[i]],
+                                          self.current_turn, self.solution):
                 self.progress[i] += 1
                 moved += 1
         return moved
