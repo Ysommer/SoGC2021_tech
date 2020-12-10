@@ -10,8 +10,8 @@ import json
 #inputs
 #paths = [input("Enter Jason Path: \n"), input("Enter Sol Path: \n")]
 paths = [
-    "C:/SoCG/SoGC2021_tech/instances/instances_01/uniform/small_free_000_10x10_30_30.instance.json",
-    "C:/SoCG/SoGC2021_tech/solutions/instances_01/uniform/small_free_000_10x10_30_30/small_free_000_10x10_30_300.json"
+    "../../instances/instances_01/uniform/small_free_000_10x10_30_30.instance.json",
+    "../../solutions/instances_01/uniform/small_free_000_10x10_30_30/small_free_000_10x10_30_300.json"
 ]
 
 
