@@ -26,7 +26,7 @@ class LeftPillar(InitAlgo):
     def step(self) -> int:
         if self.phase == 0 and len(self.robots) == self.num_of_robots_arrived_to_pillar:
             self.phase = 1
-            self.robots_permutation = self.preprocess.sort_robots_by_target_x().copy()
+            self.robots_permutation = self.preprocess.sort_robots_by_target_x(self.robots).copy()
             self.robots_permutation.reverse()
 
         if self.phase == 0:
@@ -78,9 +78,12 @@ class LeftPillar(InitAlgo):
         for i in self.robots_permutation:
             robot = self.robots[i]
 
+            if robot.robot_arrived():
+                continue
+
             # in pillar
             if robot.pos[0] == X_PILLAR_LOC:
-                if move_robot_to_dir(i, self.grid, 'E', self.current_turn, self.solution):
+                if InitAlgo.move_robot_to_dir(i, self.grid, 'E', self.current_turn, self.solution):
                     changed += 1
                 break
 
@@ -88,21 +91,21 @@ class LeftPillar(InitAlgo):
             if robot.pos[0] == X_PILLAR_LOC+1:
                 # exits road, new robot can enter
                 if robot.pos[1] == robot.target_pos[1]:
-                    if move_robot_to_dir(i, self.grid, 'E', self.current_turn, self.solution):
+                    if InitAlgo.move_robot_to_dir(i, self.grid, 'E', self.current_turn, self.solution):
                         changed += 1
                     continue
                 # adjusting y
                 elif robot.pos[1] > robot.target_pos[1]:
-                    if move_robot_to_dir(i, self.grid, 'S', self.current_turn, self.solution):
+                    if InitAlgo.move_robot_to_dir(i, self.grid, 'S', self.current_turn, self.solution):
                         changed += 1
                     break
                 else:
-                    if move_robot_to_dir(i, self.grid, 'N', self.current_turn, self.solution):
+                    if InitAlgo.move_robot_to_dir(i, self.grid, 'N', self.current_turn, self.solution):
                         changed += 1
                     break
 
             # in the way (X >= 0)
-            if move_robot_to_dir(i, self.grid, 'E', self.current_turn, self.solution):
+            if InitAlgo.move_robot_to_dir(i, self.grid, 'E', self.current_turn, self.solution):
                 changed += 1
 
         return changed

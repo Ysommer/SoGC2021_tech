@@ -1,4 +1,5 @@
 from defines import SolutionResult
+import json
 
 
 class Solution:
@@ -12,4 +13,4 @@ class Solution:
 
     def print(self, out_path):
         with open(out_path, 'w') as f:
-            print(str(self.out["steps"]), file=f)
+            json.dump(self.out, f)
