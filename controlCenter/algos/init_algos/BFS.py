@@ -3,12 +3,12 @@ from controlCenter.infrastructure.grid import Grid
 from controlCenter.defines import directions_to_coords
 from controlCenter.infrastructure.robot import Robot
 from controlCenter.utils import move_robot_to_dir
-import queue
-from random import shuffle
+from typing import List
+from random import shuffle, randint
 
 class BFS(InitAlgo):
 
-    def __init__(self, instance_name: str, grid: Grid, robots: list, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None):
+    def __init__(self, instance_name: str, grid: Grid, robots: List[Robot], targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None):
         super().__init__(instance_name, grid, robots, targets, max_makespan, max_sum, preprocess)
 
         self.bfs_list = []
@@ -50,6 +50,31 @@ class BFS(InitAlgo):
                     parents[next_pos] = direction
 
         return []
+
+    def divert(self, num_to_divert: int):
+        odd_round = True  # used to randomize diversion direction
+        diverted = []
+
+        def direction_swapper(arg: (str, bool)) -> (str, str):
+            swap = {
+                ("W", False): ("S", "N"),
+                ("E", False): ("N", "S"),
+                ("N", False): ("W", "E"),
+                ("S", False): ("E", "W"),
+                ("W", True): ("N", "S"),
+                ("E", True): ("S", "N"),
+                ("N", True): ("E", "W"),
+                ("S", True): ("W", "E"),
+            }
+            return swap.get(arg)
+
+        while len(diverted) < num_to_divert:
+            i = randint(range(len(self.robots)))
+            if i not in diverted and not self.robots[i].robot_arrived:
+                diverted.append(i)
+                current_direction = self.bfs_list[i][self.progress[i]]
+                swap = direction_swapper((current_direction, odd_round))
+
 
     def step(self) -> int:
         moved = 0
