@@ -45,11 +45,11 @@ class InitAlgo(abc.ABC):
         return solution
         """
         while True:
-            if self.current_sum > self.max_sum:
+            if self.max_sum != -1 and self.current_sum > self.max_sum:
                 self.solution.result = SolutionResult.EXCEEDED_MAX_SUM
                 return self.solution
 
-            if self.current_turn > self.max_makespan:
+            if self.max_makespan != -1 and self.current_turn > self.max_makespan:
                 self.solution.result = SolutionResult.EXCEEDED_MAX_MAKESPAN
                 return self.solution
 
