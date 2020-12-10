@@ -52,17 +52,17 @@ class LeftPillar(InitAlgo):
 
             # second case - robot moves to his spot
             if robot.pos[1] == i:
-                if InitAlgo.__move_robot_to_dir(id, self.grid, 'W', self.current_turn, self.solution):
+                if InitAlgo.move_robot_to_dir(id, self.grid, 'W', self.current_turn, self.solution):
                     changed += 1
                     if robot.pos[0] == X_PILLAR_LOC:
                         self.num_of_robots_arrived_to_pillar += 1
 
             # third case - robot moves north looking for a spot
             elif robot.pos[1] < i:
-                if InitAlgo.__move_robot_to_dir(id, self.grid, "N", self.current_turn, self.solution):
+                if InitAlgo.move_robot_to_dir(id, self.grid, "N", self.current_turn, self.solution):
                     changed += 1
             else:
-                if InitAlgo.__move_robot_to_dir(id, self.grid, "S", self.current_turn, self.solution):
+                if InitAlgo.move_robot_to_dir(id, self.grid, "S", self.current_turn, self.solution):
                     changed += 1
 
         return changed
