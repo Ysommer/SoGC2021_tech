@@ -1,9 +1,10 @@
 import abc
-from ..solution.solution import Solution
-from ..infrastructure.grid import Grid
+from solution.solution import Solution
+from infrastructure.grid import Grid
+from defines import *
 
 
-class InitAlgo(abc):
+class InitAlgo(abc.ABC):
 
     def __init__(self, instance_name: str, grid: Grid, robots: list, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None):
         self.instance_name = instance_name
@@ -18,13 +19,13 @@ class InitAlgo(abc):
         self.solution = Solution(instance_name)
 
     @abc.abstractmethod
-    def step(self):
+    def step(self) -> int:
         """
         defines a simultaneous step in the algorithm and updates solution.
+        :return number of moved robots
         """
         ...
 
-    @abc.abstractmethod
     def run(self) -> Solution:
         """
         defines the execution of the algorithm.
@@ -43,5 +44,27 @@ class InitAlgo(abc):
 
         return solution
         """
-        ...
+        while True:
+            if self.current_sum > self.max_sum:
+                self.solution.result = SolutionResult.EXCEEDED_MAX_SUM
+                return self.solution
+
+            if self.current_turn > self.max_makespan:
+                self.solution.result = SolutionResult.EXCEEDED_MAX_MAKESPAN
+                return self.solution
+
+            if self.grid.solution_found():
+                self.solution.result = SolutionResult.SUCCESS
+                return self.solution
+
+            self.solution.out["steps"].append({})
+
+            last_turn_sum = self.step()
+
+            if last_turn_sum == 0:
+                self.solution.result = SolutionResult.STUCK
+                return self.solution
+
+            self.current_turn += 1
+            self.current_sum += last_turn_sum
 

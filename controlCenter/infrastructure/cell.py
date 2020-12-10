@@ -1,5 +1,5 @@
 from typing import Iterator, Tuple, Optional, Type, NamedTuple, Union, Callable
-from ..defines import directions_to_coords, EnterCellResult
+from defines import directions_to_coords, EnterCellResult
 
 
 class Cell:

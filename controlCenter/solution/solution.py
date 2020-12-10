@@ -1,4 +1,4 @@
-from ..defines import SolutionResult
+from defines import SolutionResult
 
 
 class Solution:

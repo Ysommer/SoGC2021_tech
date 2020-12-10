@@ -19,7 +19,6 @@ class LeftPillar(InitAlgo):
         """
         self.phase = 0
         self.robots_permutation = preprocess.sort_robots_by_y_than_by_x(robots)
-        self.robots_pillar_targets = {}
         self.num_of_robots_arrived_to_pillar = 0
         global X_PILLAR_LOC
 
@@ -48,20 +47,19 @@ class LeftPillar(InitAlgo):
             if robot.pos[0] == X_PILLAR_LOC:
                 continue
 
-            # second case - robot just find his spot
-            if robot.pos[1] not in self.robots_pillar_targets:
-                self.robots_pillar_targets[robot.pos[1]] = robot.robot_id
-
             # second case - robot moves to his spot
-            if self.robots_pillar_targets[robot.pos[1]] == robot.pos[1]:
+            if robot.pos[1] == i:
                 if move_robot_to_dir(i, self.grid, 'W', self.current_turn, self.solution):
                     changed += 1
                     if robot.pos[0] == X_PILLAR_LOC:
                         self.num_of_robots_arrived_to_pillar += 1
 
             # third case - robot moves north looking for a spot
-            else:
+            elif robot.pos[1] < i:
                 if move_robot_to_dir(i, self.grid, 'N', self.current_turn, self.solution):
+                    changed += 1
+            else:
+                if move_robot_to_dir(i, self.grid, 'S', self.current_turn, self.solution):
                     changed += 1
 
         return changed
@@ -105,28 +103,3 @@ class LeftPillar(InitAlgo):
                 changed += 1
 
         return changed
-
-    def run(self):
-        while True:
-            if sum > self.max_sum:
-                self.solution.result = SolutionResult.EXCEEDED_MAX_SUM
-                return self.solution
-
-            if self.current_turn > self.max_makespan:
-                self.solution.result = SolutionResult.EXCEEDED_MAX_MAKESPAN
-                return self.solution
-
-            if self.grid.solution_found():
-                self.solution.result = SolutionResult.SUCCESS
-                return self.solution
-
-            self.solution.append({})
-
-            last_turn_sum = self.step()
-
-            if last_turn_sum == 0:
-                self.solution.result = SolutionResult.STUCK
-                return self.solution
-
-            self.current_turn += 1
-            self.current_sum += last_turn_sum

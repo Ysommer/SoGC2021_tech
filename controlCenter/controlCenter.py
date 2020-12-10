@@ -1,12 +1,11 @@
-from .infrastructure.grid import *
-from .infrastructure.cell import *
-from .infrastructure.robot import *
-from  .dataCollection.preprocess import *
-from  .dataCollection.postprocess import *
-from .algos.initAlgo import *
-from .algos.initAlgo import *
-from .algos.optimizationAlgo import *
-from .solution.solution import *
+from infrastructure.grid import Grid
+from infrastructure.cell import Cell
+from infrastructure.robot import Robot
+from dataCollection.preprocess import *
+from dataCollection.postprocess import *
+from algos.initAlgo import *
+from algos.optimizationAlgo import *
+from solution.solution import *
 import json
 
 
@@ -37,15 +36,15 @@ class ControlCenter():
 
         self.grid = Grid(self.size, self.robots, self.inputDict["obstacles"])
 
-        self.init_algos = List[InitAlgo]
-        self.optimization_algos = List[OptimizationAlgo]
-        self.solutions = List[Solution]
+        self.init_algos = []
+        self.optimization_algos = []
+        self.solutions = []
         self.max_make_span = max_make_span
         self.max_sum = max_sum
 
     def run_all(self):
         # TODO
-        return
+        pass
 
     def run_an_init_algo(self, algo_id: int) -> Solution:
         # TODO: After initAlgo will be ready
@@ -53,4 +52,4 @@ class ControlCenter():
 
     def run_an_optimization_algo(self, solution: Solution, opt_algo: OptimizationAlgo):
         # TODO
-        return
+        pass
