@@ -5,6 +5,7 @@ from dataCollection.preprocess import *
 from dataCollection.postprocess import *
 from algos.initAlgo import *
 from algos.init_algos.leftPillar import *
+from algos.init_algos.BFS import *
 from algos.optimizationAlgo import *
 from solution.solution import *
 import json
@@ -63,7 +64,7 @@ class ControlCenter():
         pass
 
     def __init_init_algos(self):
-        self.init_algos.append(LeftPillar(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
+        self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
 
     def printSolutions(self):
         for i in range(len(self.solutions)):

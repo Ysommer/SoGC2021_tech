@@ -1,9 +1,9 @@
-from controlCenter.algos.initAlgo import InitAlgo
-from controlCenter.infrastructure.grid import Grid
-from controlCenter.defines import directions_to_coords
-from controlCenter.infrastructure.robot import Robot
-from controlCenter.infrastructure.cell import Cell
-from controlCenter.utils import sum_tuples
+from algos.initAlgo import InitAlgo
+from infrastructure.grid import Grid
+from defines import directions_to_coords
+from infrastructure.robot import Robot
+from infrastructure.cell import *
+from utils import sum_tuples
 import queue
 from typing import List
 from random import shuffle, randint
@@ -29,7 +29,8 @@ class BFS(InitAlgo):
         q.put(self.robots[i].pos)
 
         def legal_step(pos: (int, int)) -> bool:
-            if self.grid.get_cell(pos).is_obs or self.grid.get_cell(pos).has_robot_on_target:
+            next_cell = self.grid.get_cell(pos)
+            if next_cell.is_obs() or next_cell.has_robot_on_target():
                 return False
             return -1 <= pos[0] <= self.grid.size+1 and -1 <= pos[1] <= self.grid.size
 
@@ -47,7 +48,7 @@ class BFS(InitAlgo):
                 return construct_path(parents, pos)
             for direction in directions_to_coords:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
-                if next_pos not in parents and legal_step(pos):
+                if next_pos not in parents and legal_step(next_pos):
                     q.put(next_pos)
                     # visited.append(next_pos)
                     parents[next_pos] = direction

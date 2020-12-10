@@ -40,7 +40,6 @@ class Grid:
         robot = self.robots[robot_id]
         old_pos = robot.pos
         old_cell = self.get_cell(old_pos)
-        desired_pos = robot.pos + directions_to_coords[direction]
         desired_pos = sum_tuples(robot.pos, directions_to_coords[direction])
 
         desired_cell = self.get_cell(desired_pos)
@@ -71,7 +70,7 @@ class Grid:
 
     def __set_targets(self):
         for t in range(len(self.robots)):
-            self.get_cell(self.robots[t].pos).place_target(t)
+            self.get_cell(self.robots[t].target_pos).place_target(t)
 
     def __set_obstacles(self):
         for o in range(len(self.obstacles)):
