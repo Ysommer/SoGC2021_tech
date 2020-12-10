@@ -37,7 +37,8 @@ class SoGC(Model):
 
         for i in range(len(data["starts"])):
             robot = data["starts"][i]
-            cell = Cell((int(robot[0]), int(robot[1])), self, i, RobotType.ROBOT)
+            target = data["targets"][i]
+            cell = Cell((int(robot[0]), int(robot[1])), self, i, RobotType.ROBOT, target)
             if i in tracked:
                 cell.type = RobotType.TRACKED_ROBOT
             if sol is not None:

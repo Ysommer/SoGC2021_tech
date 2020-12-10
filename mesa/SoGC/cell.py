@@ -6,7 +6,7 @@ from collections import deque
 
 class Cell(Agent):
 
-    def __init__(self, pos, model, _id, _type: RobotType):
+    def __init__(self, pos, model, _id, _type: RobotType, target=None):
         """
         Create a cell, in the given state, at the given x, y position.
         """
@@ -15,6 +15,7 @@ class Cell(Agent):
         self.id = _id
         self.type = _type
         self.steps = deque()
+        self.target = target
 
     def addStep(self, step): # Why does a cell takes steps?
         self.steps.append(step)
@@ -28,8 +29,11 @@ class Cell(Agent):
 
         self.steps.popleft()
 
-        if len(self.steps) == 0: # Final target?
-            self.type = RobotType.ROBOT_ON_TARGET
+        if self.type == RobotType.ROBOT or self.type == RobotType.ROBOT_ON_TARGET:
+            if [self.x, self.y] == self.target: # Final target?
+                self.type = RobotType.ROBOT_ON_TARGET
+            else:
+                self.type = RobotType.ROBOT
 
     def advance(self):
         return
