@@ -1,6 +1,7 @@
 from infrastructure.cell import Cell
 from infrastructure.robot import Robot
 from defines import *
+from utils import sum_tuples
 
 class Grid:
     def __init__(self, size: int, robots: list, obstacles: list):
@@ -34,11 +35,13 @@ class Grid:
 
         return self.outBoundaries[pos]
 
-    def move_robot(self, robot_id: int, direction: chr, current_turn: int) -> EnterCellResult:
+    def move_robot(self, robot_id: int, direction: str, current_turn: int) -> EnterCellResult:
         robot = self.robots[robot_id]
         old_pos = robot.pos
         old_cell = self.get_cell(old_pos)
         desired_pos = robot.pos + directions_to_coords[direction]
+        desired_pos = sum_tuples(robot.pos, directions_to_coords[direction])
+
         desired_cell = self.get_cell(desired_pos)
 
         enter_result = desired_cell.enter_cell(robot_id, direction, current_turn)

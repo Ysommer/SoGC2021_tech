@@ -19,7 +19,7 @@ class LeftPillar(InitAlgo):
             1: move robots to targets
         """
         self.phase = 0
-        self.robots_permutation = preprocess.sort_robots_by_y_than_by_x(robots)
+        self.robots_permutation = preprocess.sort_robots_by_y_than_by_x(robots).copy()
         self.num_of_robots_arrived_to_pillar = 0
         global X_PILLAR_LOC
 
@@ -42,8 +42,9 @@ class LeftPillar(InitAlgo):
                 *robot haven't found a spot: keep North
         """
         changed = 0
-        for i in self.robots_permutation:
-            robot = self.robots[i]
+        for i in range(len(self.robots_permutation)):
+            id = self.robots_permutation[i]
+            robot = self.robots[id]
 
             # first case - robot in pillar
             if robot.pos[0] == X_PILLAR_LOC:
@@ -51,17 +52,17 @@ class LeftPillar(InitAlgo):
 
             # second case - robot moves to his spot
             if robot.pos[1] == i:
-                if move_robot_to_dir(i, self.grid, 'W', self.current_turn, self.solution):
+                if InitAlgo.__move_robot_to_dir(id, self.grid, 'W', self.current_turn, self.solution):
                     changed += 1
                     if robot.pos[0] == X_PILLAR_LOC:
                         self.num_of_robots_arrived_to_pillar += 1
 
             # third case - robot moves north looking for a spot
             elif robot.pos[1] < i:
-                if move_robot_to_dir(i, self.grid, 'N', self.current_turn, self.solution):
+                if InitAlgo.__move_robot_to_dir(id, self.grid, "N", self.current_turn, self.solution):
                     changed += 1
             else:
-                if move_robot_to_dir(i, self.grid, 'S', self.current_turn, self.solution):
+                if InitAlgo.__move_robot_to_dir(id, self.grid, "S", self.current_turn, self.solution):
                     changed += 1
 
         return changed
