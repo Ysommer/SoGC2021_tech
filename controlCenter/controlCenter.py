@@ -25,8 +25,7 @@ class ControlCenter():
         last_size_index = first_size_index + (self.name[first_size_index:]).find('_')
         self.size = int(self.name[first_size_index:last_size_index])
 
-        self.preprocess = Preprocess(self.inputDict)
-        self.postprocess = Postprocess(self.inputDict)
+
 
         self.robots = []
         self.targets = []
@@ -37,6 +36,9 @@ class ControlCenter():
             target_pos = (end[0], end[1])
             self.robots.append(Robot(i, pos, target_pos))
             self.targets.append(self.inputDict["targets"][i])
+
+        self.preprocess = Preprocess(self.inputDict, self.robots)
+        self.postprocess = Postprocess(self.inputDict)
 
         self.grid = Grid(self.size, self.robots, self.inputDict["obstacles"])
 

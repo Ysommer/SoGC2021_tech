@@ -5,10 +5,11 @@ from utils import *
 
 class Robot:
 
-    def __init__(self, robot_id: int, pos: (int, int), target_pos: (int, int)):
+    def __init__(self, robot_id: int, pos: (int, int), target_pos: (int, int), extra_data=None):
         self.robot_id = robot_id
         self.pos = pos
         self.target_pos = target_pos
+        self.extra_data = extra_data
 
     def __eq__(self, other):
         assert isinstance(other, Robot)

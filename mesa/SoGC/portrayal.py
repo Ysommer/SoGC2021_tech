@@ -1,4 +1,6 @@
 from .defines import RobotType
+#from .server import original_size
+#from .server import boundaries_factor
 
 def portrayCell(cell):
     """
@@ -9,6 +11,10 @@ def portrayCell(cell):
     """
     assert cell is not None
 
+    #global boundaries_factor
+    #global original_size
+
+    offset =  100#(boundaries_factor//2) * original_size
     colors = {
         RobotType.ROBOT: "green",
         RobotType.TARGET: "red",
@@ -24,7 +30,7 @@ def portrayCell(cell):
         "h": 1,
         "Filled": "true",
         "Layer": 1,
-        "x": cell.x,
+        "x": cell.x + 2,
         "y": cell.y,
         "Color": colors[cell.type],
         "text": str(cell.id),
