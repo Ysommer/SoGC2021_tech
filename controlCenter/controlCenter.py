@@ -1,12 +1,12 @@
-from .infrastructure.grid import *
-from .infrastructure.cell import *
-from .infrastructure.robot import *
-from  .dataCollection.preprocess import *
-from  .dataCollection.postprocess import *
-from .algos.initAlgo import *
-from .algos.initAlgo import *
-from .algos.optimizationAlgo import *
-from .solution.solution import *
+from controlCenter.infrastructure.grid import Grid
+from controlCenter.infrastructure.cell import *
+from controlCenter.infrastructure.robot import *
+from controlCenter.dataCollection.preprocess import *
+from controlCenter.dataCollection.postprocess import *
+from controlCenter.algos.initAlgo import *
+from controlCenter.algos.initAlgo import *
+from controlCenter.algos.optimizationAlgo import *
+from controlCenter.solution.solution import *
 import json
 
 
