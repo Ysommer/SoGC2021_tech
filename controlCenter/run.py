@@ -1,5 +1,5 @@
-from controlCenter.controlCenter import ControlCenter
-from controlCenter.solution.solution import *
+from controlCenter import ControlCenter
+from solution.solution import *
 
 
 def main():

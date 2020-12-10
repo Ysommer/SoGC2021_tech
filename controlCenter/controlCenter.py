@@ -1,12 +1,11 @@
-from controlCenter.infrastructure.grid import Grid
-from controlCenter.infrastructure.cell import *
-from controlCenter.infrastructure.robot import *
-from controlCenter.dataCollection.preprocess import *
-from controlCenter.dataCollection.postprocess import *
-from controlCenter.algos.initAlgo import *
-from controlCenter.algos.initAlgo import *
-from controlCenter.algos.optimizationAlgo import *
-from controlCenter.solution.solution import *
+from infrastructure.grid import Grid
+from infrastructure.cell import Cell
+from infrastructure.robot import Robot
+from dataCollection.preprocess import *
+from dataCollection.postprocess import *
+from algos.initAlgo import *
+from algos.optimizationAlgo import *
+from solution.solution import *
 import json
 
 
@@ -37,9 +36,9 @@ class ControlCenter():
 
         self.grid = Grid(self.size, self.robots, self.inputDict["obstacles"])
 
-        self.init_algos = List[InitAlgo]
-        self.optimization_algos = List[OptimizationAlgo]
-        self.solutions = List[Solution]
+        self.init_algos = []
+        self.optimization_algos = []
+        self.solutions = []
         self.max_make_span = max_make_span
         self.max_sum = max_sum
 

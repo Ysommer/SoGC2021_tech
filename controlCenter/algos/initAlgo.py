@@ -1,10 +1,10 @@
 import abc
-from ..solution.solution import Solution
-from ..infrastructure.grid import Grid
-from ..defines import *
+from solution.solution import Solution
+from infrastructure.grid import Grid
+from defines import *
 
 
-class InitAlgo(abc):
+class InitAlgo(abc.ABC):
 
     def __init__(self, instance_name: str, grid: Grid, robots: list, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None):
         self.instance_name = instance_name

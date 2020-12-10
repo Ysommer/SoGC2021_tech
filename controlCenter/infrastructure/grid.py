@@ -1,10 +1,9 @@
-from .cell import Cell
-from .robot import Robot
-from typing import List
-from ..defines import *
+from infrastructure.cell import Cell
+from infrastructure.robot import Robot
+from defines import *
 
 class Grid:
-    def __init__(self, size: int, robots: List[Robot], obstacles: List[(int, int)]):
+    def __init__(self, size: int, robots: list, obstacles: list):
         self.size = size
 
         # Copy robots to avoid different Grid instances using the same list

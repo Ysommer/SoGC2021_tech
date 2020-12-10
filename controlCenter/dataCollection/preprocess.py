@@ -1,5 +1,4 @@
-from ..infrastructure.robot import Robot
-from typing import List
+from infrastructure.robot import Robot
 
 
 class Preprocess:
@@ -11,7 +10,7 @@ class Preprocess:
         self.sorted_robots_by_y_than_by_x = []
         self.sorted_robots_by_target_x = []
 
-    def sort_robots_by_x(self, robots: List[Robot]) -> List[int]:
+    def sort_robots_by_x(self, robots: list) -> list:
         if len(self.sorted_robots_by_x) > 0:
             return self.sorted_robots_by_x
 
@@ -23,7 +22,7 @@ class Preprocess:
                 self.sorted_robots_by_x.append(i[1])
         return self.sorted_robots_by_x
 
-    def sort_robots_by_y(self, robots: List[Robot]) -> List[int]:
+    def sort_robots_by_y(self, robots: list) -> list:
         if len(self.sorted_robots_by_y) > 0:
             return self.sorted_robots_by_y
 
@@ -35,7 +34,7 @@ class Preprocess:
                 self.sorted_robots_by_y.append(i[1])
         return self.sorted_robots_by_y
 
-    def sort_robots_by_x_than_by_y(self, robots: List[Robot]) -> List[int]:
+    def sort_robots_by_x_than_by_y(self, robots: list) -> list:
         if len(self.sorted_robots_by_x_than_by_y) > 0:
             return self.sorted_robots_by_x_than_by_y
 
@@ -47,7 +46,7 @@ class Preprocess:
                 self.sorted_robots_by_x_than_by_y.append(i[1])
         return self.sorted_robots_by_x_than_by_y
 
-    def sort_robots_by_y_than_by_x(self, robots: List[Robot]) -> List[int]:
+    def sort_robots_by_y_than_by_x(self, robots: list) -> list:
         if len(self.sorted_robots_by_y_than_by_x) > 0:
             return self.sorted_robots_by_y_than_by_x
 
@@ -59,7 +58,7 @@ class Preprocess:
                 self.sorted_robots_by_y_than_by_x.append(i[1])
         return self.sorted_robots_by_y_than_by_x
 
-    def sort_robots_by_target_x(self, robots: List[Robot]) -> List[int]:
+    def sort_robots_by_target_x(self, robots: list) -> list:
         if len(self.sorted_robots_by_target_x) > 0:
             return self.sorted_robots_by_target_x
 
