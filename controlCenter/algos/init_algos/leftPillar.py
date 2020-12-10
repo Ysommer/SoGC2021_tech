@@ -1,14 +1,15 @@
-from ..initAlgo import InitAlgo
-from ...infrastructure.grid import Grid
+from algos.initAlgo import InitAlgo
+from infrastructure.grid import Grid
 from typing import List
-from ...infrastructure.robot import Robot
-from ...dataCollection.preprocess import Preprocess
-from ...defines import *
-from ...utils import *
+from infrastructure.robot import Robot
+from dataCollection.preprocess import Preprocess
+from defines import *
+from utils import *
+
+X_PILLAR_LOC = -2
 
 
 class LeftPillar(InitAlgo):
-    X_PILLAR_LOC = -2
 
     def __init__(self, instance_name: str, grid: Grid, robots: List[Robot], targets: list, max_makespan: int = None, max_sum: int = None, preprocess: Preprocess = None):
         super().__init__(instance_name,grid, robots, targets, max_makespan, max_sum, preprocess)
@@ -25,7 +26,8 @@ class LeftPillar(InitAlgo):
     def step(self) -> int:
         if self.phase == 0 and len(self.robots) == self.num_of_robots_arrived_to_pillar:
             self.phase = 1
-            self.robots_permutation = self.preprocess.sort_robots_by_target_x().reverse()
+            self.robots_permutation = self.preprocess.sort_robots_by_target_x().copy()
+            self.robots_permutation.reverse()
 
         if self.phase == 0:
             return self.step_phase_0()

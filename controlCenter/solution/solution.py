@@ -9,3 +9,7 @@ class Solution:
 
     def update_robot(self, robot_id: int, direction: chr, current_turn: int):
         self.out["steps"][current_turn][str(robot_id)] = direction
+
+    def print(self, out_path):
+        with open(out_path, 'w') as f:
+            print(str(self.out["steps"]), file=f)

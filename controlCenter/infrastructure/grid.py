@@ -10,7 +10,10 @@ class Grid:
         self.robots = robots.copy()
         self.obstacles = obstacles
         self.numOfRobots = len(robots)
-        self.numOfRobotsArrived = len(robots)
+        self.numOfRobotsArrived = 0
+        for r in robots:
+            if r.robot_arrived():
+                self.numOfRobotsArrived += 1
 
         self.grid = [[None for i in range(self.size)] for j in range(self.size)]
         self.outBoundaries = {}
@@ -18,6 +21,7 @@ class Grid:
         self.__set_obstacles()
         self.__set_targets()
         self.__set_robots()
+        global directions_to_coords
 
     def get_cell(self, pos: (int, int)) -> Cell:
         if (0 <= pos[0] < self.size) and ((0 <= pos[1] < self.size)):
