@@ -1,6 +1,6 @@
 from mesa import Agent
 from .defines import RobotType
-from .defines import Direction
+from .defines import *
 from collections import deque
 
 
@@ -24,8 +24,8 @@ class Cell(Agent):
         if len(self.steps) <= 0:
             return
         print("step: ", self.steps[0])
-        self.x += Direction.getX(self.steps[0])
-        self.y += Direction.getY(self.steps[0])
+        self.x += direction_to_val(self.steps[0])[0]
+        self.y += direction_to_val(self.steps[0])[1]
 
         self.steps.popleft()
 

@@ -45,6 +45,8 @@ class SoGC(Model):
                 for s in sol["steps"]:
                     if str(i) in s:
                         cell.addStep(s[str(i)])
+                    else:
+                        cell.addStep("X")
 
             self.grid.place_agent(cell, (cell.x, cell.y))
             self.schedule.add(cell)

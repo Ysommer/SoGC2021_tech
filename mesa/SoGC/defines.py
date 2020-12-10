@@ -9,28 +9,13 @@ class RobotType(Enum):
     TRACKED_ROBOT = 4
     TRACKED_TARGET = 5
 
-class Direction():
-    #Shouldn't you use this dict in the functions?
-    dict = { 
+
+def direction_to_val(direction: str):
+    directions = {
         "W": [-1, 0],
         "N": [0, 1],
         "E": [1, 0],
-        "S": [0, -1]
+        "S": [0, -1],
+        "X": [0, 0]
     }
-    def getX(d): 
-        dict = {
-            "W": [-1, 0],
-            "N": [0, 1],
-            "E": [1, 0],
-            "S": [0, -1]
-        }
-        return dict[d][0]
-
-    def getY(d):
-        dict = {
-            "W": [-1, 0],
-            "N": [0, 1],
-            "E": [1, 0],
-            "S": [0, -1]
-        }
-        return dict[d][1]
+    return directions.get(direction)

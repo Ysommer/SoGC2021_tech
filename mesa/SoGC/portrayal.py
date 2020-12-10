@@ -31,7 +31,7 @@ def portrayCell(cell):
         "text_color": "black"
     }
 
-    if cell.type == RobotType.TARGET or cell.type == RobotType.TRACKED_TARGET or cell.type == RobotType.ROBOT_ON_TARGET:
+    if cell.type == RobotType.TARGET or cell.type == RobotType.TRACKED_TARGET:
         portrayal["Layer"] = 0
 
     if cell.type == RobotType.ROBOT or cell.type == RobotType.TRACKED_ROBOT or cell.type == RobotType.ROBOT_ON_TARGET:
