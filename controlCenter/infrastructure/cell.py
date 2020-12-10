@@ -37,6 +37,10 @@ class Cell:
             return self.occupied
         return None
 
+    def has_robot_on_target(self) -> bool:
+        if self.has_robot() is not None:
+            return self.occupied == self.target_id
+
     def enter_cell(self, robot_id: int, direction: str, current_turn: int, advance: bool = True) -> EnterCellResult:  # this method is only
         assert direction in directions_to_coords
         if self.is_obs():   # if cell is obstacle

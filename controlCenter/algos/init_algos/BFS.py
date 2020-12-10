@@ -3,8 +3,11 @@ from controlCenter.infrastructure.grid import Grid
 from controlCenter.defines import directions_to_coords
 from controlCenter.infrastructure.robot import Robot
 from controlCenter.utils import move_robot_to_dir
+from controlCenter.infrastructure.cell import Cell
+import queue
 from typing import List
 from random import shuffle, randint
+
 
 class BFS(InitAlgo):
 
@@ -26,7 +29,7 @@ class BFS(InitAlgo):
         q.put(self.robots[i].pos)
 
         def legal_step(pos: (int, int)) -> bool:
-            if self.grid.get_cell(pos).is_obs():
+            if self.grid.get_cell(pos).is_obs or self.grid.get_cell(pos).has_robot_on_target:
                 return False
             return -1 <= pos[0] <= self.grid.size+1 and -1 <= pos[1] <= self.grid.size
 
@@ -74,7 +77,9 @@ class BFS(InitAlgo):
                 diverted.append(i)
                 current_direction = self.bfs_list[i][self.progress[i]]
                 swap = direction_swapper((current_direction, odd_round))
-
+                pos = self.robots[i]
+                for direction in swap:
+                    pass
 
     def step(self) -> int:
         moved = 0
