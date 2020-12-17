@@ -50,7 +50,8 @@ class ControlCenter:
         for i in self.init_algos:
             self.solutions.append(i.run())
 
-        self.printSolutions()
+        self.print_solutions()
+        return self.analyze()
 
     def run_an_init_algo(self, algo_id: int) -> Solution:
         # TODO: After initAlgo will be ready
@@ -68,9 +69,16 @@ class ControlCenter:
                                           self.max_sum,
                                           self.preprocess))
 
+        self.init_algos.append(LeftPillar(self.name,
+                                          self.grid,
+                                          self.targets,
+                                          self.max_makespan,
+                                          self.max_sum,
+                                          self.preprocess))
+
         #self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
 
-    def printSolutions(self):
+    def print_solutions(self):
         try:
             os.mkdir(self.solution_path)
         except:
@@ -79,3 +87,23 @@ class ControlCenter:
         for i in range(len(self.solutions)):
             out_file_name = self.solution_path + self.name + "_" + self.init_algos[i].name + ".json"
             self.solutions[i].output(out_file_name)
+
+    def analyze(self):
+        NUM_OF_DIFFERENT_ALGO = 2
+        DIFFERENT_ALGO_BORDER_INDECIES = [1]
+        hist = [False] * NUM_OF_DIFFERENT_ALGO
+        hist_index = 0
+        passed = False
+        for i in range(len(self.solutions)):
+            if i in DIFFERENT_ALGO_BORDER_INDECIES:
+                if passed:
+                    hist[hist_index] = True
+                hist_index += 1
+                passed = False
+
+            passed = passed or self.solutions[i].out["result"] == SolutionResult.SUCCESS.name
+
+        if passed:
+            hist[hist_index] = True
+
+        return hist

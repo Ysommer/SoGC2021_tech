@@ -6,7 +6,7 @@ class Solution:
     def __init__(self, instance_name: str):
         self.out = {"instance": instance_name,
                     "steps": [],
-                    "result": "RUNNING",
+                    "result": SolutionResult.RUNNING.name,
                     "makespan": 0,
                     "sum": 0}
 
