@@ -23,8 +23,6 @@ class Cell(Agent):
     def step(self):
         if len(self.steps) <= 0:
             return
-        print("step: ", self.steps[0])
-
         self.x += direction_to_val(self.steps[0])[0]
         self.y += direction_to_val(self.steps[0])[1]
 

@@ -11,11 +11,11 @@ from random import shuffle, randint
 
 class BFS(InitAlgo):
 
-    def __init__(self, instance_name: str, grid: Grid, robots: List[Robot], targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=""):
-        super().__init__(instance_name, grid, robots, targets, max_makespan, max_sum, preprocess, "BFS" + name)
+    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=""):
+        super().__init__(instance_name, grid, targets, max_makespan, max_sum, preprocess, "BFS" + name)
 
         self.bfs_list = []
-        for i in range(len(robots)):
+        for i in range(len(self.robots)):
             self.bfs_list.append(self.calc_bfs(i))
             assert len(self.bfs_list[i]) > 0
 
@@ -50,7 +50,7 @@ class BFS(InitAlgo):
                 return construct_path(parents, pos)
             for direction in directions_to_coords:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
-                if next_pos not in parents and pos not in blocked and legal_step(next_pos):
+                if next_pos not in parents and next_pos not in blocked and legal_step(next_pos):
                     q.put(next_pos)
                     # visited.append(next_pos)
                     parents[next_pos] = direction
@@ -70,6 +70,8 @@ class BFS(InitAlgo):
                 neighbor = self.grid.get_cell(neighbor_pos).has_robot()
                 if neighbor is not None and neighbor not in recalced:
                     blocked.append(neighbor_pos)
+            if len(blocked) == 4:
+                continue
             new_bfs = self.calc_bfs(i, blocked)
             if len(new_bfs) > 0:
                 self.bfs_list[i] = new_bfs
@@ -78,8 +80,6 @@ class BFS(InitAlgo):
                 if len(recalced) >= num_to_recalc:
                     return len(recalced)
         return len(recalced)
-
-
 
     def divert(self, num_to_divert: int):
         odd_round = True  # used to randomize diversion direction
@@ -122,7 +122,7 @@ class BFS(InitAlgo):
 
     def run(self):
         # i = -1  # REMOVE
-        turns_stuck = 0
+        was_stuck = False
         while True:
             # i += 1  # REMOVE
             # print(i)  # REMOVE
@@ -141,23 +141,30 @@ class BFS(InitAlgo):
                 self.solution.print()
                 return self.solution
 
-            self.solution.out["steps"].append({})
+            if not was_stuck:
+                self.solution.out["steps"].append({})
 
             last_turn_sum = self.step()
 
             if last_turn_sum == 0:
-                turns_stuck += 1
-                if turns_stuck >= 2:
-                    self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
-                    self.solution.print()
-                    return self.solution
+                was_stuck = True
                 robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived
-                print("remain: ", robots_remaining)
+                # print("remain: ", robots_remaining)
                 NUM_TO_UNCLOG = robots_remaining//2
                 recalced = self.unclog(NUM_TO_UNCLOG)
-                print("recalced: ", recalced)
+                if recalced == 0:
+                    NUM_TO_UNCLOG += NUM_TO_UNCLOG//2
+                    recalced = self.unclog(NUM_TO_UNCLOG)
+                    if recalced == 0:
+                        NUM_TO_UNCLOG = robots_remaining
+                        recalced = self.unclog(NUM_TO_UNCLOG)
+                        if recalced == 0:
+                            self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                            self.solution.print()
+                            return self.solution
+                # print("recalced: ", recalced)
                 continue
 
-            turns_stuck = 0
+            was_stuck = False
             self.current_turn += 1
             self.current_sum += last_turn_sum

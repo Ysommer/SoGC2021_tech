@@ -47,8 +47,16 @@ class ControlCenter:
 
     def run_all(self):
         # Run init algos
+        k = 0
         for i in self.init_algos:
+            print("")
+            print("###################")
+            print("running number:", k)
+            print("###################")
             self.solutions.append(i.run())
+            if self.solutions[k].out["result"] == "SUCCESS":
+                break
+            k += 1
 
         self.printSolutions()
 
@@ -61,14 +69,17 @@ class ControlCenter:
         pass
 
     def __init_init_algos(self):
+        '''
         self.init_algos.append(LeftPillar(self.name,
                                           self.grid,
                                           self.targets,
                                           self.max_makespan,
                                           self.max_sum,
                                           self.preprocess))
-
-        #self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
+        '''
+        for i in range(6):
+            add_name = "_" + str(i)
+            self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan, self.max_sum, self.preprocess, add_name))
 
     def printSolutions(self):
         try:
