@@ -6,7 +6,6 @@ from infrastructure.robot import Robot
 from copy import deepcopy
 
 
-
 class InitAlgo(abc.ABC):
 
     def __init__(self, instance_name: str, grid: Grid, robots: list, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=""):

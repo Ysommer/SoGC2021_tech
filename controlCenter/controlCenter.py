@@ -62,8 +62,8 @@ class ControlCenter:
         pass
 
     def __init_init_algos(self):
-        self.init_algos.append(LeftPillar(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
-        #self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
+        #self.init_algos.append(LeftPillar(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
+        self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess, "_0"))
 
     def printSolutions(self):
         try:
@@ -72,5 +72,5 @@ class ControlCenter:
             pass
 
         for i in range(len(self.solutions)):
-            out_file_name = self.solution_path + self.name + "_" + self.init_algos[i].name + "_" + ".json"
+            out_file_name = self.solution_path + self.name + "_" + self.init_algos[i].name + ".json"
             self.solutions[i].output(out_file_name)
