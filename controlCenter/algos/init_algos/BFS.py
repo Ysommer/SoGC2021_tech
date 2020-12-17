@@ -11,8 +11,8 @@ from random import shuffle, randint
 
 class BFS(InitAlgo):
 
-    def __init__(self, instance_name: str, grid: Grid, robots: List[Robot], targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None):
-        super().__init__(instance_name, grid, robots, targets, max_makespan, max_sum, preprocess)
+    def __init__(self, instance_name: str, grid: Grid, robots: List[Robot], targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=""):
+        super().__init__(instance_name, grid, robots, targets, max_makespan, max_sum, preprocess, "BFS" + name)
 
         self.bfs_list = []
         for i in range(len(robots)):
