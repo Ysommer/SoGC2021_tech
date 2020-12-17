@@ -23,14 +23,11 @@ class LeftPillar(InitAlgo):
         global X_PILLAR_LOC
 
         # Set robots their y position in the pillar
-        robots_dests_temp = preprocess.sort_robots_by_y_than_by_x(robots).copy()
+        robots_dests_temp = preprocess.sort_R_y_x()
         for y in range(len(robots_dests_temp)):
             robots[y].extra_data = y
 
-        self.robots_permutation = preprocess.sort_robots_by_y(robots).copy()
-        self.robots_permutation.reverse()
-
-
+        self.robots_permutation = preprocess.sort_R_Y_x()
 
     def step(self) -> int:
         if self.phase == 0 and len(self.robots) == self.num_of_robots_arrived_to_pillar:
