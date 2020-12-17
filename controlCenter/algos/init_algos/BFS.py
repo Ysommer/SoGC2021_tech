@@ -22,7 +22,7 @@ class BFS(InitAlgo):
         self.permutation = [i for i in range(len(self.robots))]
         self.progress = [0 for i in range(len(self.robots))]
 
-    def calc_bfs(self, i: int, blocked: List[(int, int)] = None) -> list:
+    def calc_bfs(self, i: int, blocked: list = None) -> list:
         if blocked is None:
             blocked = []
         parents = {self.robots[i].pos: None}
@@ -145,7 +145,9 @@ class BFS(InitAlgo):
                 robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived
                 NUM_TO_UNCLOG = robots_remaining/2
                 recalced = self.unclog(NUM_TO_UNCLOG)
+                print(recalced)
                 continue
 
+            turns_stuck = 0
             self.current_turn += 1
             self.current_sum += last_turn_sum
