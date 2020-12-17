@@ -26,5 +26,3 @@ def load_all_instances():
 
 def load_instance(index):
     return load_all_instances()[index]
-
-update_table_of_content()
