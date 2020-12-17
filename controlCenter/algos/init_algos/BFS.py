@@ -22,7 +22,9 @@ class BFS(InitAlgo):
         self.permutation = [i for i in range(len(self.robots))]
         self.progress = [0 for i in range(len(self.robots))]
 
-    def calc_bfs(self, i: int) -> list:
+    def calc_bfs(self, i: int, blocked: List[(int, int)] = None) -> list:
+        if blocked is None:
+            blocked = []
         parents = {self.robots[i].pos: None}
         # visited = [self.robots[i].pos]
         q = queue.Queue()
@@ -48,12 +50,33 @@ class BFS(InitAlgo):
                 return construct_path(parents, pos)
             for direction in directions_to_coords:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
-                if next_pos not in parents and legal_step(next_pos):
+                if next_pos not in parents and pos not in blocked and legal_step(next_pos):
                     q.put(next_pos)
                     # visited.append(next_pos)
                     parents[next_pos] = direction
 
         return []
+
+    def unclog(self, num_to_recalc: int):
+        recalced = 0
+        shuffle(self.permutation)
+        for i in self.permutation:
+            if self.robots[i].robot_arrived():
+                continue
+            blocked = []
+            pos = self.robots[i].pos
+            for direction in directions_to_coords:
+                neighbor = sum_tuples(pos, directions_to_coords[direction])
+                if self.grid.get_cell(neighbor).has_robot():
+                    blocked.append(neighbor)
+            new_bfs = self.calc_bfs(i, blocked)
+            if len(new_bfs) > 0:
+                self.bfs_list[i] = new_bfs
+                self.progress[i] = 0
+                recalced += 1
+        return recalced
+
+
 
     def divert(self, num_to_divert: int):
         odd_round = True  # used to randomize diversion direction
@@ -95,6 +118,7 @@ class BFS(InitAlgo):
         return moved
 
     def run(self):
+        turns_stuck = 0
         while True:
             if self.current_sum > self.max_sum:
                 self.solution.result = SolutionResult.EXCEEDED_MAX_SUM
@@ -106,6 +130,7 @@ class BFS(InitAlgo):
 
             if self.grid.solution_found():
                 self.solution.result = SolutionResult.SUCCESS
+                print("SUCCESS YAY!")
                 return self.solution
 
             self.solution.out["steps"].append({})
@@ -113,8 +138,14 @@ class BFS(InitAlgo):
             last_turn_sum = self.step()
 
             if last_turn_sum == 0:
-                self.solution.result = SolutionResult.STUCK
-                return self.solution
+                turns_stuck += 1
+                if turns_stuck >= 2:
+                    self.solution.result = SolutionResult.STUCK
+                    return self.solution
+                robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived
+                NUM_TO_UNCLOG = robots_remaining/2
+                recalced = self.unclog(NUM_TO_UNCLOG)
+                continue
 
             self.current_turn += 1
             self.current_sum += last_turn_sum
