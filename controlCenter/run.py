@@ -1,13 +1,16 @@
 from controlCenter import ControlCenter
 from solution.solution import *
-
+from Utils.loadInstances import *
 
 def main():
-    in_path = "../instances/instances_01/uniform/small_019_20x20_90_329.instance.json"
-    out_path = "../solutions/instances_01/uniform/small_019_20x20_90_329/"
-    paths = [in_path, out_path]
-    controlCenter = ControlCenter(paths, 100000, 100000)
-    controlCenter.run_all()
+    instances_id = [161]
+    instances = load_all_instances()
+
+    for id in instances_id:
+        instance = instances[id]
+        out_path = "../solutions/" + instance.name + "/"
+        controlCenter = ControlCenter(instance, out_path, 50000, 50000)
+        controlCenter.run_all()
 
 if __name__ == "__main__":
     main()

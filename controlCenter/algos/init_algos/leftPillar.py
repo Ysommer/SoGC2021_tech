@@ -12,7 +12,7 @@ X_PILLAR_LOC = -2
 class LeftPillar(InitAlgo):
 
     def __init__(self, instance_name: str, grid: Grid, robots: List[Robot], targets: list, max_makespan: int = None, max_sum: int = None, preprocess: Preprocess = None):
-        super().__init__(instance_name,grid, robots, targets, max_makespan, max_sum, preprocess)
+        super().__init__(instance_name,grid, robots, targets, max_makespan, max_sum, preprocess, "LeftPillar")
         """
             phases:
             0: push all robots to a left pillar at x = X_PILLAR_LOC

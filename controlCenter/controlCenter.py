@@ -9,38 +9,34 @@ from algos.init_algos.BFS import *
 from algos.optimizationAlgo import *
 from solution.solution import *
 import json
+from cgshop2021_pyutils import InstanceDatabase, Instance
+import os
 
 
-class ControlCenter():
-    def __init__(self, paths=None, max_makespan=-1, max_sum=-1):
+class ControlCenter:
+    def __init__(self, instance: Instance, solution_path=None, max_makespan=-1, max_sum=-1):
         # inputs
-        if paths is None:
-            paths = [input("Enter Jason Path: \n"), input("Enter Solution Path: \n")]
-
-        self.paths = paths
-        self.inputDict = json.load(open(paths[0], "r"))
-        self.name = str(self.inputDict["name"])
+        self.solution_path = solution_path
+        self.instance = instance
+        self.name = instance.name
 
         first_size_index = self.name.rfind('x') + 1
         last_size_index = first_size_index + (self.name[first_size_index:]).find('_')
         self.size = int(self.name[first_size_index:last_size_index])
 
-
-
         self.robots = []
         self.targets = []
-        for i in range(len(self.inputDict["starts"])):
-            start = self.inputDict["starts"][i]
-            end = self.inputDict["targets"][i]
-            pos = (start[0], start[1])
-            target_pos = (end[0], end[1])
-            self.robots.append(Robot(i, pos, target_pos))
-            self.targets.append(self.inputDict["targets"][i])
 
-        self.preprocess = Preprocess(self.inputDict, self.robots)
-        self.postprocess = Postprocess(self.inputDict)
+        for i in range(self.instance.number_of_robots):
+            start = self.instance.start_of(i)
+            target = self.instance.target_of(i)
+            self.robots.append(Robot(i, start, target))
+            self.targets.append(target)
 
-        self.grid = Grid(self.size, self.robots, self.inputDict["obstacles"])
+        self.preprocess = Preprocess(self.instance, self.robots)
+        self.postprocess = Postprocess(self.instance)
+
+        self.grid = Grid(self.size, self.robots, self.instance.obstacles)
 
         self.init_algos = []
         self.optimization_algos = []
@@ -66,9 +62,15 @@ class ControlCenter():
         pass
 
     def __init_init_algos(self):
-        self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
+        self.init_algos.append(LeftPillar(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
+        #self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
 
     def printSolutions(self):
+        try:
+            os.mkdir(self.solution_path)
+        except:
+            pass
+
         for i in range(len(self.solutions)):
-            out_file_name = self.paths[1] + self.name + str(i) + ".json"
+            out_file_name = self.solution_path + self.name + "_" + self.init_algos[i].name + "_" + ".json"
             self.solutions[i].output(out_file_name)

@@ -6,12 +6,11 @@ def load_data_base():
 
 
 def update_table_of_content():
-    idb = load_data_base()
-    counter = 0
     f = open("TableOfContents.txt", "w")
-    for i in idb:
-        print(counter, ":", i.name, file=f)
-        counter += 1
+    instances = load_all_instances()
+
+    for i in range(len(instances)):
+        print(i, ":", instances[i].name, file=f)
     f.close()
 
 
@@ -21,9 +20,11 @@ def load_all_instances():
 
     for i in idb:
         instances.append(i)
-
+    instances.sort(key = lambda x: x.name)
     return instances
 
 
 def load_instance(index):
     return load_all_instances()[index]
+
+update_table_of_content()
