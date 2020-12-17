@@ -6,12 +6,12 @@ class Solution:
     def __init__(self, instance_name: str):
         self.out = {"instance": instance_name,
                     "steps": [],
-                    "result": SolutionResult.RUNNING,
+                    "result": "RUNNING",
                     "makespan": 0,
                     "sum": 0}
 
     def put_result(self, result: SolutionResult, makespan: int, sum: int):
-        self.out["result"] = result
+        self.out["result"] = result.name
         self.out["makespan"] = makespan
         self.out["sum"] = sum
 
@@ -23,6 +23,6 @@ class Solution:
             json.dump(self.out, f)
 
     def print(self):
-        print("result: ", SolutionResult(self.out["result"]).name)
+        print("result: ",self.out["result"])
         print("makesapn: ", self.out["makespan"])
         print("sum: ", self.out["sum"])
