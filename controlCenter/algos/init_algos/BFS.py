@@ -17,7 +17,7 @@ class BFS(InitAlgo):
         self.bfs_list = []
         for i in range(len(self.robots)):
             self.bfs_list.append(self.calc_bfs(i))
-            assert len(self.bfs_list[i]) > 0
+            assert len(self.bfs_list[i]) > 0 or self.robots[i].robot_arrived
 
         self.permutation = [i for i in range(len(self.robots))]
         self.progress = [0 for i in range(len(self.robots))]
