@@ -9,6 +9,7 @@ from algos.init_algos.BFS import *
 from algos.optimizationAlgo import *
 from solution.solution import *
 from cgshop2021_pyutils import Instance
+import json
 import os
 
 
@@ -45,12 +46,13 @@ class ControlCenter:
 
         self.__init_init_algos()
 
-    def run_all(self):
+    def run_all(self, print_only_success=False):
         # Run init algos
         for i in self.init_algos:
-            self.solutions.append(i.run())
+            res = i.run()
+            self.solutions.append(res)
 
-        self.print_solutions()
+        self.print_solutions(print_only_success)
         return self.analyze()
 
     def run_an_init_algo(self, algo_id: int) -> Solution:
@@ -72,14 +74,15 @@ class ControlCenter:
         for i in range(5):
             self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan, self.max_sum, self.preprocess, "_"+str(i)))
 
-
-    def print_solutions(self):
+    def print_solutions(self, print_only_success):
         try:
             os.mkdir(self.solution_path)
         except:
             pass
 
         for i in range(len(self.solutions)):
+            if print_only_success and self.solutions[i].out["result"] != SolutionResult.SUCCESS.name:
+                continue
             out_file_name = self.solution_path + self.name + "_" + self.init_algos[i].name + ".json"
             self.solutions[i].output(out_file_name)
 
