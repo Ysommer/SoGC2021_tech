@@ -83,7 +83,7 @@ class ControlCenter:
         for i in range(len(self.solutions)):
             if print_only_success and self.solutions[i].out["result"] != SolutionResult.SUCCESS.name:
                 continue
-            out_file_name = self.solution_path + self.name + "_" + self.init_algos[i].name + ".json"
+            out_file_name = self.solution_path + self.name + "_" + self.init_algos[i].name + "_" + self.solutions[i].out["result"] + ".json"
             self.solutions[i].output(out_file_name)
 
     def analyze(self):
