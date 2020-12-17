@@ -25,8 +25,6 @@ class ControlCenter():
         last_size_index = first_size_index + (self.name[first_size_index:]).find('_')
         self.size = int(self.name[first_size_index:last_size_index])
 
-
-
         self.robots = []
         self.targets = []
         for i in range(len(self.inputDict["starts"])):
@@ -67,6 +65,7 @@ class ControlCenter():
 
     def __init_init_algos(self):
         self.init_algos.append(LeftPillar(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
+        self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
 
     def printSolutions(self):
         for i in range(len(self.solutions)):

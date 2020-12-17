@@ -27,7 +27,7 @@ class Preprocess:
             res = self.sorted_R_x
 
         if len(res) == 0:
-            self.__generic_robots_sort(res, "R_x", robots)
+            self.generic_robots_sort(res, "R_x", robots)
 
         return res.copy()
 
@@ -42,7 +42,7 @@ class Preprocess:
             res = self.sorted_R_x_y
 
         if len(res) == 0:
-            self.__generic_robots_sort(res, "R_x_y", robots)
+            self.generic_robots_sort(res, "R_x_y", robots)
 
         return res.copy()
 
@@ -52,7 +52,7 @@ class Preprocess:
             res = self.sorted_R_x_Y
 
         if len(res) == 0:
-            self.__generic_robots_sort(res, "R_x_Y", robots)
+            self.generic_robots_sort(res, "R_x_Y", robots)
 
         res = res.copy()
         res.reverse()
@@ -64,7 +64,7 @@ class Preprocess:
             res = self.sorted_R_x_Y
 
         if len(res) == 0:
-            self.__generic_robots_sort(res, "R_x_Y", robots)
+            self.generic_robots_sort(res, "R_x_Y", robots)
 
         return res.copy()
 
@@ -80,7 +80,7 @@ class Preprocess:
             res = self.sorted_R_y
 
         if len(res) == 0:
-            self.__generic_robots_sort(res, "R_y", robots)
+            self.generic_robots_sort(res, "R_y", robots)
 
         return res.copy()
 
@@ -95,7 +95,7 @@ class Preprocess:
             res = self.sorted_R_y_x
 
         if len(res) == 0:
-            self.__generic_robots_sort(res, "R_y_x", robots)
+            self.generic_robots_sort(res, "R_y_x", robots)
 
         return res.copy()
 
@@ -105,7 +105,7 @@ class Preprocess:
             res = self.sorted_R_y_X
 
         if len(res) == 0:
-            self.__generic_robots_sort(res, "R_y_X", robots)
+            self.generic_robots_sort(res, "R_y_X", robots)
 
         return res.copy()
 
@@ -119,7 +119,7 @@ class Preprocess:
         res.reverse()
         return res
 
-    def __generic_robots_sort(self, res, code: str, robots: list = None):
+    def generic_robots_sort(self, res, code: str, robots: list = None):
         # A list of tuples ( data_to_sort_by , robot_id)
         data_to_sort_by_index = 0
         robot_id_index = 1
@@ -136,30 +136,31 @@ class Preprocess:
 
     @staticmethod
     def __sort_code_to_value(self, code: str, robot: Robot):
+        pos = ()
+        if code[0] == 'R':
+            pos = robot.pos
+        elif code[0] == 'T':
+            pos = robot.target_pos
+
+        code = code[2:]
+
         X = 0
         Y = 1
 
         # Sort by robots
-        if code == "R_x":
-            return robot.pos[X]
-        if code == "R_y":
-            return robot.pos[Y]
+        if code == "x":
+            return pos[X]
+        if code == "y":
+            return pos[Y]
 
-        if code == "R_x_y":
-            return robot.pos
-        if code == "R_y_x":
-            return (robot.pos[Y], robot.pos[X])
+        if code == "x_y":
+            return pos
+        if code == "y_x":
+            return (pos[Y], pos[X])
 
-        if code == "R_x_Y":
-            return (robot.pos[X], (-1)*robot.pos[Y])
-        if code == "R_y_X":
-            return (robot.pos[Y], (-1)*robot.pos[X])
-
-
-        # Sort by Targets
-        if code == "T_x":
-            return robot.target_pos[0]
-        if code == "T_y":
-            return robot.target_pos[1]
+        if code == "x_Y":
+            return (pos[X], (-1)*pos[Y])
+        if code == "y_X":
+            return (pos[Y], (-1)*pos[X])
 
         return robot.extra_data
