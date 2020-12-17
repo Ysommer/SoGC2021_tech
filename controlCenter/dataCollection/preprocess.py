@@ -163,4 +163,14 @@ class Preprocess:
         if code == "y_X":
             return (pos[Y], (-1)*pos[X])
 
+        if code == "X_y":
+            return ((-1)*pos[X], pos[Y])
+        if code == "Y_x":
+            return ((-1)*pos[Y], pos[X])
+
+        if code == "X_Y":
+            return ((-1)*pos[X], (-1)*pos[Y])
+        if code == "Y_X":
+            return ((-1)*pos[Y], (-1)*pos[X])
+
         return robot.extra_data
