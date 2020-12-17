@@ -21,3 +21,8 @@ class Solution:
     def output(self, out_path):
         with open(out_path, 'w') as f:
             json.dump(self.out, f)
+
+    def print(self):
+        print("result: ", SolutionResult(self.out["result"]).name)
+        print("makesapn: ", self.out["makespan"])
+        print("sum: ", self.out["sum"])

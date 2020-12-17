@@ -125,15 +125,17 @@ class BFS(InitAlgo):
             print(i)  # REMOVE
             if self.current_sum > self.max_sum:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
+                self.solution.print()
                 return self.solution
 
             if self.current_turn > self.max_makespan:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_MAKESPAN, self.current_turn, self.current_sum)
+                self.solution.print()
                 return self.solution
 
             if self.grid.solution_found():
                 self.solution.put_result(SolutionResult.SUCCESS, self.current_turn, self.current_sum)
-                print("SUCCESS YAY!")
+                self.solution.print()
                 return self.solution
 
             self.solution.out["steps"].append({})
@@ -144,6 +146,7 @@ class BFS(InitAlgo):
                 turns_stuck += 1
                 if turns_stuck >= 2:
                     self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                    self.solution.print()
                     return self.solution
                 robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived
                 print("remain: ", robots_remaining)
