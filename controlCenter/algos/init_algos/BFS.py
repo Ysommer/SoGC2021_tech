@@ -58,7 +58,7 @@ class BFS(InitAlgo):
         return []
 
     def unclog(self, num_to_recalc: int):
-        recalced = 0
+        recalced = []
         shuffle(self.permutation)
         for i in self.permutation:
             if self.robots[i].robot_arrived():
@@ -66,15 +66,18 @@ class BFS(InitAlgo):
             blocked = []
             pos = self.robots[i].pos
             for direction in directions_to_coords:
-                neighbor = sum_tuples(pos, directions_to_coords[direction])
-                if self.grid.get_cell(neighbor).has_robot():
-                    blocked.append(neighbor)
+                neighbor_pos = sum_tuples(pos, directions_to_coords[direction])
+                neighbor = self.grid.get_cell(neighbor_pos).has_robot()
+                if neighbor is not None and neighbor not in recalced:
+                    blocked.append(neighbor_pos)
             new_bfs = self.calc_bfs(i, blocked)
             if len(new_bfs) > 0:
                 self.bfs_list[i] = new_bfs
                 self.progress[i] = 0
-                recalced += 1
-        return recalced
+                recalced.append(i)
+                if len(recalced) >= num_to_recalc:
+                    return len(recalced)
+        return len(recalced)
 
 
 
@@ -118,11 +121,11 @@ class BFS(InitAlgo):
         return moved
 
     def run(self):
-        i = -1  # REMOVE
+        # i = -1  # REMOVE
         turns_stuck = 0
         while True:
-            i += 1  # REMOVE
-            print(i)  # REMOVE
+            # i += 1  # REMOVE
+            # print(i)  # REMOVE
             if self.current_sum > self.max_sum:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
                 self.solution.print()
@@ -150,7 +153,7 @@ class BFS(InitAlgo):
                     return self.solution
                 robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived
                 print("remain: ", robots_remaining)
-                NUM_TO_UNCLOG = robots_remaining/2
+                NUM_TO_UNCLOG = robots_remaining//2
                 recalced = self.unclog(NUM_TO_UNCLOG)
                 print("recalced: ", recalced)
                 continue
