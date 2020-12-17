@@ -8,11 +8,11 @@ from copy import deepcopy
 
 class InitAlgo(abc.ABC):
 
-    def __init__(self, instance_name: str, grid: Grid, robots: list, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=""):
+    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=""):
         self.name = name
         self.instance_name = instance_name
         self.grid = deepcopy(grid)
-        self.robots = deepcopy(robots)
+        self.robots = self.grid.robots
         self.targets = targets
         self.max_makespan = max_makespan
         self.max_sum = max_sum

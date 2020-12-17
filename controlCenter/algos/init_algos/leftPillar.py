@@ -11,8 +11,8 @@ X_PILLAR_LOC = -2
 
 class LeftPillar(InitAlgo):
 
-    def __init__(self, instance_name: str, grid: Grid, robots: List[Robot], targets: list, max_makespan: int = None, max_sum: int = None, preprocess: Preprocess = None):
-        super().__init__(instance_name,grid, robots, targets, max_makespan, max_sum, preprocess, "LeftPillar")
+    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess: Preprocess = None):
+        super().__init__(instance_name,grid, targets, max_makespan, max_sum, preprocess, "LeftPillar")
         """
             phases:
             0: push all robots to a left pillar at x = X_PILLAR_LOC
@@ -25,14 +25,15 @@ class LeftPillar(InitAlgo):
         # Set robots their y position in the pillar
         robots_dests_temp = preprocess.sort_R_y_x()
         for y in range(len(robots_dests_temp)):
-            robots[robots_dests_temp[y]].extra_data = y
+            self.robots[robots_dests_temp[y]].extra_data = y
 
         self.robots_permutation = preprocess.sort_R_Y_x()
 
     def step(self) -> int:
         if self.phase == 0 and len(self.robots) == self.num_of_robots_arrived_to_pillar:
             self.phase = 1
-            self.preprocess.generic_robots_sort(self.robots_permutation, "T_X_y")
+            self.robots_permutation.clear()
+            self.preprocess.generic_robots_sort(self.robots_permutation, "T_X_y", self.robots)
 
         if self.phase == 0:
             return self.step_phase_0()

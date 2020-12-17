@@ -10,7 +10,7 @@ import json
 #inputs
 paths = [
     "../instances/instances_01/uniform/small_free_000_10x10_30_30.instance.json",
-    "../solutions/small_free_000_10x10_30_30/small_free_000_10x10_30_30_LeftPillar_.json"
+    "../solutions/small_free_000_10x10_30_30/small_free_000_10x10_30_30_LeftPillar.json"
 ]
 
 

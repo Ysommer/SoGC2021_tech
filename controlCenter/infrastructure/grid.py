@@ -9,7 +9,7 @@ class Grid:
         self.size = size
 
         # Copy robots to avoid different Grid instances using the same list
-        self.robots = robots.copy()
+        self.robots = robots
         self.obstacles = obstacles
         self.numOfRobots = len(robots)
         self.numOfRobotsArrived = 0

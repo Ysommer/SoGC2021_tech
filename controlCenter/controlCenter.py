@@ -8,8 +8,7 @@ from algos.init_algos.leftPillar import *
 from algos.init_algos.BFS import *
 from algos.optimizationAlgo import *
 from solution.solution import *
-import json
-from cgshop2021_pyutils import InstanceDatabase, Instance
+from cgshop2021_pyutils import Instance
 import os
 
 
@@ -62,8 +61,14 @@ class ControlCenter:
         pass
 
     def __init_init_algos(self):
-        #self.init_algos.append(LeftPillar(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
-        self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess, "_0"))
+        self.init_algos.append(LeftPillar(self.name,
+                                          self.grid,
+                                          self.targets,
+                                          self.max_makespan,
+                                          self.max_sum,
+                                          self.preprocess))
+
+        #self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
 
     def printSolutions(self):
         try:

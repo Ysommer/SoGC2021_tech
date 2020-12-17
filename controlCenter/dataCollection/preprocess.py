@@ -125,7 +125,7 @@ class Preprocess:
         robot_id_index = 1
         data_to_sort_by = []
         for r in self.robots:
-            data_to_sort_by.append((self.__sort_code_to_value(self, code, r), r.robot_id))
+            data_to_sort_by.append((self.__sort_code_to_value(code, r), r.robot_id))
 
         # sort
         data_to_sort_by.sort(key=lambda x: x[data_to_sort_by_index])
@@ -135,7 +135,7 @@ class Preprocess:
             res.append(i[robot_id_index])
 
     @staticmethod
-    def __sort_code_to_value(self, code: str, robot: Robot):
+    def __sort_code_to_value(code: str, robot: Robot):
         pos = ()
         if code[0] == 'R':
             pos = robot.pos

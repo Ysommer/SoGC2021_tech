@@ -2,8 +2,9 @@ from controlCenter import ControlCenter
 from solution.solution import *
 from Utils.loadInstances import *
 
+
 def main():
-    instances_id = []
+    instances_id = [161]
     instances = load_all_instances()
 
     for id in instances_id:
