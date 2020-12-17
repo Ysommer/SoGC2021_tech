@@ -76,7 +76,7 @@ class ControlCenter:
                                           self.max_sum,
                                           self.preprocess))
 
-        #self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
+        self.init_algos.append(BFS(self.name, self.grid, self.robots, self.targets, self.max_makespan, self.max_sum, self.preprocess))
 
     def print_solutions(self):
         try:
