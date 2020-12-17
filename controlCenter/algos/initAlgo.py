@@ -3,6 +3,7 @@ from solution.solution import Solution
 from infrastructure.grid import Grid
 from defines import *
 from infrastructure.robot import Robot
+from copy import deepcopy
 
 
 
@@ -11,8 +12,8 @@ class InitAlgo(abc.ABC):
     def __init__(self, instance_name: str, grid: Grid, robots: list, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=""):
         self.name = name
         self.instance_name = instance_name
-        self.grid = grid
-        self.robots = robots
+        self.grid = deepcopy(grid)
+        self.robots = deepcopy(robots)
         self.targets = targets
         self.max_makespan = max_makespan
         self.max_sum = max_sum
