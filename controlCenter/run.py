@@ -19,7 +19,7 @@ def main():
         max_sum = 4 * max_makespan
 
         controlCenter = ControlCenter(instance, out_path, max_makespan, max_sum)
-        analyzed_data[id] = controlCenter.run_all()
+        analyzed_data[id] = controlCenter.run_all(True)
 
     f = open("analyzed_data.json", "w")
     json.dump(analyzed_data, f)
