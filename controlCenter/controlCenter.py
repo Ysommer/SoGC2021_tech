@@ -71,4 +71,4 @@ class ControlCenter():
     def printSolutions(self):
         for i in range(len(self.solutions)):
             out_file_name = self.paths[1] + self.name + str(i) + ".json"
-            self.solutions[i].print(out_file_name)
+            self.solutions[i].output(out_file_name)

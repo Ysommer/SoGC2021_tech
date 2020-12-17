@@ -48,15 +48,16 @@ class InitAlgo(abc.ABC):
         """
         while True:
             if self.max_sum != -1 and self.current_sum > self.max_sum:
-                self.solution.result = SolutionResult.EXCEEDED_MAX_SUM
+                self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
+                self.solution.out["result"] = SolutionResult.EXCEEDED_MAX_SUM
                 return self.solution
 
             if self.max_makespan != -1 and self.current_turn > self.max_makespan:
-                self.solution.result = SolutionResult.EXCEEDED_MAX_MAKESPAN
+                self.solution.put_result(SolutionResult.EXCEEDED_MAX_MAKESPAN, self.current_turn, self.current_sum)
                 return self.solution
 
             if self.grid.solution_found():
-                self.solution.result = SolutionResult.SUCCESS
+                self.solution.put_result(SolutionResult.SUCCESS, self.current_turn, self.current_sum)
                 return self.solution
 
             self.solution.out["steps"].append({})
@@ -64,7 +65,7 @@ class InitAlgo(abc.ABC):
             last_turn_sum = self.step()
 
             if last_turn_sum == 0:
-                self.solution.result = SolutionResult.STUCK
+                self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
                 return self.solution
 
             self.current_turn += 1

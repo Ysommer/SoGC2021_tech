@@ -10,8 +10,8 @@ import json
 #inputs
 #paths = [input("Enter Jason Path: \n"), input("Enter Sol Path: \n")]
 paths = [
-    "../instances/instances_01/uniform/small_free_000_10x10_30_30.instance.json",
-    "../solutions/instances_01/uniform/small_free_000_10x10_30_30/small_free_000_10x10_30_300.json"
+    "../instances/instances_01/uniform/small_019_20x20_90_329.instance.json",
+    "../solutions/instances_01/uniform/small_019_20x20_90_329/small_019_20x20_90_3290.json"
 ]
 
 
@@ -24,7 +24,7 @@ size = int(name[first_size_index:last_size_index])
 display = 50*size
 
 # Make a world that is 50x50, on a 250x250 display.
-canvas_element = CanvasGrid(portrayCell, size+5, size+5, display, display)
+canvas_element = CanvasGrid(portrayCell, size+7, size+7, display, display)
 
 tracked = []
 t = input("Track id: ")

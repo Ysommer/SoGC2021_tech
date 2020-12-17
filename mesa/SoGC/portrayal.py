@@ -30,8 +30,8 @@ def portrayCell(cell):
         "h": 1,
         "Filled": "true",
         "Layer": 1,
-        "x": cell.x + 2,
-        "y": cell.y,
+        "x": cell.x + 4,
+        "y": cell.y + 4,
         "Color": colors[cell.type],
         "text": str(cell.id),
         "text_color": "black"

@@ -34,7 +34,7 @@ class BFS(InitAlgo):
             next_cell = self.grid.get_cell(pos)
             if next_cell.is_obs() or next_cell.has_robot_on_target():
                 return False
-            return -1 <= pos[0] <= self.grid.size+1 and -1 <= pos[1] <= self.grid.size
+            return -3 <= pos[0] <= self.grid.size + 2 and -3 <= pos[1] <= self.grid.size + 2
 
         def construct_path(parents: dict, pos: (int, int))-> list:
             path = []
@@ -118,18 +118,21 @@ class BFS(InitAlgo):
         return moved
 
     def run(self):
+        i = -1  # REMOVE
         turns_stuck = 0
         while True:
+            i += 1  # REMOVE
+            print(i)  # REMOVE
             if self.current_sum > self.max_sum:
-                self.solution.result = SolutionResult.EXCEEDED_MAX_SUM
+                self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
                 return self.solution
 
             if self.current_turn > self.max_makespan:
-                self.solution.result = SolutionResult.EXCEEDED_MAX_MAKESPAN
+                self.solution.put_result(SolutionResult.EXCEEDED_MAX_MAKESPAN, self.current_turn, self.current_sum)
                 return self.solution
 
             if self.grid.solution_found():
-                self.solution.result = SolutionResult.SUCCESS
+                self.solution.put_result(SolutionResult.SUCCESS, self.current_turn, self.current_sum)
                 print("SUCCESS YAY!")
                 return self.solution
 
@@ -140,12 +143,13 @@ class BFS(InitAlgo):
             if last_turn_sum == 0:
                 turns_stuck += 1
                 if turns_stuck >= 2:
-                    self.solution.result = SolutionResult.STUCK
+                    self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
                     return self.solution
                 robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived
+                print("remain: ", robots_remaining)
                 NUM_TO_UNCLOG = robots_remaining/2
                 recalced = self.unclog(NUM_TO_UNCLOG)
-                print(recalced)
+                print("recalced: ", recalced)
                 continue
 
             turns_stuck = 0
