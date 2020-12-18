@@ -23,6 +23,8 @@ class Solution:
             json.dump(self.out, f)
 
     def print(self):
-        print("result: ",self.out["result"])
+        print('###################')
+        print("result: ", self.out["result"])
         print("makesapn: ", self.out["makespan"])
         print("sum: ", self.out["sum"])
+        print('\n')

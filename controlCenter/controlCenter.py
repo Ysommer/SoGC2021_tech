@@ -46,10 +46,13 @@ class ControlCenter:
 
         self.__init_init_algos()
 
-    def run_all(self, print_only_success=False):
+    def run_all(self, print_only_success=False, stop_on_success=False):
         # Run init algos
         for i in self.init_algos:
             res = i.run()
+            if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
+                self.solutions.append(res)
+                break
             self.solutions.append(res)
 
         self.print_solutions(print_only_success)
@@ -64,14 +67,16 @@ class ControlCenter:
         pass
 
     def __init_init_algos(self):
+        '''
         self.init_algos.append(LeftPillar(self.name,
                                           self.grid,
                                           self.targets,
                                           self.max_makespan,
                                           self.max_sum,
                                           self.preprocess))
+        '''
 
-        for i in range(5):
+        for i in range(12):
             self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan, self.max_sum, self.preprocess, "_"+str(i)))
 
     def print_solutions(self, print_only_success):

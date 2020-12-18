@@ -59,8 +59,10 @@ class BFS(InitAlgo):
 
     def unclog(self, num_to_recalc: int):
         recalced = []
+        check_if_blocked = True
         shuffle(self.permutation)
         for i in self.permutation:
+            check_if_blocked = not check_if_blocked
             if self.robots[i].robot_arrived():
                 continue
             blocked = []
@@ -79,6 +81,9 @@ class BFS(InitAlgo):
                 recalced.append(i)
                 if len(recalced) >= num_to_recalc:
                     return len(recalced)
+            elif len(blocked) == 0 or check_if_blocked and len(self.calc_bfs(i)) == 0:
+                print(i, "is STUCK!")
+                return -1
         return len(recalced)
 
     def divert(self, num_to_divert: int):
@@ -146,24 +151,39 @@ class BFS(InitAlgo):
 
             last_turn_sum = self.step()
 
+            robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived
             if last_turn_sum == 0:
                 was_stuck = True
-                robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived
                 # print("remain: ", robots_remaining)
                 NUM_TO_UNCLOG = robots_remaining//2
                 recalced = self.unclog(NUM_TO_UNCLOG)
+                if recalced == -1:
+                    self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                    self.solution.print()
+                    return self.solution
                 if recalced == 0:
                     NUM_TO_UNCLOG += NUM_TO_UNCLOG//2
                     recalced = self.unclog(NUM_TO_UNCLOG)
+                    if recalced == -1:
+                        self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                        self.solution.print()
+                        return self.solution
                     if recalced == 0:
                         NUM_TO_UNCLOG = robots_remaining
                         recalced = self.unclog(NUM_TO_UNCLOG)
-                        if recalced == 0:
+                        if recalced <= 0:
                             self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
                             self.solution.print()
                             return self.solution
                 # print("recalced: ", recalced)
                 continue
+            elif last_turn_sum <= robots_remaining // 3:
+                NUM_TO_UNCLOG = robots_remaining // 2
+                recalced = self.unclog(NUM_TO_UNCLOG)
+                if recalced < 0:
+                    self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                    self.solution.print()
+                    return self.solution
 
             was_stuck = False
             self.current_turn += 1
