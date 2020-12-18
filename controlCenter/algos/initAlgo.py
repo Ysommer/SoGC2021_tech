@@ -19,7 +19,7 @@ class InitAlgo(abc.ABC):
         self.preprocess = preprocess
         self.current_turn = 0
         self.current_sum = 0
-        self.solution = Solution(instance_name)
+        self.solution = Solution(instance_name, self.name)
 
     @abc.abstractmethod
     def step(self) -> int:

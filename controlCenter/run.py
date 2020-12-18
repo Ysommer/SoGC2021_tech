@@ -3,14 +3,12 @@ from solution.solution import *
 from Utils.loadInstances import *
 from cgshop2021_pyutils import Instance
 import json
+from Utils.compress_solutions_and_validate import compress_solutions_and_validate
+
 
 def main():
-    instances_id = [i for i in range(170, 180)]
+    instances_id = [i for i in range(161, 180)]
     instances = load_all_instances()
-    f = open("analyzed_data.json", "r")
-    analyzed_data = json.load(f)
-    f.close()
-    f = open("analyzed_data.json", "w")
 
     for id in instances_id:
         instance = instances[id]
@@ -21,11 +19,19 @@ def main():
         max_sum = 10 * max_makespan
 
         controlCenter = ControlCenter(instance, out_path, max_makespan, max_sum)
-        analyzed_data[id] = controlCenter.run_all()
+        controlCenter.run_all()
 
 
-    json.dump(analyzed_data, f)
-    f.close()
+
+
+def make_a_zip():
+    compress_solutions_and_validate()
+
+
+def analyze():
+    out_file = "analyzed_data.csv"
+
+
 
 if __name__ == "__main__":
     main()

@@ -4,7 +4,7 @@ from infrastructure.robot import Robot
 from dataCollection.preprocess import *
 from dataCollection.postprocess import *
 from algos.initAlgo import *
-from algos.init_algos.leftPillar import *
+from algos.init_algos.LeftPillar import *
 from algos.init_algos.BFS import *
 from algos.optimizationAlgo import *
 from solution.solution import *
@@ -80,14 +80,12 @@ class ControlCenter:
                                           self.max_makespan,
                                           self.max_sum,
                                           self.preprocess))
-        '''
 
-        for i in range(12):
-            self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan, self.max_sum, self.preprocess, "_"+str(i)))
-        '''
+        for i in range(10):
+            self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan // 2, self.max_sum // 2, self.preprocess, "_"+str(i)))
+
     def print_last_solution(self):
-        out_file_name = self.solution_path + self.name + "_" + self.init_algos[-1].name + "_" + self.solutions[-1].out["result"] + ".json"
-        self.solutions[-1].output(out_file_name)
+        self.solutions[-1].output( self.solution_path, self.name)
 
     def analyze(self):
         NUM_OF_DIFFERENT_ALGO = 2
