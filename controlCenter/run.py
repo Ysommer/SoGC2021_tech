@@ -5,11 +5,13 @@ from cgshop2021_pyutils import Instance
 import json
 
 def main():
-    instances_id = [i for i in range(175, 181)]
+    instances_id = [i for i in range(170, 171)]
     instances = load_all_instances()
     f = open("analyzed_data.json", "r")
     analyzed_data = json.load(f)
     f.close()
+    # f = open("analyzed_data.json", "w")
+
     for id in instances_id:
         instance = instances[id]
         print("Start instance: ", instance.name, "(number:"+str(id)+")")
@@ -20,9 +22,8 @@ def main():
 
         controlCenter = ControlCenter(instance, out_path, max_makespan, max_sum)
         analyzed_data[id] = controlCenter.run_all(print_only_success=True, stop_on_success=True)
+        # json.dump(analyzed_data, f)
 
-    # f = open("analyzed_data.json", "w")
-    # json.dump(analyzed_data, f)
     # f.close()
 
 if __name__ == "__main__":

@@ -46,16 +46,22 @@ class ControlCenter:
 
         self.__init_init_algos()
 
+        try:
+            os.mkdir(self.solution_path)
+        except:
+            pass
+
     def run_all(self, print_only_success=False, stop_on_success=False):
         # Run init algos
         for i in self.init_algos:
             res = i.run()
-            if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
-                self.solutions.append(res)
-                break
             self.solutions.append(res)
+            if (not print_only_success) or res.out["result"] == SolutionResult.SUCCESS.name:
+                self.print_last_solution()
 
-        self.print_solutions(print_only_success)
+            if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
+                break
+
         return self.analyze()
 
     def run_an_init_algo(self, algo_id: int) -> Solution:
@@ -79,17 +85,9 @@ class ControlCenter:
         for i in range(12):
             self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan, self.max_sum, self.preprocess, "_"+str(i)))
 
-    def print_solutions(self, print_only_success):
-        try:
-            os.mkdir(self.solution_path)
-        except:
-            pass
-
-        for i in range(len(self.solutions)):
-            if print_only_success and self.solutions[i].out["result"] != SolutionResult.SUCCESS.name:
-                continue
-            out_file_name = self.solution_path + self.name + "_" + self.init_algos[i].name + "_" + self.solutions[i].out["result"] + ".json"
-            self.solutions[i].output(out_file_name)
+    def print_last_solution(self):
+        out_file_name = self.solution_path + self.name + "_" + self.init_algos[-1].name + "_" + self.solutions[-1].out["result"] + ".json"
+        self.solutions[-1].output(out_file_name)
 
     def analyze(self):
         NUM_OF_DIFFERENT_ALGO = 2
