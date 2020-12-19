@@ -90,10 +90,21 @@ class ControlCenter:
                                           self.targets,
                                           self.max_makespan,
                                           self.max_sum,
-                                          self.preprocess))
+                                          self.preprocess,
+                                          name= "_default"))
+
+        self.init_algos.append(OutAndInBFS(self.name,
+                                            self.grid,
+                                            self.targets,
+                                            self.max_makespan,
+                                            self.max_sum,
+                                            self.preprocess,
+                                            start_fill_from=(self.size//2, self.size//2),
+                                            reverse_fill=False,
+                                           name="_travel_from_center"))
 
     def print_last_solution(self):
-        self.solutions[-1].output( self.solution_path, self.name)
+        self.solutions[-1].output(self.solution_path, self.name)
 
     def analyze(self):
         NUM_OF_DIFFERENT_ALGO = 2

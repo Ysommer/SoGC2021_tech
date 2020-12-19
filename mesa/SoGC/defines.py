@@ -20,10 +20,11 @@ def direction_to_val(direction: str):
     }
     return directions.get(direction)
 
-X_OFFSET = 7
-Y_OFFSET = 7
+
+X_OFFSET = 10
+Y_OFFSET = 10
 
 BOUNDARIES_FACTOR = 3
 
-Instance_name = "small_free_002_10x10_50_50"
-Sol_name = "small_free_002_10x10_50_50_BFS_1_SUCCESS_MSPAN97_SUM784"
+Instance_name = "small_free_001_10x10_40_40"
+Sol_name = "small_free_001_10x10_40_40_OutAndInBFS_default_STUCK_MSPAN11_SUM211.json"

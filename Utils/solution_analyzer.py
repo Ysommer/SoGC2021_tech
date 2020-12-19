@@ -1,5 +1,5 @@
 import os
-from controlCenter.solution.solution import SolutionResult
+from solution.solution import SolutionResult
 import json
 
 INSTANCES_PATH = "../instances/instances-zip/instances.zip"
@@ -112,8 +112,3 @@ def analyze_solutions(to_print: bool = True):
             instances[-1].print()
 
     return instances
-
-
-data = analyze_solutions(False)
-for i in data:
-    print(i)

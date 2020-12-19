@@ -36,6 +36,17 @@ class Grid:
 
         return self.outBoundaries[pos]
 
+    def check_if_cell_is_free(self, pos: (int, int)):
+        if (0 <= pos[0] < self.size) and (0 <= pos[1] < self.size):
+            if self.grid[pos[0]][pos[1]] is None:
+                return True
+            return self.grid[pos[0]][pos[1]].is_empty_from_robots_and_obs()
+
+        if pos not in self.outBoundaries:
+            return True
+
+        return self.outBoundaries[pos[0], pos[1]].is_empty_from_robots_and_obs()
+
     def move_robot(self, robot_id: int, direction: str, current_turn: int) -> EnterCellResult:
         robot = self.robots[robot_id]
         old_pos = robot.pos

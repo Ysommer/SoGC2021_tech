@@ -8,12 +8,14 @@ from utils import *
 from random import shuffle, randint
 import queue
 from collections import deque
+from dataCollection.Generator import Generator
 
 
 class OutAndInBFS(InitAlgo):
 
-    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess: Preprocess = None):
-        super().__init__(instance_name,grid, targets, max_makespan, max_sum, preprocess, "OutAndInBFS")
+    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess: Preprocess = None,
+                 name="", start_fill_from=(0, 0), reverse_fill=True, boundaries=None):
+        super().__init__(instance_name,grid, targets, max_makespan, max_sum, preprocess, "OutAndInBFS" + name)
         """
             phases:
             0: push all robots outside the board
@@ -27,10 +29,34 @@ class OutAndInBFS(InitAlgo):
             self.step_phase_1
         ]
         self.robots_outside = 0
+        self.start_fill_from = start_fill_from
+        self.reverse_fill = reverse_fill
+        if boundaries is None:
+            boundaries = {
+                "N": self.grid.size + 1,
+                "E": self.grid.size + 1,
+                "W": -2,
+                "S": -2,
+            }
+
+        self.boundaries = boundaries
 
         self.bfs_list = []
         for i in range(len(self.robots)):
-            self.bfs_list.append(self.calc_bfs(i, self.is_pos_out))
+            robot = self.robots[i]
+            self.bfs_list.append(
+                Generator.get_bfs_path(
+                    source_pos=robot.pos,
+                    dest_params=self.grid.size,
+                    clear_cell_params=self.grid,
+                    boundaries=self.boundaries,
+                    dest_key=self.is_pos_out,
+                    clear_cell_key=Generator.cell_is_clear_ignore_robots_not_on_target
+                )
+            )
+            if len(self.bfs_list[-1]) == 0:
+                print("Can't find any bfs for robot", i)
+                assert 0
             self.robots[i].extra_data = len(self.bfs_list[-1])
 
         self.permutation = []
@@ -39,80 +65,26 @@ class OutAndInBFS(InitAlgo):
         self.last_index_on_the_road = 0
         self.max_dist_from_zero = 0
 
-
-    def is_pos_out(self, i, pos):
-        return not (0 <= pos[0] < self.grid.size and 0 <= pos[1] < self.grid.size)
+    @staticmethod
+    def is_pos_out(pos, size):
+        return not (-1 <= pos[0] < size + 1 and -1 <= pos[1] < size + 1)
 
     def is_pos_on_target(self, i, pos):
         return pos == tuple(self.targets[i])
 
     def get_robot_area(self, robot: Robot):
         pos = robot.pos
-        if pos[1] < 0:
-            return "S"
+        if not self.is_pos_out(pos, self.grid.size):
+            return "X"
+
         if pos[1] >= self.grid.size:
             return "N"
+        if pos[1] < 0:
+            return "S"
         if pos[0] < 0:
             return "W"
         if pos[0] >= self.grid.size:
             return "E"
-
-        return "X"
-
-    def calc_bfs(self, i: int, key, blocked: list = None) -> deque:
-        if blocked is None:
-            blocked = []
-
-        parents = {self.robots[i].pos: None}
-        # visited = [self.robots[i].pos]
-        q = queue.Queue()
-        q.put(self.robots[i].pos)
-
-        def construct_path(parents: dict, pos: (int, int)) -> deque:
-            path = []
-            while parents[pos] is not None:
-                path.append(parents[pos])
-                pos = sub_tuples(pos, directions_to_coords[parents[pos]])
-
-            return deque(path[::-1])  # return reversed path
-
-        while not q.empty():
-            pos = q.get()
-            if key(i, pos):
-                return construct_path(parents, pos)
-            for direction in directions_to_coords:
-                next_pos = sum_tuples(pos, directions_to_coords[direction])
-                if next_pos not in parents and next_pos not in blocked and self.legal_bfs_step(next_pos):
-                    q.put(next_pos)
-                    # visited.append(next_pos)
-                    parents[next_pos] = direction
-
-        return deque()
-
-    def calc_bfs_dist_from_zero(self):
-        been = []
-        current_level = []
-        next_level = []
-        next_level.append((0, 0))
-        dist = 0
-        number_of_target_founds = 0
-
-        while len(next_level) > 0:
-            current_level.clear()
-            current_level = next_level
-            next_level = []
-            dist += 1
-            for pos in current_level:
-                for direction in directions_to_coords:
-                    next_pos = sum_tuples(pos, directions_to_coords[direction])
-                    if next_pos not in been and next_pos and self.legal_bfs_step(next_pos):
-                        next_level.append(next_pos)
-                        been.append(next_pos)
-                        if next_pos in self.targets:
-                            self.robots[self.targets.index(next_pos)].extra_data = dist
-                            number_of_target_founds += 1
-                            if number_of_target_founds == len(self.targets):
-                                return
 
         assert 0
 
@@ -123,10 +95,16 @@ class OutAndInBFS(InitAlgo):
         return -10 <= pos[0] <= self.grid.size + 9 and -10 <= pos[1] <= self.grid.size + 9
 
     def step(self) -> int:
-        if self.phase == 0 and self.robots_outside == len(self.robots):
-            self.switch_phase_0_to_1()
+        moved = self.phases[self.phase]()
+        if self.phase == 0:
+            if moved == 0:
+                self.switch_phase_0_to_1()
+                return self.phases[self.phase]()
 
-        return self.phases[self.phase]()
+            if self.robots_outside == len(self.robots):
+                self.switch_phase_0_to_1()
+
+        return moved
 
     def step_phase_0(self) -> int:
         """
@@ -149,24 +127,53 @@ class OutAndInBFS(InitAlgo):
                         self.robots_outside += 1
 
             if area == "N":
-                if robot.pos[1] == self.grid.size or  \
-                        not self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["S"])).is_empty():
+                if self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["S"])).has_robot():
                     moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
+                elif robot.pos[0] % 3 == 1:
+                    if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                        moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                        moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                        moved += 1
 
-            if area == "S":
-                if robot.pos[1] == -1 or  \
-                        not self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["N"])).is_empty():
+            elif area == "S":
+                if self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["N"])).has_robot():
                     moved += InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution)
+                elif robot.pos[0] % 3 == 1:
+                    if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                        moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                        moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                        moved += 1
 
-            if area == "W":
-                if robot.pos[0] == -1 or \
-                        not self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["E"])).is_empty():
+            elif area == "W":
+                if self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["E"])).has_robot():
                     moved += InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution)
+                elif robot.pos[1] % 3 == 1:
+                    if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                        moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                        moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                        moved += 1
 
-            if area == "E":
-                if robot.pos[0] == self.grid.size or  \
-                        not self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["W"])).is_empty():
+            elif area == "E":
+                if self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["W"])).has_robot():
                     moved += InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution)
+                elif robot.pos[1] % 3 == 1:
+                    if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                        moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                        moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                        moved += 1
+
+            self.boundaries["W"] = min(self.boundaries["W"], robot.pos[0] - 1)
+            self.boundaries["S"] = min(self.boundaries["S"], robot.pos[1] - 1)
+            self.boundaries["N"] = max(self.boundaries["N"], robot.pos[1] + 1)
+            self.boundaries["E"] = max(self.boundaries["E"], robot.pos[0] + 1)
 
         return moved
 
@@ -178,37 +185,57 @@ class OutAndInBFS(InitAlgo):
             *robot in the way (x>=0) go East
         """
         moved = 0
-        if self.robots[self.permutation[self.last_index_on_the_road]].robot_arrived():
-            self.last_index_on_the_road += 1
 
-        if InitAlgo.move_robot_to_dir(self.permutation[self.last_index_on_the_road], self.grid, self.bfs_list[self.last_index_on_the_road][0],
+        moving_robot_id = self.permutation[self.last_index_on_the_road]
+        robot = self.robots[moving_robot_id]
+
+        if InitAlgo.move_robot_to_dir(moving_robot_id, self.grid, self.bfs_list[moving_robot_id][0],
                                       self.current_turn, self.solution):
-            self.bfs_list[self.last_index_on_the_road].popleft()
+            self.bfs_list[moving_robot_id].popleft()
             moved += 1
 
-        """for i in self.permutation:
-            if self.robots[i].robot_arrived():
-                continue
-            if InitAlgo.move_robot_to_dir(i, self.grid, self.bfs_list[i][0],
-                                          self.current_turn, self.solution):
-                self.bfs_list[i].popleft()
-                moved += 1
-        """
+        if robot.robot_arrived():
+            self.last_index_on_the_road += 1
 
         return moved
-
-
 
     def switch_phase_0_to_1(self):
         self.phase += 1
         blocked = [r.pos for r in self.robots]
 
         self.permutation.clear()
-        self.calc_bfs_dist_from_zero()
-        self.preprocess.generic_robots_sort(self.permutation, "EXTRA", self.robots)
-        self.permutation.reverse()
+        dests = Generator.calc_travel_distance(
+            source_pos=self.start_fill_from,
+            dest_params=self.targets,
+            clear_cell_params=self.grid,
+            boundaries=self.boundaries,
+            out_size=len(self.targets),
+            blocked=blocked,
+            clear_cell_key=Generator.cell_is_clear_ignore_robots_not_on_target
+        )
+
+        assert dests is not None
+
+        for i in range(len(dests)):
+            self.robots[i].extra_data = dests[i]
+
+        self.preprocess.generic_robots_sort(self.permutation, "EXTRA", self.robots)     # sort by dists
+
+        if self.reverse_fill:
+            self.permutation.reverse()
         self.max_dist_from_zero = self.robots[self.permutation[0]].extra_data
 
         for i in self.permutation:
-            self.bfs_list[i] = self.calc_bfs(i, self.is_pos_on_target, blocked)
-            blocked.append(self.targets[i])
+            robot = self.robots[i]
+            self.bfs_list[i].clear()
+            self.bfs_list[i] = Generator.get_bfs_path(
+                source_pos=robot.pos,
+                dest_params=robot.target_pos,
+                clear_cell_params=self.grid,
+                boundaries=self.boundaries,
+                blocked=blocked
+            )
+            if len(self.bfs_list[i]) == 0:
+                print("Step 2: can't find any path for robot", str(i))
+                assert 0
+            blocked.append(robot.target_pos)
