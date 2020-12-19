@@ -6,6 +6,7 @@ from dataCollection.postprocess import *
 from algos.initAlgo import *
 from algos.init_algos.LeftPillar import *
 from algos.init_algos.BFS import *
+from algos.init_algos.OutAndInBFS import *
 from algos.optimizationAlgo import *
 from solution.solution import *
 from cgshop2021_pyutils import Instance
@@ -73,7 +74,7 @@ class ControlCenter:
         pass
 
     def __init_init_algos(self):
-
+        """
         self.init_algos.append(LeftPillar(self.name,
                                           self.grid,
                                           self.targets,
@@ -82,7 +83,14 @@ class ControlCenter:
                                           self.preprocess))
 
         for i in range(10):
-            self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan // 2, self.max_sum // 2, self.preprocess, "_"+str(i)))
+            self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan // 2, self.max_sum // 2, self.preprocess, "_"+str(i)))"""
+
+        self.init_algos.append(OutAndInBFS(self.name,
+                                          self.grid,
+                                          self.targets,
+                                          self.max_makespan,
+                                          self.max_sum,
+                                          self.preprocess))
 
     def print_last_solution(self):
         self.solutions[-1].output( self.solution_path, self.name)

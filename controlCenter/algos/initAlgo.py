@@ -72,9 +72,9 @@ class InitAlgo(abc.ABC):
             self.current_sum += last_turn_sum
 
     @staticmethod
-    def move_robot_to_dir(robot_id: int, grid: Grid, direction: str, current_turn: int, solution: Solution) -> bool:
+    def move_robot_to_dir(robot_id: int, grid: Grid, direction: str, current_turn: int, solution: Solution) -> int:
         if grid.move_robot(robot_id, direction, current_turn) == EnterCellResult.SUCCESS:
             solution.update_robot(robot_id, direction, current_turn)
-            return True
+            return 1
 
-        return False
+        return 0

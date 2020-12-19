@@ -120,11 +120,14 @@ class Preprocess:
         return res
 
     def generic_robots_sort(self, res, code: str, robots: list = None):
+        if robots is None:
+            robots = self.robots
+
         # A list of tuples ( data_to_sort_by , robot_id)
         data_to_sort_by_index = 0
         robot_id_index = 1
         data_to_sort_by = []
-        for r in self.robots:
+        for r in robots:
             data_to_sort_by.append((self.__sort_code_to_value(code, r), r.robot_id))
 
         # sort
@@ -136,6 +139,10 @@ class Preprocess:
 
     @staticmethod
     def __sort_code_to_value(code: str, robot: Robot):
+
+        if code == "EXTRA":
+            return robot.extra_data
+
         pos = ()
         if code[0] == 'R':
             pos = robot.pos
@@ -173,4 +180,7 @@ class Preprocess:
         if code == "Y_X":
             return ((-1)*pos[Y], (-1)*pos[X])
 
-        return robot.extra_data
+
+
+        print("### Code doesn't exist ###")
+        assert 0

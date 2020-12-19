@@ -7,7 +7,7 @@ from Utils.compress_solutions_and_validate import compress_solutions_and_validat
 
 
 def main():
-    instances_id = [i for i in range(161, 180)]
+    instances_id = [i for i in range(161, 162)]
     instances = load_all_instances()
 
     for id in instances_id:

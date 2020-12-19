@@ -10,6 +10,7 @@ X_PILLAR_LOC = -3
 X_SOUTH_ROAD = -2
 X_NORTH_ROAD = -1
 
+
 class LeftPillar(InitAlgo):
 
     def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess: Preprocess = None):
