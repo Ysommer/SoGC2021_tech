@@ -23,6 +23,15 @@ def compress_solutions(solution_paths = SOLUTIONS_PATH, solution_zip_path = SOLU
     zipf.close()
 
 
+def clean_bad_solutions(solution_paths = SOLUTIONS_PATH):
+    for root, dirs, files in os.walk(solution_paths):
+        for file in files:
+            if "SUCCESS" not in file:
+                print("Removing:", root + "/" + file)
+                os.remove(root + "/" + file)
+
+
 def compress_solutions_and_validate():
+    clean_bad_solutions()
     compress_solutions()
     validate_solution_zip(SOLUTIONS_PATH, INSTANCES_PATH)

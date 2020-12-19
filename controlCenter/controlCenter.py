@@ -4,9 +4,7 @@ from infrastructure.robot import Robot
 from dataCollection.preprocess import *
 from dataCollection.postprocess import *
 from algos.initAlgo import *
-from algos.init_algos.LeftPillar import *
 from algos.init_algos.BFS import *
-from algos.init_algos.OutAndInBFS import *
 from algos.optimizationAlgo import *
 from solution.solution import *
 from cgshop2021_pyutils import Instance
@@ -55,13 +53,21 @@ class ControlCenter:
     def run_all(self, print_only_success=False, stop_on_success=False):
         # Run init algos
         for i in self.init_algos:
-            res = i.run()
+            print("Algo:", i.name,"starts running")
+            try:
+                res = i.run()
+            except:
+                print("Failure in :", i.name)
+                continue
+            print("Algo:", i.name, "done with solutions", res.out["result"])
             self.solutions.append(res)
             if (not print_only_success) or res.out["result"] == SolutionResult.SUCCESS.name:
                 self.print_last_solution()
 
             if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
                 break
+
+            print("\n")
 
         return self.analyze()
 
@@ -73,7 +79,11 @@ class ControlCenter:
         # TODO
         pass
 
+    def add_init_algo(self, algo: classmethod, name="_"):
+        self.init_algos.append(algo(self.name, self.grid, self.targets, self.max_makespan // 2, self.max_sum // 2, self.preprocess, name))
+
     def __init_init_algos(self):
+        pass
         """
         self.init_algos.append(LeftPillar(self.name,
                                           self.grid,
@@ -83,7 +93,7 @@ class ControlCenter:
                                           self.preprocess))
 
         for i in range(10):
-            self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan // 2, self.max_sum // 2, self.preprocess, "_"+str(i)))"""
+            self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan // 2, self.max_sum // 2, self.preprocess, "_"+str(i)))
 
         self.init_algos.append(OutAndInBFS(self.name,
                                           self.grid,
@@ -92,7 +102,7 @@ class ControlCenter:
                                           self.max_sum,
                                           self.preprocess,
                                           name= "_default"))
-
+        
         self.init_algos.append(OutAndInBFS(self.name,
                                             self.grid,
                                             self.targets,
@@ -101,7 +111,7 @@ class ControlCenter:
                                             self.preprocess,
                                             start_fill_from=(self.size//2, self.size//2),
                                             reverse_fill=False,
-                                           name="_travel_from_center"))
+                                           name="_travel_from_center"))"""
 
     def print_last_solution(self):
         self.solutions[-1].output(self.solution_path, self.name)
