@@ -111,7 +111,8 @@ class ControlCenter:
                                             self.preprocess,
                                             start_fill_from=(self.size//2, self.size//2),
                                             reverse_fill=False,
-                                           name="_travel_from_center"))"""
+                                           name="_travel_from_center"))
+                                           """
 
     def print_last_solution(self):
         self.solutions[-1].output(self.solution_path, self.name)
