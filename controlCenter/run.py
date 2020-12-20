@@ -23,7 +23,7 @@ def main():
         print("Start instance: ", instance.name, "(number:"+str(id)+")")
         out_path = "../solutions/" + instance.name + "/"
         num_of_robots = instance.number_of_robots
-        max_makespan = 38 * num_of_robots
+        max_makespan = 35 * num_of_robots
         max_sum = 10 * max_makespan
 
         control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
@@ -47,7 +47,6 @@ def ys_control_center_initiate(instance, out_path , max_makespan, max_sum):
     for i in range(150):
         control_center.add_init_algo(BFS, name="_"+str(i))
     return control_center
-
 
 
 def analyze(to_console=True, to_file=False):
