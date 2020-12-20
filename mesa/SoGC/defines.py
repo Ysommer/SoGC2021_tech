@@ -26,10 +26,10 @@ Y_OFFSET = 30
 
 BOUNDARIES_FACTOR = 3
 
-Category = "images"
-# Category = "uniform"
-Instance_name = "clouds_00001_50x50_40_912"
-Sol_name = "clouds_00001_50x50_40_912_OutAndInBFS_default_EXCEEDED_MAX_MAKESPAN_MSPAN36481_SUM50880.json"
+# Category = "images"
+Category = "uniform"
+Instance_name = "medium_000_30x30_20_90"
+Sol_name = "medium_000_30x30_20_90_OutAndInBFS_default_SUCCESS_MSPAN2995_SUM3492.json.json"
 
 while Sol_name.find(".json.json") != -1:
     Sol_name = Sol_name[:(-1)*len(".json")]

@@ -4,11 +4,11 @@ from infrastructure.grid import Grid
 from defines import *
 from infrastructure.robot import Robot
 from copy import deepcopy
-
+from utils import Timer
 
 class InitAlgo(abc.ABC):
 
-    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=""):
+    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name="", print_info=True):
         self.name = name
         self.instance_name = instance_name
         self.grid = deepcopy(grid)
@@ -20,6 +20,8 @@ class InitAlgo(abc.ABC):
         self.current_turn = 0
         self.current_sum = 0
         self.solution = Solution(instance_name, self.name)
+        self.print_info = print_info
+        self.run_timer = Timer(self.name + " runtime")
 
     @abc.abstractmethod
     def step(self) -> int:
@@ -47,18 +49,20 @@ class InitAlgo(abc.ABC):
 
         return solution
         """
+        self.run_timer.start()
+        last_milestone = 0
         while True:
             if self.max_sum != -1 and self.current_sum > self.max_sum:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
-                return self.solution
+                break
 
             if self.max_makespan != -1 and self.current_turn > self.max_makespan:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_MAKESPAN, self.current_turn, self.current_sum)
-                return self.solution
+                break
 
             if self.grid.solution_found():
                 self.solution.put_result(SolutionResult.SUCCESS, self.current_turn, self.current_sum)
-                return self.solution
+                break
 
             self.solution.out["steps"].append({})
 
@@ -66,10 +70,18 @@ class InitAlgo(abc.ABC):
 
             if last_turn_sum == 0:
                 self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
-                return self.solution
+                break
 
             self.current_turn += 1
             self.current_sum += last_turn_sum
+
+            if (100 * self.grid.numOfRobotsArrived) // len(self.robots) >= last_milestone + 10:
+                last_milestone = (((100 * self.grid.numOfRobotsArrived) // len(self.robots)) // 10) * 10
+                print(last_milestone,"% of robots arrived")
+
+        self.run_timer.end(self.print_info)
+        return self.solution
+
 
     @staticmethod
     def move_robot_to_dir(robot_id: int, grid: Grid, direction: str, current_turn: int, solution: Solution) -> int:

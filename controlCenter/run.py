@@ -15,7 +15,7 @@ from algos.init_algos.BFS import *
 
 
 def main():
-    instances_id = [i for i in range(193, 194)]
+    instances_id = [i for i in range(0, 20)]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -26,7 +26,7 @@ def main():
         max_makespan = 35 * num_of_robots
         max_sum = 10 * max_makespan
 
-        control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
+        control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
 
         control_center.run_all(print_only_success=True, stop_on_success=True)
 
@@ -36,8 +36,10 @@ def make_a_zip():
 
 
 def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
+    print_info = True
+    data_bundle = None
     control_center = ControlCenter(instance, out_path, -1, -1)
-    control_center.add_init_algo(OutAndInBFS, name="_default")
+    control_center.add_init_algo(OutAndInBFS, name="_default", print_info=print_info, data_bundle=data_bundle)
 
     return control_center
 

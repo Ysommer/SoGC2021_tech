@@ -55,7 +55,7 @@ class Generator:
             dest_params,
             clear_cell_params,  # usually will be/contain the grid
             boundaries,
-            blocked: list = None,
+            blocked=None,
             dest_key=None,
             clear_cell_key=None,
             preferred_direction_order=None) -> deque:
@@ -72,7 +72,7 @@ class Generator:
         :return: a dequeue of bfs path
         """
         if blocked is None:
-            blocked = []
+            blocked = {}
 
         if clear_cell_key is None:
             clear_cell_key = Generator.default_cell_is_clear_key

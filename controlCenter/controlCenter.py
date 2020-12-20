@@ -79,8 +79,18 @@ class ControlCenter:
         # TODO
         pass
 
-    def add_init_algo(self, algo: classmethod, name="_"):
-        self.init_algos.append(algo(self.name, self.grid, self.targets, self.max_makespan // 2, self.max_sum // 2, self.preprocess, name))
+    def add_init_algo(self, algo: classmethod, name="_", print_info=True, data_bundle=None):
+        self.init_algos.append(
+            algo(
+                self.name,
+                self.grid,
+                self.targets,
+                self.max_makespan,
+                self.max_sum,
+                self.preprocess,
+                name=name,
+                print_info=print_info,
+                data_bundle=data_bundle))
 
     def __init_init_algos(self):
         pass

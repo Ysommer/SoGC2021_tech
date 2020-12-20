@@ -12,10 +12,16 @@ from dataCollection.Generator import Generator
 
 
 class OutAndInBFS(InitAlgo):
-
-    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess: Preprocess = None,
-                 name="", start_fill_from=(0, 0), reverse_fill=True, boundaries=None):
-        super().__init__(instance_name,grid, targets, max_makespan, max_sum, preprocess, "OutAndInBFS" + name)
+    def __init__(self, instance_name: str,
+                 grid: Grid,
+                 targets: list,
+                 max_makespan: int = -1,
+                 max_sum: int = -1,
+                 preprocess: Preprocess = None,
+                 name="",
+                 print_info=True,
+                 data_bundle=None):
+        super().__init__(instance_name, grid, targets, max_makespan, max_sum, preprocess, "OutAndInBFS" + name, print_info)
         """
             phases:
             0: push all robots outside the board
@@ -23,22 +29,35 @@ class OutAndInBFS(InitAlgo):
             
             robot.extra_data = state in {0 - on the way out, 1 - waiting outside, 2 - moving to target}
         """
+        init_time = Timer(self.name + " init")
+        init_time.start()
+
         self.phase = 0
         self.phases = [
             self.step_phase_0,
             self.step_phase_1
         ]
-        self.start_fill_from = start_fill_from
-        self.reverse_fill = reverse_fill
-        if boundaries is None:
-            boundaries = {
-                "N": self.grid.size + 2,
-                "E": self.grid.size + 2,
-                "W": -3,
-                "S": -3,
-            }
+        self.phases_timers = [
+            Timer("phase 0 timer"),
+            Timer("phase 1 timer")
+        ]
 
-        self.boundaries = boundaries
+        self.start_fill_from = (0, 0)
+        self.reverse_fill = True
+        self.boundaries = {
+            "N": self.grid.size + 2,
+            "E": self.grid.size + 2,
+            "W": -3,
+            "S": -3,
+        }
+
+        if data_bundle is not None:
+            if "start_fill_from" in data_bundle:
+                self.start_fill_from = data_bundle["start_fill_from"]
+            if "reverse_fill" in data_bundle:
+                self.reverse_fill = data_bundle["reverse_fill"]
+            if "boundaries" in data_bundle:
+                self.boundaries = data_bundle["boundaries"]
 
         self.bfs_list = []
         for i in range(len(self.robots)):
@@ -67,44 +86,16 @@ class OutAndInBFS(InitAlgo):
         for d in directions_to_coords:
             self.off_boundaries_groups[d] = []
 
-    @staticmethod
-    def is_pos_out(pos, size):
-        return not OutAndInBFS.is_pos_inbound(pos, size)
-
-    @staticmethod
-    def is_pos_inbound(pos, size):
-        return -1 <= pos[0] <= size and -1 <= pos[1] <= size
-
-    def is_pos_on_target(self, i, pos):
-        return pos == tuple(self.targets[i])
-
-    def get_robot_area(self, robot: Robot):
-        pos = robot.pos
-        if self.is_pos_inbound(pos, self.grid.size):
-            return "X"
-
-        if pos[1] >= self.grid.size:
-            return "N"
-        if pos[1] < 0:
-            return "S"
-        if pos[0] < 0:
-            return "W"
-        if pos[0] >= self.grid.size:
-            return "E"
-
-        assert 0
-
-    def legal_bfs_step(self, pos: (int, int)) -> bool:
-        next_cell = self.grid.get_cell(pos)
-        if next_cell.is_obs() or next_cell.has_robot_on_target():
-            return False
-        return -10 <= pos[0] <= self.grid.size + 9 and -10 <= pos[1] <= self.grid.size + 9
+        init_time.end(to_print=self.print_info)
 
     def step(self) -> int:
+        self.phases_timers[self.phase].start()
         moved = self.phases[self.phase]()
-        if self.phase == 0 and moved == 0:
-            self.switch_phase_0_to_1()
-            return self.phases[self.phase]()
+        if moved == 0:
+            self.phases_timers[self.phase].end(self.print_info)
+            if self.phase == 0:
+                self.switch_phase_0_to_1()
+                return self.phases[self.phase]()
 
         return moved
 
@@ -121,7 +112,7 @@ class OutAndInBFS(InitAlgo):
             robot = self.robots[i]
             if self.grid.get_cell((robot.pos[0], self.grid.size)).has_robot() is not None:
                 moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
-            elif robot.pos[0] % 3 == 1:
+            elif robot.pos[0] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
                     moved += 1
                 elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
@@ -134,7 +125,7 @@ class OutAndInBFS(InitAlgo):
             robot = self.robots[i]
             if self.grid.get_cell((robot.pos[0], -1)).has_robot() is not None:
                 moved += InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution)
-            elif robot.pos[0] % 3 == 1:
+            elif robot.pos[0] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
                     moved += 1
                 elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
@@ -147,7 +138,7 @@ class OutAndInBFS(InitAlgo):
             robot = self.robots[i]
             if self.grid.get_cell((-1, robot.pos[1])).has_robot() is not None:
                 moved += InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution)
-            elif robot.pos[1] % 3 == 1:
+            elif robot.pos[1] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
                     moved += 1
                 elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
@@ -160,7 +151,7 @@ class OutAndInBFS(InitAlgo):
             robot = self.robots[i]
             if self.grid.get_cell((self.grid.size, robot.pos[1])).has_robot() is not None:
                 moved += InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution)
-            elif robot.pos[1] % 3 == 1:
+            elif robot.pos[1] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
                     moved += 1
                 elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
@@ -191,6 +182,100 @@ class OutAndInBFS(InitAlgo):
 
         return moved
 
+    def switch_phase_0_to_1(self):
+        time_phase_switch = Timer("Switch phase 0 to 1")
+        time_phase_switch.start()
+
+        self.phase += 1
+
+        time_phase_switch_1 = Timer("part 1")
+        time_phase_switch_1.start()
+
+        blocked = {}
+        for r in self.robots:
+            blocked[r.pos] = None
+
+        self.permutation.clear()
+        dests = Generator.calc_travel_distance(
+            source_pos=self.start_fill_from,
+            dest_params=self.targets,
+            clear_cell_params=self.grid,
+            boundaries=self.boundaries,
+            out_size=len(self.targets),
+            blocked=blocked,
+            clear_cell_key=Generator.cell_is_clear_ignore_robots_not_on_target
+        )
+
+        time_phase_switch_1.end(True)
+        time_phase_switch_2 = Timer("part 2")
+        time_phase_switch_2.start()
+        assert dests is not None
+
+        for i in range(len(dests)):
+            self.robots[i].extra_data = dests[i]
+
+        self.preprocess.generic_robots_sort(self.permutation, "EXTRA", self.robots)     # sort by dists
+
+        if self.reverse_fill:
+            self.permutation.reverse()
+        self.max_dist_from_zero = self.robots[self.permutation[0]].extra_data
+
+        time_phase_switch_2.end(True)
+        time_phase_switch_3 = Timer("part 3")
+        time_phase_switch_3.start()
+
+        for i in self.permutation:
+            robot = self.robots[i]
+
+            boundaries = {
+                "N": self.grid.size,
+                "S": -1,
+                "W": -1,
+                "E": self.grid.size
+            }
+
+            # to optimize bfs
+            self.bfs_list[i].clear()
+
+            if i in self.off_boundaries_groups["N"]:
+                """
+                if robot.pos[0] % 3 == 1:
+                    self.bfs_list[i].append("W")
+                elif robot.pos[0] % 3 == 2:
+                    self.bfs_list[i].append("E")
+
+                for y in range(robot.pos[1], boundaries["N"]-1, -1):
+                    self.bfs_list[i].append("S")"""
+
+                boundaries["N"] = robot.pos[1]
+            elif i in self.off_boundaries_groups["S"]:
+                boundaries["S"] = robot.pos[1]
+            elif i in self.off_boundaries_groups["E"]:
+                boundaries["E"] = robot.pos[0]
+            elif i in self.off_boundaries_groups["W"]:
+                boundaries["W"] = robot.pos[0]
+            else:
+                print("Robot out of any off_boundaries_groups")
+                assert 0
+
+
+            self.bfs_list[i] = Generator.get_bfs_path(
+                source_pos=robot.pos,
+                dest_params=robot.target_pos,
+                clear_cell_params=self.grid,
+                boundaries=boundaries,
+                blocked=blocked
+            )
+            if len(self.bfs_list[i]) == 0:
+                print("Step 1: can't find any path for robot", str(i))
+                assert 0
+            blocked[robot.target_pos] = None
+
+        time_phase_switch_3.end(True)
+
+        time_phase_switch.end(self.print_info)
+        self.phases_timers[self.phase].start()
+
     def step_phase_1(self) -> int:
         """
         Three cases here:
@@ -210,47 +295,40 @@ class OutAndInBFS(InitAlgo):
 
         if robot.robot_arrived():
             self.last_index_on_the_road += 1
+            if self.last_index_on_the_road == len(self.robots):
+                self.phases_timers[self.phase].end(self.print_info)
 
         return moved
 
-    def switch_phase_0_to_1(self):
-        self.phase += 1
-        blocked = [r.pos for r in self.robots]
+    def is_pos_on_target(self, i, pos):
+        return pos == tuple(self.targets[i])
 
-        self.permutation.clear()
-        dests = Generator.calc_travel_distance(
-            source_pos=self.start_fill_from,
-            dest_params=self.targets,
-            clear_cell_params=self.grid,
-            boundaries=self.boundaries,
-            out_size=len(self.targets),
-            blocked=blocked,
-            clear_cell_key=Generator.cell_is_clear_ignore_robots_not_on_target
-        )
+    def get_robot_area(self, robot: Robot):
+        pos = robot.pos
+        if self.is_pos_inbound(pos, self.grid.size):
+            return "X"
 
-        assert dests is not None
+        if pos[1] >= self.grid.size:
+            return "N"
+        if pos[1] < 0:
+            return "S"
+        if pos[0] < 0:
+            return "W"
+        if pos[0] >= self.grid.size:
+            return "E"
 
-        for i in range(len(dests)):
-            self.robots[i].extra_data = dests[i]
+        assert 0
 
-        self.preprocess.generic_robots_sort(self.permutation, "EXTRA", self.robots)     # sort by dists
+    def legal_bfs_step(self, pos: (int, int)) -> bool:
+        next_cell = self.grid.get_cell(pos)
+        if next_cell.is_obs() or next_cell.has_robot_on_target():
+            return False
+        return -10 <= pos[0] <= self.grid.size + 9 and -10 <= pos[1] <= self.grid.size + 9
 
-        if self.reverse_fill:
-            self.permutation.reverse()
-        self.max_dist_from_zero = self.robots[self.permutation[0]].extra_data
+    @staticmethod
+    def is_pos_out(pos, size):
+        return not OutAndInBFS.is_pos_inbound(pos, size)
 
-        for i in self.permutation:
-            robot = self.robots[i]
-
-            self.bfs_list[i].clear()
-            self.bfs_list[i] = Generator.get_bfs_path(
-                source_pos=robot.pos,
-                dest_params=robot.target_pos,
-                clear_cell_params=self.grid,
-                boundaries=self.boundaries,
-                blocked=blocked
-            )
-            if len(self.bfs_list[i]) == 0:
-                print("Step 1: can't find any path for robot", str(i))
-                assert 0
-            blocked.append(robot.target_pos)
+    @staticmethod
+    def is_pos_inbound(pos, size):
+        return -1 <= pos[0] <= size and -1 <= pos[1] <= size
