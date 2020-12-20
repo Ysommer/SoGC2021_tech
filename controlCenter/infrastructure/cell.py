@@ -9,6 +9,7 @@ class Cell:
         self.target_id = None
         self.occupied = None
         self.tail: (str, int) = None
+        self.extra_data = None
 
     def __eq__(self, other):
         assert isinstance(other, Cell)
@@ -42,16 +43,8 @@ class Cell:
             return self.occupied == self.target_id
         return False
 
-    def is_empty_from_robots_and_obs(self):
-        if self.is_obs():   # if cell is obstacle
-            return False
-        if self.has_robot() is not None:  # if cell is taken by other robot
-            return False
-
-        return True
-
     def enter_cell(self, robot_id: int, direction: str, current_turn: int, advance: bool = True) -> EnterCellResult:  # this method is only
-        assert direction in directions_to_coords
+        assert (direction is None and advance is False) or (direction in directions_to_coords)
         if self.is_obs():   # if cell is obstacle
             return EnterCellResult.OBSTACLE
         if not self.is_empty():  # if cell is taken by other robot

@@ -10,7 +10,7 @@ import json
 
 #inputs
 paths = [
-    "../instances/instances_01/uniform/"+Instance_name+".instance.json",
+    "../instances/instances_01/" + Category + "/"+Instance_name+".instance.json",
     "../solutions/"+Instance_name+"/"+Sol_name
 ]
 

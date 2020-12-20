@@ -174,4 +174,8 @@ class Generator:
                             if number_of_found_dests == out_size:
                                 return dists
 
+        for i in range(len(dists)):
+            if dists[i] == -1:
+                print("Couldn't find a path for robot", str(i))
+
         return None

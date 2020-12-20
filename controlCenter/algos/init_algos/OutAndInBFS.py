@@ -28,15 +28,14 @@ class OutAndInBFS(InitAlgo):
             self.step_phase_0,
             self.step_phase_1
         ]
-        self.robots_outside = 0
         self.start_fill_from = start_fill_from
         self.reverse_fill = reverse_fill
         if boundaries is None:
             boundaries = {
-                "N": self.grid.size + 1,
-                "E": self.grid.size + 1,
-                "W": -2,
-                "S": -2,
+                "N": self.grid.size + 2,
+                "E": self.grid.size + 2,
+                "W": -3,
+                "S": -3,
             }
 
         self.boundaries = boundaries
@@ -64,17 +63,24 @@ class OutAndInBFS(InitAlgo):
 
         self.last_index_on_the_road = 0
         self.max_dist_from_zero = 0
+        self.off_boundaries_groups = {}
+        for d in directions_to_coords:
+            self.off_boundaries_groups[d] = []
 
     @staticmethod
     def is_pos_out(pos, size):
-        return not (-1 <= pos[0] < size + 1 and -1 <= pos[1] < size + 1)
+        return not OutAndInBFS.is_pos_inbound(pos, size)
+
+    @staticmethod
+    def is_pos_inbound(pos, size):
+        return -1 <= pos[0] <= size and -1 <= pos[1] <= size
 
     def is_pos_on_target(self, i, pos):
         return pos == tuple(self.targets[i])
 
     def get_robot_area(self, robot: Robot):
         pos = robot.pos
-        if not self.is_pos_out(pos, self.grid.size):
+        if self.is_pos_inbound(pos, self.grid.size):
             return "X"
 
         if pos[1] >= self.grid.size:
@@ -96,13 +102,9 @@ class OutAndInBFS(InitAlgo):
 
     def step(self) -> int:
         moved = self.phases[self.phase]()
-        if self.phase == 0:
-            if moved == 0:
-                self.switch_phase_0_to_1()
-                return self.phases[self.phase]()
-
-            if self.robots_outside == len(self.robots):
-                self.switch_phase_0_to_1()
+        if self.phase == 0 and moved == 0:
+            self.switch_phase_0_to_1()
+            return self.phases[self.phase]()
 
         return moved
 
@@ -114,66 +116,78 @@ class OutAndInBFS(InitAlgo):
                 *robot haven't found a spot: keep North
         """
         moved = 0
+
+        for i in self.off_boundaries_groups["N"]:
+            robot = self.robots[i]
+            if self.grid.get_cell((robot.pos[0], self.grid.size)).has_robot() is not None:
+                moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
+            elif robot.pos[0] % 3 == 1:
+                if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                    moved += 1
+                elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                    moved += 1
+                elif InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                    moved += 1
+            self.boundaries["N"] = max(self.boundaries["N"], robot.pos[1] + 1)
+
+        for i in self.off_boundaries_groups["S"]:
+            robot = self.robots[i]
+            if self.grid.get_cell((robot.pos[0], -1)).has_robot() is not None:
+                moved += InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution)
+            elif robot.pos[0] % 3 == 1:
+                if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                    moved += 1
+                elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                    moved += 1
+                elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                    moved += 1
+            self.boundaries["S"] = min(self.boundaries["S"], robot.pos[1] - 1)
+
+        for i in self.off_boundaries_groups["W"]:
+            robot = self.robots[i]
+            if self.grid.get_cell((-1, robot.pos[1])).has_robot() is not None:
+                moved += InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution)
+            elif robot.pos[1] % 3 == 1:
+                if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                    moved += 1
+                elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                    moved += 1
+                elif InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                    moved += 1
+            self.boundaries["W"] = min(self.boundaries["W"], robot.pos[0] - 1)
+
+        for i in self.off_boundaries_groups["E"]:
+            robot = self.robots[i]
+            if self.grid.get_cell((self.grid.size, robot.pos[1])).has_robot() is not None:
+                moved += InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution)
+            elif robot.pos[1] % 3 == 1:
+                if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                    moved += 1
+                elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                    moved += 1
+                elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                    moved += 1
+
+            self.boundaries["E"] = max(self.boundaries["E"], robot.pos[0] + 1)
+
         for i in self.permutation:
             robot = self.robots[i]
             area = self.get_robot_area(robot)
-            if area == "X":
-                assert len(self.bfs_list[i]) > 0
-                if InitAlgo.move_robot_to_dir(i, self.grid, (self.bfs_list[i])[0],
-                                              self.current_turn, self.solution):
-                    self.bfs_list[i].popleft()
-                    moved += 1
-                    if len(self.bfs_list[i]) == 0:
-                        self.robots_outside += 1
+            if area != "X":
+                continue
 
-            if area == "N":
-                if self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["S"])).has_robot():
-                    moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
-                elif robot.pos[0] % 3 == 1:
-                    if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
-                        moved += 1
-                    elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
-                        moved += 1
-                    elif InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
-                        moved += 1
+            if len(self.bfs_list[i]) == 0:
+                print("Robot number: " + str(i) + " is in pos " + str(robot.pos) + " with an empty BFS")
+                assert 0
 
-            elif area == "S":
-                if self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["N"])).has_robot():
-                    moved += InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution)
-                elif robot.pos[0] % 3 == 1:
-                    if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
-                        moved += 1
-                    elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
-                        moved += 1
-                    elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
-                        moved += 1
-
-            elif area == "W":
-                if self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["E"])).has_robot():
-                    moved += InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution)
-                elif robot.pos[1] % 3 == 1:
-                    if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
-                        moved += 1
-                    elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
-                        moved += 1
-                    elif InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
-                        moved += 1
-
-            elif area == "E":
-                if self.grid.get_cell(sum_tuples(robot.pos, directions_to_coords["W"])).has_robot():
-                    moved += InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution)
-                elif robot.pos[1] % 3 == 1:
-                    if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
-                        moved += 1
-                    elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
-                        moved += 1
-                    elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
-                        moved += 1
-
-            self.boundaries["W"] = min(self.boundaries["W"], robot.pos[0] - 1)
-            self.boundaries["S"] = min(self.boundaries["S"], robot.pos[1] - 1)
-            self.boundaries["N"] = max(self.boundaries["N"], robot.pos[1] + 1)
-            self.boundaries["E"] = max(self.boundaries["E"], robot.pos[0] + 1)
+            if InitAlgo.move_robot_to_dir(i, self.grid, (self.bfs_list[i])[0],
+                                          self.current_turn, self.solution):
+                self.bfs_list[i].popleft()
+                moved += 1
+                if len(self.bfs_list[i]) == 0:
+                    area = self.get_robot_area(robot)
+                    assert area != "X"
+                    self.off_boundaries_groups[area].append(i)
 
         return moved
 
@@ -227,6 +241,7 @@ class OutAndInBFS(InitAlgo):
 
         for i in self.permutation:
             robot = self.robots[i]
+
             self.bfs_list[i].clear()
             self.bfs_list[i] = Generator.get_bfs_path(
                 source_pos=robot.pos,
@@ -236,6 +251,6 @@ class OutAndInBFS(InitAlgo):
                 blocked=blocked
             )
             if len(self.bfs_list[i]) == 0:
-                print("Step 2: can't find any path for robot", str(i))
+                print("Step 1: can't find any path for robot", str(i))
                 assert 0
             blocked.append(robot.target_pos)
