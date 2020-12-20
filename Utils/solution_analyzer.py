@@ -106,6 +106,8 @@ class InstanceAnalyzedData:
 def analyze_solutions(to_print: bool = True):
     instances = []
     for ins in os.listdir(SOLUTIONS_PATH):
+        if ins == '.DS_Store':
+            continue
         instances.append(InstanceAnalyzedData(SOLUTIONS_PATH+ins, ins))
         instances[-1].run()
         if(to_print):
