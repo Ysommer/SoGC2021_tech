@@ -35,7 +35,7 @@ def make_a_zip():
     compress_solutions_and_validate()
 
 
-def jj_control_center_initiate(instance, out_path , max_makespan, max_sum):
+def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center = ControlCenter(instance, out_path, -1, -1)
     control_center.add_init_algo(OutAndInBFS, name="_default")
 
