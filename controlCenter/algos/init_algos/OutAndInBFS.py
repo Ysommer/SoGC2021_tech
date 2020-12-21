@@ -94,8 +94,8 @@ class OutAndInBFS(InitAlgo):
         if moved == 0:
             self.phases_timers[self.phase].end(self.print_info)
             if self.phase == 0:
-                self.switch_phase_0_to_1()
-                return self.phases[self.phase]()
+                if self.switch_phase_0_to_1():
+                    return self.phases[self.phase]()
 
         return moved
 
@@ -182,7 +182,7 @@ class OutAndInBFS(InitAlgo):
 
         return moved
 
-    def switch_phase_0_to_1(self):
+    def switch_phase_0_to_1(self) -> bool:
         time_phase_switch = Timer("Switch phase 0 to 1")
         time_phase_switch.start()
 
@@ -209,7 +209,9 @@ class OutAndInBFS(InitAlgo):
         time_phase_switch_1.end(True)
         time_phase_switch_2 = Timer("part 2")
         time_phase_switch_2.start()
-        assert dests is not None
+        if dests is None:
+            print("dests is None")
+            return False
 
         for i in range(len(dests)):
             self.robots[i].extra_data = dests[i]
@@ -256,7 +258,7 @@ class OutAndInBFS(InitAlgo):
                 boundaries["W"] = robot.pos[0]
             else:
                 print("Robot out of any off_boundaries_groups")
-                assert 0
+                return False
 
 
             self.bfs_list[i] = Generator.get_bfs_path(
@@ -268,13 +270,15 @@ class OutAndInBFS(InitAlgo):
             )
             if len(self.bfs_list[i]) == 0:
                 print("Step 1: can't find any path for robot", str(i))
-                assert 0
+                return False
             blocked[robot.target_pos] = None
 
         time_phase_switch_3.end(True)
 
         time_phase_switch.end(self.print_info)
         self.phases_timers[self.phase].start()
+
+        return True
 
     def step_phase_1(self) -> int:
         """

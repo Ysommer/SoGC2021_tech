@@ -15,21 +15,25 @@ from algos.init_algos.BFS import *
 
 
 def main():
-    instances_id = [i for i in range(0, 20)]
+    # instances_id = [i for i in range(0, 203)]
+    instances_id = [192]
     instances = load_all_instances()
 
     for id in instances_id:
         instance = instances[id]
+        print("====================")
         print("Start instance: ", instance.name, "(number:"+str(id)+")")
         out_path = "../solutions/" + instance.name + "/"
         num_of_robots = instance.number_of_robots
         max_makespan = 35 * num_of_robots
         max_sum = 10 * max_makespan
 
-        control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
-
-        control_center.run_all(print_only_success=True, stop_on_success=True)
-
+        try:
+            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center.run_all(print_only_success=True, stop_on_success=True)
+            print()
+        except:
+            pass
 
 def make_a_zip():
     compress_solutions_and_validate()
@@ -63,7 +67,6 @@ def analyze(to_console=True, to_file=False):
         data = analyze_solutions(False)
         for i in data:
             print(i, file=out_file)
-
 
 if __name__ == "__main__":
     # clean_bad_solutions()

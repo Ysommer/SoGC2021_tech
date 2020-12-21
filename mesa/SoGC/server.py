@@ -19,7 +19,10 @@ name = str(json.load(file)["name"])
 first_size_index = name.rfind('x') + 1
 last_size_index = first_size_index + (name[first_size_index:]).find('_')
 
-original_size = int(name[first_size_index:last_size_index])
+try:
+    original_size = int(name[first_size_index:last_size_index])
+except:
+    original_size = 50
 full_size = original_size * BOUNDARIES_FACTOR
 display = 50*full_size
 

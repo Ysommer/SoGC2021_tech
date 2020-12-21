@@ -4,6 +4,16 @@ from defines import *
 from utils import sum_tuples
 
 
+class BFSCounters:
+    def __init__(self, last_bfs_counter=0, last_bfs_parent=None, last_configured_dist=-1):
+        # BFS support
+        self.last_bft_counter = last_bfs_counter
+        self.last_bfs_parent = last_bfs_counter
+
+        # Distance support
+        self.last_configured_dist = last_configured_dist
+
+
 class Grid:
     def __init__(self, size: int, robots: list, obstacles: list):
         self.size = size
@@ -18,11 +28,16 @@ class Grid:
                 self.numOfRobotsArrived += 1
 
         self.grid = [[None for i in range(self.size)] for j in range(self.size)]
-        self.outBoundaries = {}
+        self.bfs_grid = None
+
+        self.out_boundaries = {}
+        self.grid_out_boundaries = {}
 
         self.__set_obstacles()
         self.__set_targets()
         self.__set_robots()
+
+        self.bfs_counter = 0
         global directions_to_coords
 
     def get_cell(self, pos: (int, int)) -> Cell:
@@ -31,10 +46,10 @@ class Grid:
                 self.grid[pos[0]][pos[1]] = Cell(pos)
             return self.grid[pos[0]][pos[1]]
 
-        if pos not in self.outBoundaries:
-            self.outBoundaries[pos] = Cell(pos)
+        if pos not in self.out_boundaries:
+            self.out_boundaries[pos] = Cell(pos)
 
-        return self.outBoundaries[pos]
+        return self.out_boundaries[pos]
 
     def check_if_cell_is_free(self, pos: (int, int)):
         """
@@ -45,10 +60,10 @@ class Grid:
                 return True
             return self.grid[pos[0]][pos[1]].enter_cell(robot_id=-1, direction=None, current_turn=-1, advance=False) == EnterCellResult.SUCCESS
 
-        if pos not in self.outBoundaries:
+        if pos not in self.out_boundaries:
             return True
 
-        return self.outBoundaries[pos[0], pos[1]].enter_cell(robot_id=-1, direction=None, current_turn=-1, advance=False) == EnterCellResult.SUCCESS
+        return self.out_boundaries[pos[0], pos[1]].enter_cell(robot_id=-1, direction=None, current_turn=-1, advance=False) == EnterCellResult.SUCCESS
 
     def move_robot(self, robot_id: int, direction: str, current_turn: int) -> EnterCellResult:
         robot = self.robots[robot_id]
@@ -76,6 +91,21 @@ class Grid:
 
     def solution_found(self) -> bool:
         return self.numOfRobotsArrived == self.numOfRobots
+
+    def start_bfs(self):
+        if self.bfs_grid is None:
+            self.bfs_grid = [[BFSCounters() for i in range(self.size)] for j in range(self.size)]
+        self.bfs_counter += 1
+
+    def get_cell_for_bfs(self, pos):
+        if (0 <= pos[0] < self.size) and (0 <= pos[1] < self.size):
+            return self.bfs_grid[pos[0]][pos[1]]
+
+        if pos not in self.out_boundaries:
+            self.out_boundaries[pos] = BFSCounters(last_bfs_counter=self.bfs_counter, last_configured_dist=self.bfs_counter)
+
+        return self.out_boundaries[pos]
+
 
     def __set_robots(self):
         for r in range(len(self.robots)):

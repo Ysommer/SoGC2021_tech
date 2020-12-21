@@ -10,6 +10,7 @@ from solution.solution import *
 from cgshop2021_pyutils import Instance
 import json
 import os
+from math import ceil
 
 
 class ControlCenter:
@@ -19,9 +20,12 @@ class ControlCenter:
         self.instance = instance
         self.name = instance.name
 
-        first_size_index = self.name.rfind('x') + 1
-        last_size_index = first_size_index + (self.name[first_size_index:]).find('_')
-        self.size = int(self.name[first_size_index:last_size_index])
+        try:
+            first_size_index = self.name.rfind('x') + 1
+            last_size_index = first_size_index + (self.name[first_size_index:]).find('_')
+            self.size = int(self.name[first_size_index:last_size_index])
+        except:
+            self.__set_size()
 
         self.robots = []
         self.targets = []
@@ -146,3 +150,19 @@ class ControlCenter:
             hist[hist_index] = True
 
         return hist
+
+    def __set_size(self):
+        max_x = 0
+        max_y = 0
+        for i in self.instance.start:
+            max_x = max(max_x, i[0])
+            max_y = max(max_y, i[1])
+        for i in self.instance.target:
+            max_x = max(max_x, i[0])
+            max_y = max(max_y, i[1])
+        for i in self.instance.obstacles:
+            max_x = max(max_x, i[0])
+            max_y = max(max_y, i[1])
+
+        # Todo: check how bad it will be to support unsymmetrical grid
+        self.size = (ceil(max(max_x, max_y)/10)) * 10

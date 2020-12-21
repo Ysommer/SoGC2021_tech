@@ -179,3 +179,20 @@ class Generator:
                 print("Couldn't find a path for robot", str(i))
 
         return None
+
+    @staticmethod
+    def calc_bfs_map(
+            sources: deque,
+            dest_pos,
+            grid: Grid,
+            boundaries,
+            blocked: dict = None,
+            preferred_direction_order=None):
+
+        if blocked is None:
+            blocked = {}
+
+        if preferred_direction_order is None:
+            preferred_direction_order = directions_to_coords
+
+        dist = 0
