@@ -8,6 +8,24 @@ directions_to_coords = {
     # "X": (0, 0)  # 'X' represents stay
 }
 
+def tail_int_to_direction(val: int):
+    tail_ints = {
+        -2: "W",
+        -3: "N",
+        -4: "E",
+        -5: "S",
+    }
+    return tail_ints.get(val)
+
+def direction_to_tail_int(direction: str):
+    tail_ints = {
+        "W": -2,
+        "N": -3,
+        "E": -4,
+        "S": -5,
+    }
+    return tail_ints.get(direction)
+
 
 class EnterCellResult(Enum):
     SUCCESS = 0

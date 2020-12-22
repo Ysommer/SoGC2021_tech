@@ -20,7 +20,6 @@ def direction_to_val(direction: str):
     }
     return directions.get(direction)
 
-
 X_OFFSET = 25
 Y_OFFSET = 25
 
