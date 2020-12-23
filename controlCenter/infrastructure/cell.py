@@ -3,13 +3,13 @@ from defines import directions_to_coords, EnterCellResult
 
 
 class Cell:
-
     def __init__(self, pos: (int, int)):
         self.pos = pos
         self.target_id = None
         self.occupied = None
         self.tail: (str, int) = None
         self.extra_data = None
+
 
     def __eq__(self, other):
         assert isinstance(other, Cell)
