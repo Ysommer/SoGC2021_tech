@@ -1,4 +1,4 @@
-class BFSCounters:
+class BFSCounter:
     def __init__(self, last_bfs_counter=0, last_bfs_parent: str = "", last_configured_dist=-1):
         # BFS support
         self.last_bft_counter = last_bfs_counter

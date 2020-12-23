@@ -2,7 +2,7 @@ from infrastructure.cell import Cell
 from infrastructure.robot import Robot
 from defines import *
 from utils import sum_tuples
-from infrastructure.BFSCounter import  BFSCounters
+from infrastructure.BFSCounter import  BFSCounter
 
 class Grid:
     def __init__(self, size: int, robots: list, obstacles: list):
@@ -84,17 +84,17 @@ class Grid:
 
     def start_bfs(self, started_positions: list):
         if self.bfs_grid is None:
-            self.bfs_grid = [[BFSCounters() for i in range(self.size)] for j in range(self.size)]
+            self.bfs_grid = [[BFSCounter() for i in range(self.size)] for j in range(self.size)]
         self.bfs_counter += 1
         for pos in started_positions:
             self.check_cell_for_bfs(pos=pos, parent="", dist=0)
 
-    def get_cell_for_bfs(self, pos) -> BFSCounters:
+    def get_cell_for_bfs(self, pos) -> BFSCounter:
         if (0 <= pos[0] < self.size) and (0 <= pos[1] < self.size):
             return self.bfs_grid[pos[0]][pos[1]]
 
         if pos not in self.bfs_out_boundaries:
-            self.bfs_out_boundaries[pos] = BFSCounters(last_bfs_counter=0, last_configured_dist=-1)
+            self.bfs_out_boundaries[pos] = BFSCounter(last_bfs_counter=0, last_configured_dist=-1)
 
         return self.bfs_out_boundaries[pos]
 
