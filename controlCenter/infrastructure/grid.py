@@ -14,7 +14,11 @@ class Grid:
 
         # Copy robots to avoid different Grid instances using the same list
         self.robots = robots
-        self.obstacles = obstacles
+        self.obstacles = set()
+
+        for i in obstacles:
+            self.obstacles.add(i)
+
         self.numOfRobots = len(robots)
         self.numOfRobotsArrived = 0
         for r in robots:
@@ -31,7 +35,7 @@ class Grid:
         self.bfs_counter = 0
 
     def is_obs(self, pos) -> bool:
-        return pos in self.grid and self.get_cell(pos).is_obs()
+        return pos in self.obstacles
 
     def has_robot(self, pos):
         return pos in self.grid and self.get_cell(pos).has_robot()
@@ -117,6 +121,6 @@ class Grid:
             self.get_cell(self.robots[t].target_pos).place_target(t)
 
     def __set_obstacles(self):
-        for obs in range(len(self.obstacles)):
-            pos = (self.obstacles[obs][0], self.obstacles[obs][1])
+        for obs in self.obstacles:
+            pos = (obs[0], obs[1])
             self.get_cell(pos).place_obstacle()

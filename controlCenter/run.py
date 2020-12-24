@@ -15,9 +15,9 @@ from algos.init_algos.BFS import *
 
 
 def main():
-    instances_id = [i for i in range(31, 40)]
+    instances_id = [i for i in range(31, 38)]
 
-    # instances_id = [33]
+    # instances_id = [40]
     instances = load_all_instances()
 
     for id in instances_id:
