@@ -8,7 +8,7 @@ directions_to_coords = {
     # "X": (0, 0)  # 'X' represents stay
 }
 
-def tail_int_to_direction(val: int):
+def solGrid_int_to_str(val: int):
     tail_ints = {
         -2: "W",
         -3: "N",
@@ -17,7 +17,7 @@ def tail_int_to_direction(val: int):
     }
     return tail_ints.get(val)
 
-def direction_to_tail_int(direction: str):
+def str_to_solGrid_int(direction: str):
     tail_ints = {
         "W": -2,
         "N": -3,

@@ -69,7 +69,7 @@ class BFS(InitAlgo):
             pos = self.robots[i].pos
             for direction in directions_to_coords:
                 neighbor_pos = sum_tuples(pos, directions_to_coords[direction])
-                neighbor = self.grid.get_cell(neighbor_pos).has_robot()
+                neighbor = self.grid.get_cell(neighbor_pos).get_robot()
                 if neighbor is not None and neighbor not in recalced:
                     blocked.append(neighbor_pos)
             if len(blocked) == 4:
@@ -133,17 +133,17 @@ class BFS(InitAlgo):
             # print(i)  # REMOVE
             if self.current_sum > self.max_sum:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
-                self.solution.print()
+                # print(self.solution)
                 return self.solution
 
             if self.current_turn > self.max_makespan:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_MAKESPAN, self.current_turn, self.current_sum)
-                self.solution.print()
+                # print(self.solution)
                 return self.solution
 
             if self.grid.solution_found():
                 self.solution.put_result(SolutionResult.SUCCESS, self.current_turn, self.current_sum)
-                self.solution.print()
+                # print(self.solution)
                 return self.solution
 
             if not was_stuck:
@@ -159,21 +159,21 @@ class BFS(InitAlgo):
                 recalced = self.unclog(NUM_TO_UNCLOG)
                 if recalced == -1:
                     self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
-                    self.solution.print()
+                    # print(self.solution)
                     return self.solution
                 if recalced == 0:
                     NUM_TO_UNCLOG += NUM_TO_UNCLOG//2
                     recalced = self.unclog(NUM_TO_UNCLOG)
                     if recalced == -1:
                         self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
-                        self.solution.print()
+                        # print(self.solution)
                         return self.solution
                     if recalced == 0:
                         NUM_TO_UNCLOG = robots_remaining
                         recalced = self.unclog(NUM_TO_UNCLOG)
                         if recalced <= 0:
                             self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
-                            self.solution.print()
+                            # print(self.solution)
                             return self.solution
                 # print("recalced: ", recalced)
                 continue
@@ -182,7 +182,7 @@ class BFS(InitAlgo):
                 recalced = self.unclog(NUM_TO_UNCLOG)
                 if recalced < 0:
                     self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
-                    self.solution.print()
+                    # print(self.solution)
                     return self.solution
 
             was_stuck = False
