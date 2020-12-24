@@ -3,12 +3,13 @@ import json
 
 
 class Solution:
-    def __init__(self, instance_name: str, algo_name: str):
+    def __init__(self, instance_name: str, algo_name: str, makespan: int=0, sum: int= 0,
+                 result: str=SolutionResult.RUNNING.name, steps: list=[]):
         self.out = {"instance": instance_name,
-                    "steps": [],
-                    "result": SolutionResult.RUNNING.name,
-                    "makespan": 0,
-                    "sum": 0,
+                    "steps": steps,
+                    "result": result,
+                    "makespan": makespan,
+                    "sum": sum,
                     "algo_name": algo_name}
 
     def put_result(self, result: SolutionResult, makespan: int, sum: int):

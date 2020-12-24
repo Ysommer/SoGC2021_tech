@@ -50,6 +50,9 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
 
 
 def ys_control_center_initiate(instance, out_path , max_makespan, max_sum):
+    Sol_name = "the_king_94_OutAndInBFS_default_SUCCESS_MSPAN3038_SUM4339.json"
+    path = "../solutions/"+instance.name+"/"+Sol_name
+    # sol = load_solutions([path])
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
     for i in range(150):
         control_center.add_init_algo(BFS, name="_"+str(i))
@@ -68,6 +71,15 @@ def analyze(to_console=True, to_file=False):
         data = analyze_solutions(False)
         for i in data:
             print(i, file=out_file)
+
+def load_solutions(paths: list):
+    sols = []
+    for path in paths:
+        file = open(path, "r")
+        sol_json = json.load(file)
+        sols.append(Solution(Instance_name, sol_json["algo_name"], int(sol_json["makespan"]), int(sol_json["sum"]),
+                 sol_json["result"], sol_json["steps"]))
+    return sols
 
 if __name__ == "__main__":
     # clean_bad_solutions()
