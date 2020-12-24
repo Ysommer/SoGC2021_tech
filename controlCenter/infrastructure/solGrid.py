@@ -5,8 +5,8 @@ from defines import *
 from utils import sum_tuples
 
 class SolGrid:
-    def __init__(self, robots: List[Robot], obsticales: List[[int, int]], solution: Solution,
-                 dynamic: bool=False, grid_len: int = 5000, validate: bool= True):
+    def __init__(self, robots: List[Robot], obsticales: List[List[int]], solution: Solution,
+                 dynamic: bool=False, grid_len: int = 5000, validate: bool = True):
         self.robots = robots
         self.solution = solution
         self.dynamic = dynamic
@@ -60,15 +60,15 @@ class SolGrid:
         for r in range(len(self.robots)):
             self.__robot_pos.append(self.robots[r].pos)
 
-    def __set_obs(self, obs_list: List[int, int]):
+    def __set_obs(self, obs_list: List[List[int]]):
         for obsticale in obs_list:
             pos = (obsticale[0], obsticale[1])
             self.obs.add(pos)
 
-    def get_cell_content(self, time: int, pos: (int, int)): # retrns Null if cell is empty
+    def get_cell_content(self, time: int, pos: (int, int)): # returns None if cell is empty
         if pos in self.obs:
             return -1
-        return self.grid[t].get(pos)
+        return self.grid[time].get(pos)
 
     def check_move(self, robot_id: int, new_pos: (int,int), time: int, direction: str) -> bool:
         new_cell_content = self.get_cell_content(time, new_pos)
@@ -80,10 +80,10 @@ class SolGrid:
     def validate_move(self, time, robot_id, direction):
         old_pos = self.__robot_pos[robot_id]
         new_pos = sum_tuples(old_pos,directions_to_coords[direction])
-        return new_pos not in self.obs and new_pos not in self.grid[t] and\
-               (new_pos not in self.grid[t-1] or\
-               (sum_tuples(new_pos, directions_to_coords[direction]) in self.grid[t] and\
-               self.grid[t-1].get(new_pos) == self.grid[t].get(sum_tuples(new_pos, directions_to_coords[direction]))))
+        return new_pos not in self.obs and new_pos not in self.grid[time] and \
+               (new_pos not in self.grid[time-1] or \
+               (sum_tuples(new_pos, directions_to_coords[direction]) in self.grid[time] and    \
+               self.grid[time-1].get(new_pos) == self.grid[time].get(sum_tuples(new_pos, directions_to_coords[direction]))))
 
     def append_empty_stage(self, time):
         if self.dynamic:
@@ -95,5 +95,5 @@ class SolGrid:
     def validate_solution(self, targets:list):
         for robot_id in range(len(self.__robot_pos)):
             if targets[robot_id] != self.__robot_pos[robot_id]:
-                return false
-        return true
+                return False
+        return True

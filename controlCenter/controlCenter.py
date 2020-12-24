@@ -48,8 +48,6 @@ class ControlCenter:
         self.max_makespan = max_makespan
         self.max_sum = max_sum
 
-        self.__init_init_algos()
-
         try:
             os.mkdir(self.solution_path)
         except:

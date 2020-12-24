@@ -4,7 +4,10 @@ import json
 
 class Solution:
     def __init__(self, instance_name: str, algo_name: str, makespan: int=0, sum: int= 0,
-                 result: str=SolutionResult.RUNNING.name, steps: list=[]):
+                 result: str=SolutionResult.RUNNING.name, steps: list=None):
+        if steps is None:
+            steps = []
+
         self.out = {"instance": instance_name,
                     "steps": steps,
                     "result": result,
@@ -19,7 +22,7 @@ class Solution:
 
     def update_robot(self, robot_id: int, direction: chr, current_turn: int, allow_override: bool = False):
         if not allow_override:
-            assert str(robot_id) not in self.out["steps"][current_turn], "You moved the same robot twice you stupid ass"
+            assert str(robot_id) not in self.out["steps"][current_turn], "You moved the same robot " + str(robot_id) + " twice you stupid ass"
         self.out["steps"][current_turn][str(robot_id)] = direction
 
     def output(self, out_path, name):
