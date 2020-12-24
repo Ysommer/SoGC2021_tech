@@ -60,8 +60,8 @@ class ControlCenter:
             print("Algo:", i.name,"starts running")
             try:
                 res = i.run()
-            except:
-                print("Failure in :", i.name)
+            except Exception as e:
+                print("Failure in :", i.name, "| error: ", e)
                 continue
             print("Algo:", i.name, "done with solutions", res.out["result"])
             self.solutions.append(res)

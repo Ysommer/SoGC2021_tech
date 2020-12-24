@@ -15,8 +15,9 @@ from algos.init_algos.BFS import *
 
 
 def main():
-    # instances_id = [i for i in range(0, 203)]
-    instances_id = [192]
+    # instances_id = [i for i in range(31, 41)]
+
+    instances_id = [32]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -30,10 +31,10 @@ def main():
 
         try:
             control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
-            control_center.run_all(print_only_success=True, stop_on_success=True)
-            print()
-        except:
-            pass
+            control_center.run_all(print_only_success=False, stop_on_success=True)
+        except Exception as e:
+            print(e)
+        print()
 
 def make_a_zip():
     compress_solutions_and_validate()
