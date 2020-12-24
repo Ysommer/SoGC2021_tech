@@ -33,7 +33,7 @@ class Solution:
             json.dump(self.out, f)
 
     def __str__(self):
-        out = '< Solution = ('
+        out = '<Solution = ('
         out += "result: " + str(self.out["result"])
         out += ", makespan: " + str(self.out["makespan"])
         out += ", sum: " + str(self.out["sum"]) + ")>"

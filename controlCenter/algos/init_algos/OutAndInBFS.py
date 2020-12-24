@@ -95,8 +95,8 @@ class OutAndInBFS(InitAlgo):
         if moved == 0:
             self.phases_timers[self.phase].end(self.print_info)
             if self.phase == 0:
-                if self.switch_phase_0_to_1():
-                    return self.phases[self.phase]()
+                self.switch_phase_0_to_1()
+                return self.phases[self.phase]()
 
         return moved
 
@@ -107,12 +107,16 @@ class OutAndInBFS(InitAlgo):
                 *robot found spot in pillar but haven't arrived yet: keep West
                 *robot haven't found a spot: keep North
         """
+
+        def move_north_group():
+            pass
+
         moved = 0
 
         for i in self.off_boundaries_groups["N"]:
             robot = self.robots[i]
             if self.grid.get_cell((robot.pos[0], self.grid.size)).has_robot():
-                if robot.pos[1] >= self.boundaries["N"] - 1 :
+                if robot.pos[1] >= self.boundaries["N"] - 1:
                     if robot.pos[0] % 3 == 1:
                         if InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
                             moved += 1
@@ -125,7 +129,8 @@ class OutAndInBFS(InitAlgo):
                             moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
                     else:
                         moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
-                moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
+                else:
+                    moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
             elif robot.pos[0] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
                     moved += 1
@@ -186,11 +191,10 @@ class OutAndInBFS(InitAlgo):
                 robot.extra_data -= 1
                 if robot.extra_data == 0:
                     self.off_boundaries_groups[next_direction].append(i)
-                break
 
         return moved
 
-    def switch_phase_0_to_1(self) -> bool:
+    def switch_phase_0_to_1(self):
         self.phase += 1
 
         blocked = set()
@@ -200,7 +204,8 @@ class OutAndInBFS(InitAlgo):
         self.permutation.clear()
         Generator.calc_bfs_map(grid=self.grid,
                                boundaries=self.boundaries,
-                               source_container=[(0, 0)],
+                               blocked=blocked,
+                               source_container=[self.start_fill_from],
                                check_move_func=CheckMoveFunction.check_free_from_obs)
 
         for r in self.robots:
@@ -232,21 +237,17 @@ class OutAndInBFS(InitAlgo):
             elif i in self.off_boundaries_groups["W"]:
                 boundaries["W"] = robot.pos[0]
             else:
-                print("Robot out of any off_boundaries_groups")
-                return False
+                assert 0, "Robot out of any off_boundaries_groups"
 
             self.bfs_list[i] = Generator.get_bfs_path(
                 grid=self.grid,
                 boundaries=boundaries,
+                blocked=blocked,
                 source_container=[robot.pos],
                 check_if_dest_params=robot.target_pos)
 
-            if len(self.bfs_list[i]) == 0:
-                print("Step 1: can't find any path for robot", str(i))
-                return False
+            assert len(self.bfs_list[i]) > 0 , "Step 1: can't find any path for robot"
             blocked.add(robot.target_pos)
-
-        return True
 
     def step_phase_1(self) -> int:
         """

@@ -84,7 +84,7 @@ class Cell:
         elif self.is_obs():
             out += ", Obs"
         out += ", tail:" + str(self.tail)
-        out += " ) >"
+        out += " )>"
         return out
 
     def __repr__(self):

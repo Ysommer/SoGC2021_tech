@@ -79,7 +79,7 @@ class Generator:
             source_container = [(0, 0)]
 
         if blocked is None:
-            blocked = set({})
+            blocked = set()
 
         if preferred_direction_order is None:
             preferred_direction_order = directions_to_coords.keys()
@@ -120,7 +120,7 @@ class Generator:
             source_container = [(0, 0)]
 
         if blocked is None:
-            blocked = set({})
+            blocked = set()
 
         if preferred_direction_order is None:
             preferred_direction_order = directions_to_coords.keys()
@@ -128,6 +128,7 @@ class Generator:
         q = source_container_func(source_container, source_container_params)
 
         grid.start_bfs(q)
+
         for pos in blocked:
             grid.check_cell_for_bfs(pos)
 
@@ -149,13 +150,13 @@ class Generator:
         if preferred_direction_order is None:
             preferred_direction_order = directions_to_coords.keys()
 
-        current_dist = grid.get_cell_for_bfs(pos).last_configured_dist
+        current_dist = grid.get_cell_distance(pos)
 
         for d in preferred_direction_order:
             next_pos = sum_tuples(pos, directions_to_coords[d])
             if not grid.is_obs(next_pos):
-                next_dist = grid.get_cell_for_bfs(next_pos).last_configured_dist
+                next_dist = grid.get_cell_distance(next_pos)
                 if next_dist < current_dist:
                     return d
 
-        assert 0
+        assert 0, "get_next_move_by_dist_and_obs: Failed to find next"

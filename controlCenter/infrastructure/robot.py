@@ -25,7 +25,7 @@ class Robot:
         out = "<Robot = (ID: " + str(self.robot_id)
         out += ", Target ID: " + str(self.target_pos)
         out += ", Extra data: " + str(self.extra_data)
-        out += " ) >"
+        out += " )>"
         return out
 
     def __repr__(self):
