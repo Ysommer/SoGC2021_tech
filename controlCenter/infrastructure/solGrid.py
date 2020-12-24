@@ -36,7 +36,8 @@ class SolGrid:
                 continue
             self.append_empty_stage(t)
             for robot_id, direction in step.items():
-                old_pos = self.__robot_pos[int(robot_id)]
+                robot_id = int(robot_id)
+                old_pos = self.__robot_pos[robot_id]
                 new_pos = sum_tuples(old_pos, directions_to_coords[direction])
                 if self.validate:
                     assert self.validate_move(t, robot_id, direction), "illegal move you stupid ass"
@@ -77,7 +78,7 @@ class SolGrid:
             return True
         return False
 
-    def validate_move(self, time, robot_id, direction):
+    def validate_move(self, time, robot_id: int, direction):
         old_pos = self.__robot_pos[robot_id]
         new_pos = sum_tuples(old_pos,directions_to_coords[direction])
         return new_pos not in self.obs and new_pos not in self.grid[time] and \
@@ -90,7 +91,7 @@ class SolGrid:
             assert time not in self.grid
             self.grid[time] = {}
         else:
-            self.grid[time].append({})
+            self.grid.append({})
 
     def validate_solution(self, targets:list):
         for robot_id in range(len(self.__robot_pos)):

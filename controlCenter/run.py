@@ -31,7 +31,7 @@ def main():
 
         try:
             control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
-            control_center.run_all(print_only_success=False, stop_on_success=True)
+            control_center.run_all(print_only_success=False, stop_on_success=True, validate=True)
         except Exception as e:
             print(e)
         print()

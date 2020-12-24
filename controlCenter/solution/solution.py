@@ -3,8 +3,8 @@ import json
 
 
 class Solution:
-    def __init__(self, instance_name: str, algo_name: str, makespan: int=0, sum: int= 0,
-                 result: str=SolutionResult.RUNNING.name, steps: list=None):
+    def __init__(self, instance_name: str, algo_name: str, makespan: int = 0, sum: int = 0,
+                 result: str = SolutionResult.RUNNING.name, steps: list = None):
         if steps is None:
             steps = []
 
