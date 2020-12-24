@@ -1,6 +1,7 @@
 from infrastructure.grid import Grid
 from infrastructure.cell import Cell
 from infrastructure.robot import Robot
+from infrastructure.solGrid import SolGrid
 from dataCollection.preprocess import *
 from dataCollection.postprocess import *
 from algos.initAlgo import *
@@ -54,12 +55,14 @@ class ControlCenter:
         except:
             pass
 
-    def run_all(self, print_only_success=False, stop_on_success=False):
+    def run_all(self, print_only_success=False, stop_on_success=False, validate=False):
         # Run init algos
         for i in self.init_algos:
             print("Algo:", i.name,"starts running")
             try:
                 res = i.run()
+                if validate:
+                    self.validator(res)
             except Exception as e:
                 print("Failure in :", i.name, "| error: ", e)
                 continue
@@ -95,38 +98,6 @@ class ControlCenter:
                 name=name,
                 print_info=print_info,
                 data_bundle=data_bundle))
-
-    def __init_init_algos(self):
-        pass
-        """
-        self.init_algos.append(LeftPillar(self.name,
-                                          self.grid,
-                                          self.targets,
-                                          self.max_makespan,
-                                          self.max_sum,
-                                          self.preprocess))
-
-        for i in range(10):
-            self.init_algos.append(BFS(self.name, self.grid, self.targets, self.max_makespan // 2, self.max_sum // 2, self.preprocess, "_"+str(i)))
-
-        self.init_algos.append(OutAndInBFS(self.name,
-                                          self.grid,
-                                          self.targets,
-                                          self.max_makespan,
-                                          self.max_sum,
-                                          self.preprocess,
-                                          name= "_default"))
-        
-        self.init_algos.append(OutAndInBFS(self.name,
-                                            self.grid,
-                                            self.targets,
-                                            self.max_makespan,
-                                            self.max_sum,
-                                            self.preprocess,
-                                            start_fill_from=(self.size//2, self.size//2),
-                                            reverse_fill=False,
-                                           name="_travel_from_center"))
-                                           """
 
     def print_last_solution(self):
         self.solutions[-1].output(self.solution_path, self.name)
@@ -166,3 +137,7 @@ class ControlCenter:
 
         # Todo: check how bad it will be to support unsymmetrical grid
         self.size = (ceil(max(max_x, max_y)/10)) * 10
+
+    def validator(self, solution: Solution):
+        sol_grid = SolGrid(self.robots, self.instance.obstacles, solution, validate=True)
+        assert sol_grid.validate_solution(self.targets), "The robots still haven't found what they're looking for stupid ass"

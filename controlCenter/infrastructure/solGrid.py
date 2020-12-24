@@ -5,18 +5,20 @@ from defines import *
 from utils import sum_tuples
 
 class SolGrid:
-    def __init__(self, size: int, offset: int, robots: List[Robot], obsticales: List[[int, int]], solution: Solution,
+    def __init__(self, robots: List[Robot], obsticales: List[[int, int]], solution: Solution,
                  dynamic: bool=False, grid_len: int = 5000, validate: bool= True):
-        self.size = size
-        self.offset = offset
         self.robots = robots
         self.solution = solution
         self.dynamic = dynamic
         self.grid_len = grid_len
         self.validate = validate
         self.grid = {} if dynamic else []
-        self.__robot_pos = {} #robot_id -> robot_pos
+        self.__robot_pos = [] #robot_id -> robot_pos
         self.obs = set()
+        self.min_x = 0
+        self.max_x = 0
+        self.min_y = 0
+        self.max_y = 0
         self.__set_robot_pos()
         self.__set_obs(obsticales)
         self.__set_grid()
@@ -24,8 +26,8 @@ class SolGrid:
 
     def __set_grid(self):
         self.append_empty_stage(0)
-        for robot, pos in self.__robot_pos.items():
-            self.grid[0][pos] = robot
+        for i in range(len(self.__robot_pos)):
+            self.grid[0][self.__robot_pos[i]] = i
 
         t = 1  # time
 
@@ -37,7 +39,7 @@ class SolGrid:
                 old_pos = self.__robot_pos[int(robot_id)]
                 new_pos = sum_tuples(old_pos, directions_to_coords[direction])
                 if self.validate:
-                    assert self.validate_move(t, robot_id, direction)
+                    assert self.validate_move(t, robot_id, direction), "illegal move you stupid ass"
                 self.grid[t][new_pos] = robot_id  # update robot's pos in time t
                 self.__robot_pos[robot_id] = new_pos
             t += 1
@@ -55,8 +57,8 @@ class SolGrid:
     """
 
     def __set_robot_pos(self):
-        for r in self.robots:
-            self.__robot_pos[r.robot_id] = r.pos
+        for r in range(len(self.robots)):
+            self.__robot_pos.append(self.robots[r].pos)
 
     def __set_obs(self, obs_list: List[int, int]):
         for obsticale in obs_list:
@@ -89,3 +91,9 @@ class SolGrid:
             self.grid[time] = {}
         else:
             self.grid[time].append({})
+
+    def validate_solution(self, targets:list):
+        for robot_id in range(len(self.__robot_pos)):
+            if targets[robot_id] != self.__robot_pos[robot_id]:
+                return false
+        return true
