@@ -8,7 +8,7 @@ from utils import *
 from random import shuffle, randint
 import queue
 from collections import deque
-from dataCollection.Generator import Generator
+from dataCollection.Generator import *
 
 
 class OutAndInBFS(InitAlgo):
@@ -21,8 +21,8 @@ class OutAndInBFS(InitAlgo):
                  name="",
                  print_info=True,
                  data_bundle=None):
-        super().__init__(instance_name, grid, targets, max_makespan, max_sum, preprocess, "OutAndInBFS" + name,
-                         print_info)
+        super().__init__(instance_name, grid, targets, max_makespan, max_sum, preprocess,
+                         self.__class__.__name__ + name, print_info)
         """
             phases:
             0: push all robots outside the board
@@ -59,22 +59,16 @@ class OutAndInBFS(InitAlgo):
                 self.boundaries = data_bundle["boundaries"]
 
         self.bfs_list = [None] * len(self.robots)
-        sources = []
-        # N & S
-        for i in range(0, self.grid.size):
-            sources.append((i, -1))
-            sources.append((i, self.grid.size))
-            sources.append((-1, i))
-            sources.append((self.grid.size, i))
 
-        Generator.calc_bfs_map(sources=sources,
-                               grid=self.grid,
+        Generator.calc_bfs_map(grid=self.grid,
                                boundaries={
                                    "N": self.grid.size,
                                    "E": self.grid.size,
                                    "W": 0,
                                    "S": 0},
-                               clear_cell_key=Generator.cell_is_clear_from_obs)
+                               source_container_func=self.create_boundaries_queue,
+                               source_container_params=self.grid.size,
+                               check_move_func=CheckMoveFunction.check_free_from_obs)
 
         for robot in self.robots:
             dist = self.grid.get_cell_distance(robot.pos)
@@ -82,7 +76,7 @@ class OutAndInBFS(InitAlgo):
                 print("robot", robot.robot_id, "can't find a path from pos", robot.pos)
                 assert 0
 
-            robot.extra_data = self.grid.get_cell_for_bfs(robot.pos).last_configured_dist
+            robot.extra_data = dist
 
         self.permutation = []
         self.preprocess.generic_robots_sort(self.permutation, "EXTRA", self.robots)
@@ -117,7 +111,7 @@ class OutAndInBFS(InitAlgo):
 
         for i in self.off_boundaries_groups["N"]:
             robot = self.robots[i]
-            if self.grid.get_cell((robot.pos[0], self.grid.size)).has_robot() is not None:
+            if self.grid.get_cell((robot.pos[0], self.grid.size)).has_robot():
                 if robot.pos[1] >= self.boundaries["N"] - 1 :
                     if robot.pos[0] % 3 == 1:
                         if InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
@@ -143,7 +137,7 @@ class OutAndInBFS(InitAlgo):
 
         for i in self.off_boundaries_groups["S"]:
             robot = self.robots[i]
-            if self.grid.get_cell((robot.pos[0], -1)).has_robot() is not None:
+            if self.grid.get_cell((robot.pos[0], -1)).has_robot():
                 moved += InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution)
             elif robot.pos[0] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
@@ -156,7 +150,7 @@ class OutAndInBFS(InitAlgo):
 
         for i in self.off_boundaries_groups["W"]:
             robot = self.robots[i]
-            if self.grid.get_cell((-1, robot.pos[1])).has_robot() is not None:
+            if self.grid.get_cell((-1, robot.pos[1])).has_robot():
                 moved += InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution)
             elif robot.pos[1] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
@@ -169,7 +163,7 @@ class OutAndInBFS(InitAlgo):
 
         for i in self.off_boundaries_groups["E"]:
             robot = self.robots[i]
-            if self.grid.get_cell((self.grid.size, robot.pos[1])).has_robot() is not None:
+            if self.grid.get_cell((self.grid.size, robot.pos[1])).has_robot():
                 moved += InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution)
             elif robot.pos[1] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
@@ -186,50 +180,37 @@ class OutAndInBFS(InitAlgo):
             if robot.extra_data <= 0:
                 continue
 
-            for d in directions_to_coords.keys():
-                next_pos = sum_tuples(robot.pos, directions_to_coords[d])
-                if Generator.cell_is_not_an_obs(next_pos, self.grid):
-                    next_dist = self.grid.get_cell_for_bfs(next_pos).last_configured_dist
-                    if next_dist < robot.extra_data:
-                        if InitAlgo.move_robot_to_dir(i, self.grid, d,
-                                                      self.current_turn, self.solution):
-                            moved += 1
-                            robot.extra_data -= 1
-                            if robot.extra_data == 0:
-                                self.off_boundaries_groups[d].append(i)
-                            break
+            next_direction = Generator.get_next_move_by_dist_and_obs(self.grid, robot.pos)
+            if InitAlgo.move_robot_to_dir(i, self.grid, next_direction, self.current_turn, self.solution):
+                moved += 1
+                robot.extra_data -= 1
+                if robot.extra_data == 0:
+                    self.off_boundaries_groups[next_direction].append(i)
+                break
 
         return moved
 
     def switch_phase_0_to_1(self) -> bool:
         self.phase += 1
 
-        blocked = {}
+        blocked = set()
         for r in self.robots:
-            blocked[r.pos] = None
+            blocked.add(r.pos)
 
         self.permutation.clear()
-        dests = Generator.calc_travel_distance(
-            source_pos=self.start_fill_from,
-            grid=self.grid,
-            dest_params=self.targets,
-            boundaries=self.boundaries,
-            out_size=len(self.targets),
-            blocked=blocked,
-            clear_cell_key=Generator.cell_is_clear_ignore_robots_not_on_target
-        )
+        Generator.calc_bfs_map(grid=self.grid,
+                               boundaries=self.boundaries,
+                               source_container=[(0, 0)],
+                               check_move_func=CheckMoveFunction.check_free_from_obs)
 
-        if dests is None:
-            print("dests is None")
-            return False
-
-        for i in range(len(dests)):
-            self.robots[i].extra_data = dests[i]
+        for r in self.robots:
+            r.extra_data = self.grid.get_cell_distance(r.target_pos)
 
         self.preprocess.generic_robots_sort(self.permutation, "EXTRA", self.robots)  # sort by dists
 
         if self.reverse_fill:
             self.permutation.reverse()
+
         self.max_dist_from_zero = self.robots[self.permutation[0]].extra_data
 
         for i in self.permutation:
@@ -243,15 +224,6 @@ class OutAndInBFS(InitAlgo):
             }
 
             if i in self.off_boundaries_groups["N"]:
-                """
-                if robot.pos[0] % 3 == 1:
-                    self.bfs_list[i].append("W")
-                elif robot.pos[0] % 3 == 2:
-                    self.bfs_list[i].append("E")
-
-                for y in range(robot.pos[1], boundaries["N"]-1, -1):
-                    self.bfs_list[i].append("S")"""
-
                 boundaries["N"] = robot.pos[1]
             elif i in self.off_boundaries_groups["S"]:
                 boundaries["S"] = robot.pos[1]
@@ -264,16 +236,15 @@ class OutAndInBFS(InitAlgo):
                 return False
 
             self.bfs_list[i] = Generator.get_bfs_path(
-                source_pos=robot.pos,
                 grid=self.grid,
-                dest_params=robot.target_pos,
                 boundaries=boundaries,
-                blocked=blocked
-            )
+                source_container=[robot.pos],
+                check_if_dest_params=robot.target_pos)
+
             if len(self.bfs_list[i]) == 0:
                 print("Step 1: can't find any path for robot", str(i))
                 return False
-            blocked[robot.target_pos] = None
+            blocked.add(robot.target_pos)
 
         return True
 
@@ -302,28 +273,6 @@ class OutAndInBFS(InitAlgo):
     def is_pos_on_target(self, i, pos):
         return pos == tuple(self.targets[i])
 
-    def get_robot_area(self, robot: Robot):
-        pos = robot.pos
-        if self.is_pos_inbound(pos, self.grid.size):
-            return "X"
-
-        if pos[1] >= self.grid.size:
-            return "N"
-        if pos[1] < 0:
-            return "S"
-        if pos[0] < 0:
-            return "W"
-        if pos[0] >= self.grid.size:
-            return "E"
-
-        assert 0
-
-    def legal_bfs_step(self, pos: (int, int)) -> bool:
-        next_cell = self.grid.get_cell(pos)
-        if next_cell.is_obs() or next_cell.has_robot_on_target():
-            return False
-        return -10 <= pos[0] <= self.grid.size + 9 and -10 <= pos[1] <= self.grid.size + 9
-
     @staticmethod
     def is_pos_out(pos, size):
         return not OutAndInBFS.is_pos_inbound(pos, size)
@@ -331,3 +280,16 @@ class OutAndInBFS(InitAlgo):
     @staticmethod
     def is_pos_inbound(pos, size):
         return -1 <= pos[0] <= size and -1 <= pos[1] <= size
+
+    @staticmethod
+    def create_boundaries_queue(source_container, source_container_params) -> queue:
+
+        q = queue.Queue()
+        # N & S
+        for i in range(0, source_container_params):
+            q.put((i, -1))
+            q.put((i, source_container_params))
+            q.put((-1, i))
+            q.put((source_container_params, i))
+
+        return q

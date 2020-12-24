@@ -1,3 +1,5 @@
+from typing import Union
+
 from infrastructure.robot import Robot
 from infrastructure.grid import Grid
 from collections import deque
@@ -6,52 +8,43 @@ from defines import *
 import queue
 
 
+class CheckMoveFunction:
+    @staticmethod
+    def check_free_from_obs(pos, grid: Grid, clear_cell_params=None) -> bool:
+        return not grid.is_obs(pos)
+
+    @staticmethod
+    def cell_free_from_robots_on_target_and_obs(pos, grid: Grid, clear_cell_params=None) -> bool:
+        return not (grid.is_obs(pos) or grid.has_robot_on_target(pos))
+
+    @staticmethod
+    def cell_free_from_robots_and_obs(pos, grid: Grid, clear_cell_params=None) -> bool:
+        return not (grid.is_obs(pos) or grid.has_robot(pos))
+
+
+class CheckIfDestFunction:
+    @staticmethod
+    def check_if_dest_single_destination(pos, dest_params):
+        return pos == dest_params
+
+    @staticmethod
+    def check_if_dest_multi_destinations(pos, dest_params):
+        return pos in dest_params
+
+
+class SourceContainerFunction:
+    @staticmethod
+    def get_sources(source_container, source_container_params) -> queue:
+        d = queue.Queue()
+        for s in source_container:
+            d.put(s)
+        return d
+
+
 class Generator:
     """
         A class with a generic functions
     """
-
-    @staticmethod
-    def default_bfs_single_dest_key(source_pos, dest_params):
-        return source_pos == dest_params
-
-    @staticmethod
-    def default_bfs_many_dest_keys(source_pos, dest_params):
-        if source_pos in dest_params:
-            return dest_params.index(source_pos)
-        return -1
-
-    @staticmethod
-    def default_cell_is_clear_key(pos, grid: Grid, clear_cell_params=None):
-        """
-        :param pos:
-        :param clear_cell_params: grid
-        :return: if cell is clear
-        """
-        return grid.check_if_cell_is_free(pos)
-
-    @staticmethod
-    def cell_is_clear_from_obs(pos, grid: Grid, clear_cell_params=None):
-        return not grid.get_cell(pos).is_obs()
-
-    @staticmethod
-    def cell_is_clear_from_robots_on_target_and_obs(pos, grid: Grid, clear_cell_params=None):
-        pass
-
-    @staticmethod
-    def cell_is_clear_from_robots_and_obs(pos, grid: Grid, clear_cell_params=None):
-        pass
-
-
-    @staticmethod
-    def cell_is_clear_ignore_robots_not_on_target(pos, grid: Grid, clear_cell_params=None):
-        return grid.check_if_cell_is_free(pos) or \
-                (grid.get_cell(pos).has_robot() is not None and not grid.get_cell(pos).has_robot_on_target())
-
-    @staticmethod
-    def cell_is_not_an_obs(pos, grid: Grid, clear_cell_params=None):
-        return grid.check_if_cell_is_free(pos) or grid.get_cell(pos).has_robot() is not None
-
     @staticmethod
     def check_if_in_boundaries(pos, boundaries):
         return boundaries["N"] >= pos[1] >= boundaries["S"] and \
@@ -70,56 +63,41 @@ class Generator:
 
     @staticmethod
     def get_bfs_path(
-            source_pos: tuple,
             grid: Grid,
-            dest_params,
             boundaries,
-            blocked=None,
-            dest_key=None,
+            blocked: set = None,
+            source_container=None,
+            source_container_func=SourceContainerFunction.get_sources,
+            source_container_params=None,
+            check_if_dest_function=CheckIfDestFunction.check_if_dest_single_destination,
+            check_if_dest_params=None,
+            check_move_func=CheckMoveFunction.check_free_from_obs,
             clear_cell_params=None,
-            clear_cell_key=None,
             preferred_direction_order=None) -> deque:
-        """
-        calculate a bfs path from one source position to generic dest positions (one-to-many)
-        :param source_pos: the position to calc from - a single position
-        :param grid: the grid
-        :param dest_params: the params related to destination - will be passed to dest key
-        :param blocked: a list of blocked positions
-        :param dest_key: a function(pos, dest_params)->bool that return if pos in dests
-        :param clear_cell_key: a function(pos, clear_cell_params)->bool to check if cell is empty
-        :param clear_cell_params: params which passed to clear_cell_key
-        :param preferred_direction_order: preferred_direction_order: a list of directions (e.g ["N", "W", "S", "E"] or ["S", "W"])
-        :param boundaries: a dictionary of allowed boundaries e.g ["N": grid.size, ...]
-        :return: a dequeue of bfs path
-        """
-        if blocked is None:
-            blocked = {}
 
-        if clear_cell_key is None:
-            clear_cell_key = Generator.default_cell_is_clear_key
+        if source_container is None:
+            source_container = [(0, 0)]
+
+        if blocked is None:
+            blocked = set({})
 
         if preferred_direction_order is None:
-            preferred_direction_order = directions_to_coords
+            preferred_direction_order = directions_to_coords.keys()
 
-        if dest_key is None:
-            dest_key = Generator.default_bfs_single_dest_key
+        q = source_container_func(source_container, source_container_params)
+        grid.start_bfs(q)
 
-        grid.start_bfs([source_pos])
-        for pos in blocked.keys():
+        for pos in blocked:
             grid.check_cell_for_bfs(pos)
-
-        # visited = [self.robots[i].pos]
-        q = queue.Queue()
-        q.put(source_pos)
 
         while not q.empty():
             pos = q.get()
-            if dest_key(pos, dest_params):
+            if check_if_dest_function(pos, check_if_dest_params):
                 return Generator.construct_path(grid, pos)
             for direction in preferred_direction_order:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if Generator.check_if_in_boundaries(next_pos, boundaries) \
-                        and clear_cell_key(next_pos, grid, clear_cell_params) \
+                        and check_move_func(next_pos, grid, clear_cell_params) \
                         and grid.check_cell_for_bfs(next_pos, parent=direction):
                     q.put(next_pos)
                     # visited.append(next_pos)
@@ -127,125 +105,57 @@ class Generator:
         return deque()
 
     @staticmethod
-    def calc_travel_distance(
-            source_pos: tuple,
+    def calc_bfs_map(
             grid: Grid,
             boundaries,
-            out_size=1,
-            blocked: dict = None,
-            dest_params=None,
-            dest_key=None,
+            blocked: set = None,
+            source_container=None,
+            source_container_func=SourceContainerFunction.get_sources,
+            source_container_params=None,
+            check_move_func=CheckMoveFunction.check_free_from_obs,
             clear_cell_params=None,
-            clear_cell_key=None,
             preferred_direction_order=None):
-        """
 
-        :param source_pos: the position to calc from - a single position
-        :param grid: the grid
-        :param dest_params: the params related to destination
-        :param clear_cell_params: params which passed to clear_cell_key
-        :param boundaries: a dictionary of allowed boundaries e.g ["N": grid.size, ...]
-        :param out_size: the size of the output list
-        :param blocked: a list of blocked positions
-        :param dest_key: a function(pos, dest_params)->int that returns: -1 if pos not a dest or dest_index if is
-                                                         ### NOTE: -1 <= dest_key output must me < out_size ###
-        :param clear_cell_key: a function(pos, clear_cell_params)->bool to check if cell is empty
-        :param preferred_direction_order: a list of directions (e.g ["N", "W", "S", "E"] or ["S", "W"])
-        :return: a list of distances
-        """
+        if source_container is None:
+            source_container = [(0, 0)]
 
         if blocked is None:
-            blocked = {}
-
-        if clear_cell_key is None:
-            clear_cell_key = Generator.default_cell_is_clear_key
+            blocked = set({})
 
         if preferred_direction_order is None:
-            preferred_direction_order = directions_to_coords
+            preferred_direction_order = directions_to_coords.keys()
 
-        if dest_key is None:
-            if out_size > 1:
-                dest_key = Generator.default_bfs_many_dest_keys
-            else:
-                dest_key = Generator.default_bfs_single_dest_key
+        q = source_container_func(source_container, source_container_params)
 
-        grid.start_bfs([source_pos])
-        for pos in blocked.keys():
+        grid.start_bfs(q)
+        for pos in blocked:
             grid.check_cell_for_bfs(pos)
 
-        current_level = []
-        next_level = []
-        next_level.append(source_pos)
-        number_of_found_dests = 0
-        dist = 0
-        dists = [-1] * out_size
-
-        while len(next_level) > 0:
-            current_level.clear()
-            current_level = next_level
-            next_level = []
-            dist += 1
-            for pos in current_level:
-                dest_index = dest_key(pos, dest_params)
-                if dest_index != -1:
-                    dists[dest_index] = dist
-                    number_of_found_dests += 1
-                    if number_of_found_dests == out_size:
-                        return dists
-
-                for direction in preferred_direction_order:
-                    next_pos = sum_tuples(pos, directions_to_coords[direction])
-                    if Generator.check_if_in_boundaries(next_pos, boundaries)   \
-                            and clear_cell_key(next_pos, grid, clear_cell_params)     \
-                            and grid.check_cell_for_bfs(next_pos):
-                        next_level.append(next_pos)
-
-        # reaches here only if number_of_found_dests < out_size
-        for i in range(len(dists)):
-            if dists[i] == -1:
-                print("Couldn't find a path for robot", str(i))
-
-        return None
+        while not q.empty():
+            pos = q.get()
+            for direction in preferred_direction_order:
+                next_pos = sum_tuples(pos, directions_to_coords[direction])
+                if Generator.check_if_in_boundaries(next_pos, boundaries) \
+                        and check_move_func(next_pos, grid, clear_cell_params) \
+                        and grid.check_cell_for_bfs(next_pos, parent=direction, dist= grid.get_cell_distance(pos) + 1):
+                    q.put(next_pos)
 
     @staticmethod
-    def calc_bfs_map(
-            sources: list,
+    def get_next_move_by_dist_and_obs(
             grid: Grid,
-            boundaries,
-            blocked: dict = None,
-            clear_cell_params=None,
-            clear_cell_key=None,
+            pos: (int, int),
             preferred_direction_order=None):
 
-        sources = sources.copy()
-
-        if blocked is None:
-            blocked = {}
-
-        if clear_cell_key is None:
-            clear_cell_key = Generator.cell_is_clear_ignore_robots_not_on_target
-
         if preferred_direction_order is None:
-            preferred_direction_order = directions_to_coords
+            preferred_direction_order = directions_to_coords.keys()
 
-        dist = 0
+        current_dist = grid.get_cell_for_bfs(pos).last_configured_dist
 
-        grid.start_bfs(sources)
-        for pos in blocked.keys():
-            grid.check_cell_for_bfs(pos)
+        for d in preferred_direction_order:
+            next_pos = sum_tuples(pos, directions_to_coords[d])
+            if not grid.is_obs(next_pos):
+                next_dist = grid.get_cell_for_bfs(next_pos).last_configured_dist
+                if next_dist < current_dist:
+                    return d
 
-        next_level = sources
-        current_level = []
-
-        while len(next_level) > 0:
-            current_level.clear()
-            current_level = next_level
-            next_level = []
-            dist += 1
-            for pos in current_level:
-                for direction in preferred_direction_order:
-                    next_pos = sum_tuples(pos, directions_to_coords[direction])
-                    if Generator.check_if_in_boundaries(next_pos, boundaries)       \
-                            and clear_cell_key(next_pos, grid, clear_cell_params)   \
-                            and grid.check_cell_for_bfs(next_pos, dist=dist):
-                        next_level.append(next_pos)
+        assert 0

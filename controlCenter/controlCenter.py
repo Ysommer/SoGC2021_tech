@@ -60,6 +60,7 @@ class ControlCenter:
             print("Algo:", i.name,"starts running")
             try:
                 res = i.run()
+                print(res)
             except Exception as e:
                 print("Failure in :", i.name, "| error: ", e)
                 continue
