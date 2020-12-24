@@ -5,12 +5,15 @@ from defines import directions_to_coords, EnterCellResult
 class Cell:
     def __init__(self, pos: (int, int)):
         self.pos = pos
-        self.target_id = None
-        self.occupied = None
-        self.tail: (str, int) = None
+        self.target_id = -1                 # -1 if no target
+        self.occupied = None                # -1 if obs [0, n] robot id, None if empty
+        self.tail: (str, int) = ("", -1)    # (direction, turn_updated)
         self.extra_data = None
 
+    # Public Methods:
 
+
+    # Operators:
     def __eq__(self, other):
         assert isinstance(other, Cell)
         return self.pos == other.pos

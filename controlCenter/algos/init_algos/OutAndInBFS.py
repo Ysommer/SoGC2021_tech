@@ -118,6 +118,19 @@ class OutAndInBFS(InitAlgo):
         for i in self.off_boundaries_groups["N"]:
             robot = self.robots[i]
             if self.grid.get_cell((robot.pos[0], self.grid.size)).has_robot() is not None:
+                if robot.pos[1] >= self.boundaries["N"] - 1 :
+                    if robot.pos[0] % 3 == 1:
+                        if InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                            moved += 1
+                        else:
+                            moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
+                    elif robot.pos[0] % 3 == 2:
+                        if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                            moved += 1
+                        else:
+                            moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
+                    else:
+                        moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
                 moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
             elif robot.pos[0] % 3 == 0:
                 if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
