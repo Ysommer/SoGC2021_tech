@@ -85,4 +85,5 @@ if __name__ == "__main__":
     # clean_bad_solutions()
     main()
     # analyze()
+    compress_solutions_and_validate()
     print("Done!")

@@ -61,12 +61,15 @@ class ControlCenter:
             try:
                 res = i.run()
                 print(res)
-                if validate:
-                    self.validator(res)
             except Exception as e:
                 print("Failure in :", i.name, "| error: ", e)
                 # traceback.print_exc()
                 continue
+            try:
+                if validate:
+                    self.validator(res)
+            except Exception as e:
+                print("Failure in :", i.name, "| error: ", e)
             print("Algo:", i.name, "done with solutions", res.out["result"])
             self.solutions.append(res)
             if (not print_only_success) or res.out["result"] == SolutionResult.SUCCESS.name:

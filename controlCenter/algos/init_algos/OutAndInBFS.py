@@ -107,63 +107,140 @@ class OutAndInBFS(InitAlgo):
                 *robot haven't found a spot: keep North
         """
 
-        def move_north_group():
-            pass
+        def move_north_group(spread_wide:bool = False):
+            north_moved = 0
+            for i in self.off_boundaries_groups["N"]:
+                robot = self.robots[i]
+                if self.grid.get_cell((robot.pos[0], self.grid.size)).has_robot():
+                    # Need to move, to make space:
+                    if spread_wide \
+                            and robot.pos[1] == self.boundaries["N"] - 1 \
+                            and robot.pos[0] % 3 == 1 \
+                            and not self.grid.has_robot((robot.pos[0] + 1, robot.pos[1] - 1))    \
+                            and InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                        north_moved += 1
+                    elif spread_wide\
+                            and robot.pos[1] == self.boundaries["N"] - 1 \
+                            and robot.pos[0] % 3 == 2 \
+                            and not self.grid.has_robot((robot.pos[0] - 1, robot.pos[1] - 1)) \
+                            and InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                        north_moved += 1
+                    else:
+                        north_moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
+                elif robot.pos[0] % 3 == 0:
+                    if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                        north_moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                        north_moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                        north_moved += 1
+
+                self.boundaries["N"] = max(self.boundaries["N"], robot.pos[1] + 1)
+
+            return north_moved
+
+        def move_south_group(spread_wide:bool = False):
+            south_moved = 0
+            for i in self.off_boundaries_groups["S"]:
+                robot = self.robots[i]
+                if self.grid.get_cell((robot.pos[0], -1)).has_robot():
+                    # Need to move, to make space:
+                    if spread_wide \
+                            and robot.pos[1] == self.boundaries["S"] + 1 \
+                            and robot.pos[0] % 3 == 1 \
+                            and not self.grid.has_robot((robot.pos[0] + 1, robot.pos[1] + 1)) \
+                            and InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                        south_moved += 1
+                    elif spread_wide \
+                            and robot.pos[1] == self.boundaries["S"] + 1 \
+                            and robot.pos[0] % 3 == 2 \
+                            and not self.grid.has_robot((robot.pos[0] - 1, robot.pos[1] + 1))\
+                            and InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                        south_moved += 1
+                    else:
+                        south_moved += InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution)
+                elif robot.pos[0] % 3 == 0:
+                    if InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                        south_moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                        south_moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                        south_moved += 1
+
+                self.boundaries["S"] = min(self.boundaries["S"], robot.pos[1] - 1)
+
+            return south_moved
+
+        def move_west_group(spread_wide:bool = False):
+            west_moved = 0
+            for i in self.off_boundaries_groups["W"]:
+                robot = self.robots[i]
+                if self.grid.get_cell((-1, robot.pos[1])).has_robot():
+                    # Need to move, to make space:
+                    if spread_wide \
+                            and robot.pos[0] == self.boundaries["W"] + 1 \
+                            and robot.pos[1] % 3 == 1 \
+                            and not self.grid.has_robot((robot.pos[0] + 1, robot.pos[1] + 1)) \
+                            and InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                        west_moved += 1
+                    elif spread_wide \
+                            and robot.pos[0] == self.boundaries["W"] + 1 \
+                            and robot.pos[1] % 3 == 2 \
+                            and not self.grid.has_robot((robot.pos[0] + 1, robot.pos[1] - 1))\
+                            and InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                        west_moved += 1
+                    else:
+                        west_moved += InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution)
+                elif robot.pos[1] % 3 == 0:
+                    if InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                        west_moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                        west_moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
+                        west_moved += 1
+
+                self.boundaries["W"] = min(self.boundaries["W"], robot.pos[0] - 1)
+
+            return west_moved
+
+        def move_east_group(spread_wide:bool = False):
+            east_moved = 0
+            for i in self.off_boundaries_groups["E"]:
+                robot = self.robots[i]
+                if self.grid.get_cell((self.grid.size, robot.pos[1])).has_robot():
+                    # Need to move, to make space:
+                    if spread_wide \
+                            and robot.pos[0] == self.boundaries["E"] - 1 \
+                            and robot.pos[1] % 3 == 1 \
+                            and not self.grid.has_robot((robot.pos[0] - 1, robot.pos[1] + 1)) \
+                            and InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                        east_moved += 1
+                    elif spread_wide \
+                            and robot.pos[0] == self.boundaries["E"] - 1 \
+                            and robot.pos[1] % 3 == 2 \
+                            and not self.grid.has_robot((robot.pos[0] - 1, robot.pos[1] - 1))\
+                            and InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                        east_moved += 1
+                    else:
+                        east_moved += InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution)
+                elif robot.pos[1] % 3 == 0:
+                    if InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
+                        east_moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
+                        east_moved += 1
+                    elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
+                        east_moved += 1
+
+                self.boundaries["E"] = max(self.boundaries["E"], robot.pos[0] + 1)
+
+            return east_moved
 
         moved = 0
-
-        for i in self.off_boundaries_groups["N"]:
-            robot = self.robots[i]
-            if self.grid.get_cell((robot.pos[0], self.grid.size)).has_robot():
-                moved += InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution)
-            elif robot.pos[0] % 3 == 0:
-                if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
-                    moved += 1
-                elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
-                    moved += 1
-                elif InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
-                    moved += 1
-            self.boundaries["N"] = min(self.boundaries["N"], robot.pos[1] + 1)
-
-        for i in self.off_boundaries_groups["S"]:
-            robot = self.robots[i]
-            if self.grid.get_cell((robot.pos[0], -1)).has_robot():
-                moved += InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution)
-            elif robot.pos[0] % 3 == 0:
-                if InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
-                    moved += 1
-                elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
-                    moved += 1
-                elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
-                    moved += 1
-            self.boundaries["S"] = min(self.boundaries["S"], robot.pos[1] - 1)
-
-        for i in self.off_boundaries_groups["W"]:
-            robot = self.robots[i]
-            if self.grid.get_cell((-1, robot.pos[1])).has_robot():
-                moved += InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution)
-            elif robot.pos[1] % 3 == 0:
-                if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
-                    moved += 1
-                elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
-                    moved += 1
-                elif InitAlgo.move_robot_to_dir(i, self.grid, "W", self.current_turn, self.solution):
-                    moved += 1
-            self.boundaries["W"] = min(self.boundaries["W"], robot.pos[0] - 1)
-
-        for i in self.off_boundaries_groups["E"]:
-            robot = self.robots[i]
-            if self.grid.get_cell((self.grid.size, robot.pos[1])).has_robot():
-                moved += InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution)
-            elif robot.pos[1] % 3 == 0:
-                if InitAlgo.move_robot_to_dir(i, self.grid, "N", self.current_turn, self.solution):
-                    moved += 1
-                elif InitAlgo.move_robot_to_dir(i, self.grid, "S", self.current_turn, self.solution):
-                    moved += 1
-                elif InitAlgo.move_robot_to_dir(i, self.grid, "E", self.current_turn, self.solution):
-                    moved += 1
-
-            self.boundaries["E"] = max(self.boundaries["E"], robot.pos[0] + 1)
+        spread_wide = True
+        moved += move_north_group(spread_wide)
+        moved += move_south_group(spread_wide)
+        moved += move_west_group(spread_wide)
+        moved += move_east_group(spread_wide)
 
         for i in self.permutation:
             robot = self.robots[i]
@@ -220,7 +297,7 @@ class OutAndInBFS(InitAlgo):
             elif i in self.off_boundaries_groups["W"]:
                 boundaries["W"] = robot.pos[0]
             else:
-                assert 0, "Robot out of any off_boundaries_groups"
+                assert 0, "Robot " + str(i) + " out of any off_boundaries_groups"
 
             self.bfs_list[i] = Generator.calc_a_star_path(
                 grid=self.grid,
