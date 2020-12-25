@@ -19,7 +19,7 @@ def zipdir(path, ziph):
 
 def compress_solutions(solution_paths = SOLUTIONS_PATH, solution_zip_path = SOLUTIONS_PATH):
     zipf = zipfile.ZipFile(SOLUTION_ZIP_NAME, 'w', zipfile.ZIP_DEFLATED)
-    zipdir(SOLUTIONS_PATH, zipf)
+    zipdir("../Solutions", zipf)
     zipf.close()
 
 
@@ -33,5 +33,5 @@ def clean_bad_solutions(solution_paths = SOLUTIONS_PATH):
 
 def compress_solutions_and_validate():
     clean_bad_solutions()
-    compress_solutions()
-    validate_solution_zip(SOLUTIONS_PATH, INSTANCES_PATH)
+    # compress_solutions()
+    validate_solution_zip(INSTANCES_PATH, SOLUTION_ZIP_NAME)
