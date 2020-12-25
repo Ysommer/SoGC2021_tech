@@ -6,19 +6,28 @@ from collections import deque
 from utils import *
 from defines import *
 import queue
+import heapq
+
+
+class AStarHeuristics:
+    @staticmethod
+    def manhattan_distance(pos: (int, int), source_pos: (int, int), dest_pos: (int, int), calc_configure_value_params=None) -> int:
+        manhattan_distance_val = abs(pos[0]-dest_pos[0]) + abs(pos[1]-dest_pos[1])
+        return manhattan_distance_val
+
 
 
 class CheckMoveFunction:
     @staticmethod
-    def check_free_from_obs(pos, grid: Grid, clear_cell_params=None) -> bool:
+    def check_free_from_obs(pos, grid: Grid, check_move_params=None) -> bool:
         return not grid.is_obs(pos)
 
     @staticmethod
-    def cell_free_from_robots_on_target_and_obs(pos, grid: Grid, clear_cell_params=None) -> bool:
+    def cell_free_from_robots_on_target_and_obs(pos, grid: Grid, check_move_params=None) -> bool:
         return not (grid.is_obs(pos) or grid.has_robot_on_target(pos))
 
     @staticmethod
-    def cell_free_from_robots_and_obs(pos, grid: Grid, clear_cell_params=None) -> bool:
+    def cell_free_from_robots_and_obs(pos, grid: Grid, check_move_params=None) -> bool:
         return not (grid.is_obs(pos) or grid.has_robot(pos))
 
 
@@ -72,7 +81,7 @@ class Generator:
             check_if_dest_function=CheckIfDestFunction.check_if_dest_single_destination,
             check_if_dest_params=None,
             check_move_func=CheckMoveFunction.check_free_from_obs,
-            clear_cell_params=None,
+            check_move_params=None,
             preferred_direction_order=None) -> deque:
 
         if source_container is None:
@@ -97,7 +106,7 @@ class Generator:
             for direction in preferred_direction_order:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if Generator.check_if_in_boundaries(next_pos, boundaries) \
-                        and check_move_func(next_pos, grid, clear_cell_params) \
+                        and check_move_func(next_pos, grid, check_move_params) \
                         and grid.check_cell_for_bfs(next_pos, parent=direction):
                     q.put(next_pos)
                     # visited.append(next_pos)
@@ -113,7 +122,7 @@ class Generator:
             source_container_func=SourceContainerFunction.get_sources,
             source_container_params=None,
             check_move_func=CheckMoveFunction.check_free_from_obs,
-            clear_cell_params=None,
+            check_move_params=None,
             preferred_direction_order=None):
 
         if source_container is None:
@@ -137,7 +146,7 @@ class Generator:
             for direction in preferred_direction_order:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if Generator.check_if_in_boundaries(next_pos, boundaries) \
-                        and check_move_func(next_pos, grid, clear_cell_params) \
+                        and check_move_func(next_pos, grid, check_move_params) \
                         and grid.check_cell_for_bfs(next_pos, parent=direction, dist= grid.get_cell_distance(pos) + 1):
                     q.put(next_pos)
 
@@ -160,3 +169,54 @@ class Generator:
                     return d
 
         assert 0, "get_next_move_by_dist_and_obs: Failed to find next"
+
+    @staticmethod
+    def calc_a_star_path(
+            grid: Grid,
+            boundaries,
+            source_pos,
+            dest_pos,
+            blocked: set = None,
+            calc_configure_value_func=AStarHeuristics.manhattan_distance,
+            calc_configure_value_params=None,
+            check_move_func=CheckMoveFunction.check_free_from_obs,
+            check_move_params=None,
+            preferred_direction_order=None):
+        if blocked is None:
+            blocked = set()
+
+        if preferred_direction_order is None:
+            preferred_direction_order = directions_to_coords.keys()
+
+        q = queue.Queue()
+        q.put(source_pos)
+        grid.start_bfs(q)
+
+        for pos in blocked:
+            grid.check_cell_for_bfs(pos)
+
+        g_val = 0
+        h_val = calc_configure_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
+                                          calc_configure_value_params=calc_configure_value_params)
+        f_val = g_val+h_val
+
+        h = [(f_val, g_val, source_pos)]
+        heapq.heapify(h)
+
+        while len(h) > 0:
+            (f_val, g_val, pos) = heapq.heappop(h)
+            if pos == dest_pos:
+                return Generator.construct_path(grid, pos)
+            for direction in preferred_direction_order:
+                next_pos = sum_tuples(pos, directions_to_coords[direction])
+                if Generator.check_if_in_boundaries(next_pos, boundaries) \
+                        and check_move_func(next_pos, grid, check_move_params) \
+                        and grid.check_cell_for_bfs(next_pos, parent=direction):
+                    next_g_val = (-1)*g_val + 1
+                    next_h_val = calc_configure_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
+                                                           calc_configure_value_params=calc_configure_value_params)
+                    next_f_val = next_g_val + next_h_val
+                    heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
+
+        print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
+        return None

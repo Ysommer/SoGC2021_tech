@@ -12,6 +12,7 @@ from cgshop2021_pyutils import Instance
 import json
 import os
 from math import ceil
+import traceback
 
 
 class ControlCenter:
@@ -64,6 +65,7 @@ class ControlCenter:
                     self.validator(res)
             except Exception as e:
                 print("Failure in :", i.name, "| error: ", e)
+                traceback.print_exc()
                 continue
             print("Algo:", i.name, "done with solutions", res.out["result"])
             self.solutions.append(res)

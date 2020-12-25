@@ -222,14 +222,16 @@ class OutAndInBFS(InitAlgo):
             else:
                 assert 0, "Robot out of any off_boundaries_groups"
 
-            self.bfs_list[i] = Generator.get_bfs_path(
+            self.bfs_list[i] = Generator.calc_a_star_path(
                 grid=self.grid,
                 boundaries=boundaries,
+                source_pos=robot.pos,
+                dest_pos=robot.target_pos,
                 blocked=blocked,
-                source_container=[robot.pos],
-                check_if_dest_params=robot.target_pos)
+                calc_configure_value_func=AStarHeuristics.manhattan_distance
+            )
 
-            assert len(self.bfs_list[i]) > 0 , "Step 1: can't find any path for robot"
+            assert self.bfs_list[i] is not None, "Step 1: can't find any path for robot:" + str(i)
             blocked.add(robot.target_pos)
 
     def step_phase_1(self) -> int:
