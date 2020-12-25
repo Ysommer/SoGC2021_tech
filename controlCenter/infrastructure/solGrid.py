@@ -101,7 +101,8 @@ class SolGrid:
         return True
 
     # Methods to support Optimization_Algos
-    def check_move(self, robot_id: int, new_pos: (int,int), time: int, direction: str) -> bool:
+    def check_move(self, robot_id: int, new_pos: (int,int,int), direction: str, params=None) -> bool:
+        time = new_pos[2]
         new_cell_content = self.get_cell_content(time, new_pos)
         old_cell_content = self.get_cell_content(time-1, new_pos)
         tail_pos = sum_tuples(new_pos, directions_to_coords(direction))

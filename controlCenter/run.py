@@ -26,7 +26,7 @@ def main():
         print("Start instance: ", instance.name, "(number:"+str(id)+")")
         out_path = "../solutions/" + instance.name + "/"
         num_of_robots = instance.number_of_robots
-        max_makespan = num_of_robots
+        max_makespan = 30*num_of_robots
         max_sum = 10 * max_makespan
 
         try:
@@ -55,7 +55,7 @@ def ys_control_center_initiate(instance, out_path , max_makespan, max_sum):
     # sol = load_solutions([path])
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
     for i in range(1):
-        control_center.add_init_algo(BFS, name="_"+str(i))
+        control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
     return control_center
 
 
