@@ -126,11 +126,11 @@ class BFS(InitAlgo):
         return moved
 
     def run(self):
-        # i = -1  # REMOVE
+        i = -1  # REMOVE
         was_stuck = False
         while True:
-            # i += 1  # REMOVE
-            # print(i)  # REMOVE
+            i += 1  # REMOVE
+            print(i)  # REMOVE
             if self.current_sum > self.max_sum:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
                 # print(self.solution)

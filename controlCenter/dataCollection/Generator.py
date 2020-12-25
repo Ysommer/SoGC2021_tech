@@ -2,6 +2,7 @@ from typing import Union
 
 from infrastructure.robot import Robot
 from infrastructure.grid import Grid
+from infrastructure.solGrid import SolGrid
 from collections import deque
 from utils import *
 from defines import *
@@ -160,3 +161,4 @@ class Generator:
                     return d
 
         assert 0, "get_next_move_by_dist_and_obs: Failed to find next"
+
