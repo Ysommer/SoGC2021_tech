@@ -8,6 +8,14 @@ directions_to_coords = {
     # "X": (0, 0)  # 'X' represents stay
 }
 
+directions_to_coords_with_time = {
+    "X": (0, 0, 1),  # 'X' represents stay
+    "W": (-1, 0, 1),
+    "E": (1, 0, 1),
+    "N": (0, 1, 1),
+    "S": (0, -1, 1)
+}
+
 def solGrid_int_to_str(val: int):
     tail_ints = {
         -2: "W",

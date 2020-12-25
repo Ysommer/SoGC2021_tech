@@ -15,9 +15,9 @@ from algos.init_algos.BFS import *
 
 
 def main():
-    instances_id = [i for i in range(0, 10)]
+    # instances_id = [i for i in range(31, 40)]
 
-    # instances_id = [40]
+    instances_id = [180]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -26,11 +26,11 @@ def main():
         print("Start instance: ", instance.name, "(number:"+str(id)+")")
         out_path = "../solutions/" + instance.name + "/"
         num_of_robots = instance.number_of_robots
-        max_makespan = 35 * num_of_robots
+        max_makespan = 30*num_of_robots
         max_sum = 10 * max_makespan
 
         try:
-            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
             control_center.run_all(print_only_success=False, stop_on_success=True, validate=True)
         except Exception as e:
             print(e)
@@ -54,8 +54,8 @@ def ys_control_center_initiate(instance, out_path , max_makespan, max_sum):
     path = "../solutions/"+instance.name+"/"+Sol_name
     # sol = load_solutions([path])
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
-    for i in range(150):
-        control_center.add_init_algo(BFS, name="_"+str(i))
+    for i in range(1):
+        control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
     return control_center
 
 
@@ -83,7 +83,7 @@ def load_solutions(paths: list):
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    # main()
+    main()
     # analyze()
     compress_solutions_and_validate()
     print("Done!")

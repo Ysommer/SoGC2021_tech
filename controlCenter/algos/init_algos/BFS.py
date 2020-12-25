@@ -7,21 +7,28 @@ from utils import *
 import queue
 from typing import List
 from random import shuffle, randint
+from dataCollection.Generator import *
 
 
 class BFS(InitAlgo):
 
-    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name="", print_info=True, data_bundle=None):
+    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None,
+                 max_sum: int = None, preprocess=None, name="", print_info=True, data_bundle=None):
         super().__init__(instance_name, grid, targets, max_makespan, max_sum, preprocess, "BFS" + name)
 
         self.bfs_list = []
-        for i in range(len(self.robots)):
-            self.bfs_list.append(self.calc_bfs(i))
-            assert len(self.bfs_list[i]) > 0 or self.robots[i].robot_arrived
+        self.boundaries = {"N": self.grid.size+2,
+                           "S": -3,
+                           "W": -3,
+                           "E": self.grid.size+2}
+        for r in self.robots:
+            self.bfs_list.append(Generator.calc_a_star_path(
+                    grid= self.grid, boundaries=self.boundaries, source_pos=r.pos,
+                dest_pos=r.target_pos, check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs))
+            assert self.bfs_list[-1] is not None
 
         self.permutation = [i for i in range(len(self.robots))]
-        self.progress = [0 for i in range(len(self.robots))]
-
+    """
     def calc_bfs(self, i: int, blocked: list = None) -> list:
         if blocked is None:
             blocked = []
@@ -56,6 +63,7 @@ class BFS(InitAlgo):
                     parents[next_pos] = direction
 
         return []
+    """
 
     def unclog(self, num_to_recalc: int):
         recalced = []
@@ -65,23 +73,26 @@ class BFS(InitAlgo):
             check_if_blocked = not check_if_blocked
             if self.robots[i].robot_arrived():
                 continue
-            blocked = []
+            blocked = set()
             pos = self.robots[i].pos
             for direction in directions_to_coords:
                 neighbor_pos = sum_tuples(pos, directions_to_coords[direction])
                 neighbor = self.grid.get_cell(neighbor_pos).get_robot()
                 if neighbor is not None and neighbor not in recalced:
-                    blocked.append(neighbor_pos)
+                    blocked.add(neighbor_pos)
             if len(blocked) == 4:
                 continue
-            new_bfs = self.calc_bfs(i, blocked)
-            if len(new_bfs) > 0:
+            new_bfs = Generator.calc_a_star_path(
+                grid= self.grid, boundaries=self.boundaries, source_pos=self.robots[i].pos,
+                dest_pos=self.robots[i].target_pos, blocked=blocked, check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs)
+            if new_bfs is not None:
                 self.bfs_list[i] = new_bfs
-                self.progress[i] = 0
                 recalced.append(i)
                 if len(recalced) >= num_to_recalc:
                     return len(recalced)
-            elif len(blocked) == 0 or check_if_blocked and len(self.calc_bfs(i)) == 0:
+            elif len(blocked) == 0 or check_if_blocked and Generator.calc_a_star_path(
+                    grid= self.grid, boundaries=self.boundaries, source_pos=self.robots[i].pos,
+                    dest_pos=self.robots[i].target_pos, check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs) is None:
                 print(i, "is STUCK!")
                 return -1
         return len(recalced)
@@ -119,9 +130,9 @@ class BFS(InitAlgo):
         for i in self.permutation:
             if self.robots[i].robot_arrived():
                 continue
-            if InitAlgo.move_robot_to_dir(i, self.grid, self.bfs_list[i][self.progress[i]],
+            if InitAlgo.move_robot_to_dir(i, self.grid, self.bfs_list[i][0],
                                           self.current_turn, self.solution):
-                self.progress[i] += 1
+                self.bfs_list[i].popleft()
                 moved += 1
         return moved
 
@@ -159,6 +170,7 @@ class BFS(InitAlgo):
                 recalced = self.unclog(NUM_TO_UNCLOG)
                 if recalced == -1:
                     self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                    print("% of robots arrived: ", (self.grid.numOfRobotsArrived // len(self.robots)))
                     # print(self.solution)
                     return self.solution
                 if recalced == 0:
@@ -166,6 +178,7 @@ class BFS(InitAlgo):
                     recalced = self.unclog(NUM_TO_UNCLOG)
                     if recalced == -1:
                         self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                        print("% of robots arrived: ", (self.grid.numOfRobotsArrived // len(self.robots)))
                         # print(self.solution)
                         return self.solution
                     if recalced == 0:
@@ -173,6 +186,7 @@ class BFS(InitAlgo):
                         recalced = self.unclog(NUM_TO_UNCLOG)
                         if recalced <= 0:
                             self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                            print("% of robots arrived: ", (self.grid.numOfRobotsArrived // len(self.robots)))
                             # print(self.solution)
                             return self.solution
                 # print("recalced: ", recalced)
@@ -182,6 +196,7 @@ class BFS(InitAlgo):
                 recalced = self.unclog(NUM_TO_UNCLOG)
                 if recalced < 0:
                     self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+                    print("% of robots arrived: ", 100*(self.grid.numOfRobotsArrived / len(self.robots)))
                     # print(self.solution)
                     return self.solution
 

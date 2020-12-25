@@ -1,0 +1,185 @@
+Index: controlCenter/run.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from cgshop2021_pyutils import Instance\nfrom controlCenter import ControlCenter\nfrom solution.solution import *\nfrom Utils.loadInstances import *\nfrom Utils.compress_solutions_and_validate import compress_solutions_and_validate\nfrom Utils.solution_analyzer import analyze_solutions\nfrom Utils.validator import validate_solution_zip\nfrom Utils.compress_solutions_and_validate import compress_solutions, clean_bad_solutions\nimport json\n\n# Algos\nfrom algos.init_algos.LeftPillar import *\nfrom algos.init_algos.OutAndInBFS import *\nfrom algos.init_algos.BFS import *\n\n\ndef main():\n    instances_id = [i for i in range(31, 40)]\n\n    # instances_id = [33]\n    instances = load_all_instances()\n\n    for id in instances_id:\n        instance = instances[id]\n        print(\"====================\")\n        print(\"Start instance: \", instance.name, \"(number:\"+str(id)+\")\")\n        out_path = \"../solutions/\" + instance.name + \"/\"\n        num_of_robots = instance.number_of_robots\n        max_makespan = 35 * num_of_robots\n        max_sum = 10 * max_makespan\n\n        try:\n            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)\n            control_center.run_all(print_only_success=False, stop_on_success=True, validate=True)\n        except Exception as e:\n            print(e)\n        print()\n\ndef make_a_zip():\n    compress_solutions_and_validate()\n\n\ndef jj_control_center_initiate(instance, out_path, max_makespan, max_sum):\n    print_info = True\n    data_bundle = None\n    control_center = ControlCenter(instance, out_path, -1, -1)\n    control_center.add_init_algo(OutAndInBFS, name=\"_default\", print_info=print_info, data_bundle=data_bundle)\n\n    return control_center\n\n\ndef ys_control_center_initiate(instance, out_path , max_makespan, max_sum):\n    Sol_name = \"the_king_94_OutAndInBFS_default_SUCCESS_MSPAN3038_SUM4339.json\"\n    path = \"../solutions/\"+instance.name+\"/\"+Sol_name\n    # sol = load_solutions([path])\n    control_center = ControlCenter(instance, out_path, max_makespan, max_sum)\n    for i in range(150):\n        control_center.add_init_algo(BFS, name=\"_\"+str(i))\n    return control_center\n\n\ndef analyze(to_console=True, to_file=False):\n    data = analyze_solutions(False)\n    if to_console:\n        for i in data:\n            print(i)\n\n    if to_file:\n        out_file_str = \"analyzed_data.csv\"\n        out_file = open(out_file_str, \"w\")\n        data = analyze_solutions(False)\n        for i in data:\n            print(i, file=out_file)\n\ndef load_solutions(paths: list):\n    sols = []\n    for path in paths:\n        file = open(path, \"r\")\n        sol_json = json.load(file)\n        sols.append(Solution(Instance_name, sol_json[\"algo_name\"], int(sol_json[\"makespan\"]), int(sol_json[\"sum\"]),\n                 sol_json[\"result\"], sol_json[\"steps\"]))\n    return sols\n\nif __name__ == \"__main__\":\n    # clean_bad_solutions()\n    main()\n    # analyze()\n    print(\"Done!\")\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/controlCenter/run.py b/controlCenter/run.py
+--- a/controlCenter/run.py	(revision 973ca6f58082c1f8a708c4de698b5343382c6bb9)
++++ b/controlCenter/run.py	(date 1608884500668)
+@@ -15,9 +15,9 @@
+ 
+ 
+ def main():
+-    instances_id = [i for i in range(31, 40)]
++    # instances_id = [i for i in range(31, 40)]
+ 
+-    # instances_id = [33]
++    instances_id = [180]
+     instances = load_all_instances()
+ 
+     for id in instances_id:
+@@ -26,11 +26,11 @@
+         print("Start instance: ", instance.name, "(number:"+str(id)+")")
+         out_path = "../solutions/" + instance.name + "/"
+         num_of_robots = instance.number_of_robots
+-        max_makespan = 35 * num_of_robots
++        max_makespan = num_of_robots
+         max_sum = 10 * max_makespan
+ 
+         try:
+-            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
++            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
+             control_center.run_all(print_only_success=False, stop_on_success=True, validate=True)
+         except Exception as e:
+             print(e)
+@@ -54,7 +54,7 @@
+     path = "../solutions/"+instance.name+"/"+Sol_name
+     # sol = load_solutions([path])
+     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
+-    for i in range(150):
++    for i in range(1):
+         control_center.add_init_algo(BFS, name="_"+str(i))
+     return control_center
+ 
+Index: controlCenter/algos/init_algos/BFS.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from algos.initAlgo import InitAlgo\nfrom infrastructure.grid import Grid\nfrom defines import directions_to_coords, SolutionResult\nfrom infrastructure.robot import Robot\nfrom infrastructure.cell import *\nfrom utils import *\nimport queue\nfrom typing import List\nfrom random import shuffle, randint\n\n\nclass BFS(InitAlgo):\n\n    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name=\"\", print_info=True, data_bundle=None):\n        super().__init__(instance_name, grid, targets, max_makespan, max_sum, preprocess, \"BFS\" + name)\n\n        self.bfs_list = []\n        for i in range(len(self.robots)):\n            self.bfs_list.append(self.calc_bfs(i))\n            assert len(self.bfs_list[i]) > 0 or self.robots[i].robot_arrived\n\n        self.permutation = [i for i in range(len(self.robots))]\n        self.progress = [0 for i in range(len(self.robots))]\n\n    def calc_bfs(self, i: int, blocked: list = None) -> list:\n        if blocked is None:\n            blocked = []\n        parents = {self.robots[i].pos: None}\n        # visited = [self.robots[i].pos]\n        q = queue.Queue()\n        q.put(self.robots[i].pos)\n\n        def legal_step(pos: (int, int)) -> bool:\n            next_cell = self.grid.get_cell(pos)\n            if next_cell.is_obs() or next_cell.has_robot_on_target():\n                return False\n            return -3 <= pos[0] <= self.grid.size + 2 and -3 <= pos[1] <= self.grid.size + 2\n\n        def construct_path(parents: dict, pos: (int, int))-> list:\n            path = []\n            while parents[pos] is not None:\n                path.append(parents[pos])\n                pos = sub_tuples(pos, directions_to_coords[parents[pos]])\n\n            return path[::-1]  # return reversed path\n\n        while not q.empty():\n            pos = q.get()\n            if pos == tuple(self.targets[i]):\n                return construct_path(parents, pos)\n            for direction in directions_to_coords:\n                next_pos = sum_tuples(pos, directions_to_coords[direction])\n                if next_pos not in parents and next_pos not in blocked and legal_step(next_pos):\n                    q.put(next_pos)\n                    # visited.append(next_pos)\n                    parents[next_pos] = direction\n\n        return []\n\n    def unclog(self, num_to_recalc: int):\n        recalced = []\n        check_if_blocked = True\n        shuffle(self.permutation)\n        for i in self.permutation:\n            check_if_blocked = not check_if_blocked\n            if self.robots[i].robot_arrived():\n                continue\n            blocked = []\n            pos = self.robots[i].pos\n            for direction in directions_to_coords:\n                neighbor_pos = sum_tuples(pos, directions_to_coords[direction])\n                neighbor = self.grid.get_cell(neighbor_pos).get_robot()\n                if neighbor is not None and neighbor not in recalced:\n                    blocked.append(neighbor_pos)\n            if len(blocked) == 4:\n                continue\n            new_bfs = self.calc_bfs(i, blocked)\n            if len(new_bfs) > 0:\n                self.bfs_list[i] = new_bfs\n                self.progress[i] = 0\n                recalced.append(i)\n                if len(recalced) >= num_to_recalc:\n                    return len(recalced)\n            elif len(blocked) == 0 or check_if_blocked and len(self.calc_bfs(i)) == 0:\n                print(i, \"is STUCK!\")\n                return -1\n        return len(recalced)\n\n    def divert(self, num_to_divert: int):\n        odd_round = True  # used to randomize diversion direction\n        diverted = []\n\n        def direction_swapper(arg: (str, bool)) -> (str, str):\n            swap = {\n                (\"W\", False): (\"S\", \"N\"),\n                (\"E\", False): (\"N\", \"S\"),\n                (\"N\", False): (\"W\", \"E\"),\n                (\"S\", False): (\"E\", \"W\"),\n                (\"W\", True): (\"N\", \"S\"),\n                (\"E\", True): (\"S\", \"N\"),\n                (\"N\", True): (\"E\", \"W\"),\n                (\"S\", True): (\"W\", \"E\"),\n            }\n            return swap.get(arg)\n\n        while len(diverted) < num_to_divert:\n            i = randint(range(len(self.robots)))\n            if i not in diverted and not self.robots[i].robot_arrived:\n                diverted.append(i)\n                current_direction = self.bfs_list[i][self.progress[i]]\n                swap = direction_swapper((current_direction, odd_round))\n                pos = self.robots[i]\n                for direction in swap:\n                    pass\n\n    def step(self) -> int:\n        moved = 0\n        shuffle(self.permutation)\n        for i in self.permutation:\n            if self.robots[i].robot_arrived():\n                continue\n            if InitAlgo.move_robot_to_dir(i, self.grid, self.bfs_list[i][self.progress[i]],\n                                          self.current_turn, self.solution):\n                self.progress[i] += 1\n                moved += 1\n        return moved\n\n    def run(self):\n        # i = -1  # REMOVE\n        was_stuck = False\n        while True:\n            # i += 1  # REMOVE\n            # print(i)  # REMOVE\n            if self.current_sum > self.max_sum:\n                self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)\n                # print(self.solution)\n                return self.solution\n\n            if self.current_turn > self.max_makespan:\n                self.solution.put_result(SolutionResult.EXCEEDED_MAX_MAKESPAN, self.current_turn, self.current_sum)\n                # print(self.solution)\n                return self.solution\n\n            if self.grid.solution_found():\n                self.solution.put_result(SolutionResult.SUCCESS, self.current_turn, self.current_sum)\n                # print(self.solution)\n                return self.solution\n\n            if not was_stuck:\n                self.solution.out[\"steps\"].append({})\n\n            last_turn_sum = self.step()\n\n            robots_remaining = len(self.robots) - self.grid.numOfRobotsArrived\n            if last_turn_sum == 0:\n                was_stuck = True\n                # print(\"remain: \", robots_remaining)\n                NUM_TO_UNCLOG = robots_remaining//2\n                recalced = self.unclog(NUM_TO_UNCLOG)\n                if recalced == -1:\n                    self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)\n                    # print(self.solution)\n                    return self.solution\n                if recalced == 0:\n                    NUM_TO_UNCLOG += NUM_TO_UNCLOG//2\n                    recalced = self.unclog(NUM_TO_UNCLOG)\n                    if recalced == -1:\n                        self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)\n                        # print(self.solution)\n                        return self.solution\n                    if recalced == 0:\n                        NUM_TO_UNCLOG = robots_remaining\n                        recalced = self.unclog(NUM_TO_UNCLOG)\n                        if recalced <= 0:\n                            self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)\n                            # print(self.solution)\n                            return self.solution\n                # print(\"recalced: \", recalced)\n                continue\n            elif last_turn_sum <= robots_remaining // 3:\n                NUM_TO_UNCLOG = robots_remaining // 2\n                recalced = self.unclog(NUM_TO_UNCLOG)\n                if recalced < 0:\n                    self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)\n                    # print(self.solution)\n                    return self.solution\n\n            was_stuck = False\n            self.current_turn += 1\n            self.current_sum += last_turn_sum\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/controlCenter/algos/init_algos/BFS.py b/controlCenter/algos/init_algos/BFS.py
+--- a/controlCenter/algos/init_algos/BFS.py	(revision 973ca6f58082c1f8a708c4de698b5343382c6bb9)
++++ b/controlCenter/algos/init_algos/BFS.py	(date 1608845107539)
+@@ -126,11 +126,11 @@
+         return moved
+ 
+     def run(self):
+-        # i = -1  # REMOVE
++        i = -1  # REMOVE
+         was_stuck = False
+         while True:
+-            # i += 1  # REMOVE
+-            # print(i)  # REMOVE
++            i += 1  # REMOVE
++            print(i)  # REMOVE
+             if self.current_sum > self.max_sum:
+                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
+                 # print(self.solution)
+Index: controlCenter/infrastructure/solGrid.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from solution.solution import *\nfrom typing import List, Set\nfrom infrastructure.robot import *\nfrom defines import *\nfrom utils import sum_tuples\n\nclass SolGrid:\n    def __init__(self, robots: List[Robot], obsticales: List[List[int]], solution: Solution,\n                 dynamic: bool=False, grid_len: int = 5000, validate: bool = True):\n        self.robots = robots\n        self.solution = solution\n        self.dynamic = dynamic\n        self.grid_len = grid_len\n        self.validate = validate\n        self.grid = {} if dynamic else []\n        self.__robot_pos = [] #robot_id -> robot_pos\n        self.obs = set()\n        self.min_x = 0\n        self.max_x = 0\n        self.min_y = 0\n        self.max_y = 0\n        self.__set_robot_pos()\n        self.__set_obs(obsticales)\n        self.__set_grid()\n\n\n    def __set_grid(self):\n        self.append_empty_stage(0)\n        for i in range(len(self.__robot_pos)):\n            self.grid[0][self.__robot_pos[i]] = i\n\n        t = 1  # time\n\n        for step in self.solution.out[\"steps\"]:\n            if len(step) == 0:\n                continue\n            self.append_empty_stage(t)\n            for robot_id, direction in step.items():\n                robot_id = int(robot_id)\n                old_pos = self.__robot_pos[robot_id]\n                new_pos = sum_tuples(old_pos, directions_to_coords[direction])\n                if self.validate:\n                    assert self.validate_move(t, robot_id, direction), \"illegal move you stupid ass\"\n                self.grid[t][new_pos] = robot_id  # update robot's pos in time t\n                self.__robot_pos[robot_id] = new_pos\n            t += 1\n            if(self.dynamic and t > self.grid_len):\n                break\n    \"\"\"\n    def __set_dynamic_grid(self):\n        pass\n\n    def __set_full_grid(self) -> int:\n        assert self.grid == []\n        for t in range(len(self.solution.out[\"steps\"]) + 1):\n            self.grid.append({})\n        return len(self.grid)\n    \"\"\"\n\n    def __set_robot_pos(self):\n        for r in range(len(self.robots)):\n            self.__robot_pos.append(self.robots[r].pos)\n\n    def __set_obs(self, obs_list: List[List[int]]):\n        for obsticale in obs_list:\n            pos = (obsticale[0], obsticale[1])\n            self.obs.add(pos)\n\n    def get_cell_content(self, time: int, pos: (int, int)): # returns None if cell is empty\n        if pos in self.obs:\n            return -1\n        return self.grid[time].get(pos)\n\n    def check_move(self, robot_id: int, new_pos: (int,int), time: int, direction: str) -> bool:\n        new_cell_content = self.get_cell_content(time, new_pos)\n        if new_cell_content is None or new_cell_content == robot_id or \\\n            (new_cell_content < -1 and solGrid_int_to_str(new_cell_content) == direction):\n            return True\n        return False\n\n    def validate_move(self, time, robot_id: int, direction):\n        old_pos = self.__robot_pos[robot_id]\n        new_pos = sum_tuples(old_pos,directions_to_coords[direction])\n        return new_pos not in self.obs and new_pos not in self.grid[time] and \\\n               (new_pos not in self.grid[time-1] or \\\n               (sum_tuples(new_pos, directions_to_coords[direction]) in self.grid[time] and    \\\n               self.grid[time-1].get(new_pos) == self.grid[time].get(sum_tuples(new_pos, directions_to_coords[direction]))))\n\n    def append_empty_stage(self, time):\n        if self.dynamic:\n            assert time not in self.grid\n            self.grid[time] = {}\n        else:\n            self.grid.append({})\n\n    def validate_solution(self, targets:list):\n        for robot_id in range(len(self.__robot_pos)):\n            if targets[robot_id] != self.__robot_pos[robot_id]:\n                return False\n        return True\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/controlCenter/infrastructure/solGrid.py b/controlCenter/infrastructure/solGrid.py
+--- a/controlCenter/infrastructure/solGrid.py	(revision 973ca6f58082c1f8a708c4de698b5343382c6bb9)
++++ b/controlCenter/infrastructure/solGrid.py	(date 1608844500325)
+@@ -43,6 +43,10 @@
+                     assert self.validate_move(t, robot_id, direction), "illegal move you stupid ass"
+                 self.grid[t][new_pos] = robot_id  # update robot's pos in time t
+                 self.__robot_pos[robot_id] = new_pos
++                self.min_x = min(self.min_x, new_pos[0])
++                self.max_x = max(self.max_x, new_pos[0])
++                self.min_y = min(self.min_y, new_pos[1])
++                self.max_y = max(self.max_y, new_pos[1])
+             t += 1
+             if(self.dynamic and t > self.grid_len):
+                 break
+@@ -73,8 +77,9 @@
+ 
+     def check_move(self, robot_id: int, new_pos: (int,int), time: int, direction: str) -> bool:
+         new_cell_content = self.get_cell_content(time, new_pos)
+-        if new_cell_content is None or new_cell_content == robot_id or \
+-            (new_cell_content < -1 and solGrid_int_to_str(new_cell_content) == direction):
++        old_cell_content = self.get_cell_content(time-1, new_pos)
++
++        if new_cell_content is None:
+             return True
+         return False
+ 
+Index: .idea/code.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<module type=\"PYTHON_MODULE\" version=\"4\">\n  <component name=\"NewModuleRootManager\">\n    <content url=\"file://$MODULE_DIR$\" />\n    <orderEntry type=\"jdk\" jdkName=\"Python 3.7\" jdkType=\"Python SDK\" />\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\n  </component>\n  <component name=\"TestRunnerService\">\n    <option name=\"PROJECT_TEST_RUNNER\" value=\"Unittests\" />\n  </component>\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/code.iml b/.idea/code.iml
+--- a/.idea/code.iml	(revision 973ca6f58082c1f8a708c4de698b5343382c6bb9)
++++ b/.idea/code.iml	(date 1608842267436)
+@@ -2,7 +2,7 @@
+ <module type="PYTHON_MODULE" version="4">
+   <component name="NewModuleRootManager">
+     <content url="file://$MODULE_DIR$" />
+-    <orderEntry type="jdk" jdkName="Python 3.7" jdkType="Python SDK" />
++    <orderEntry type="jdk" jdkName="Python 3.7 (venv)" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
+   </component>
+   <component name="TestRunnerService">
+Index: controlCenter/algos/optimization_algos/BFS_in_time.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/controlCenter/algos/optimization_algos/BFS_in_time.py b/controlCenter/algos/optimization_algos/BFS_in_time.py
+new file mode 100644
+--- /dev/null	(date 1608844500319)
++++ b/controlCenter/algos/optimization_algos/BFS_in_time.py	(date 1608844500319)
+@@ -0,0 +1,6 @@
++from algos.optimizationAlgo import OptimizationAlgo
++
++class BFS_in_time(OptimizationAlgo):
++    def __init__(self, instance_name: str, solution: Solution, robots: list,
++                 targets: list, preprocess=None, name="", print_info=True):
++        super().__init__(instance_name, solution, robots, targets, preprocess, name, print_info)
+\ No newline at end of file
+Index: solutions/small_free_000_10x10_30_30/small_free_000_10x10_30_30_BFS_0_SUCCESS_MSPAN53_SUM283.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/solutions/small_free_000_10x10_30_30/small_free_000_10x10_30_30_BFS_0_SUCCESS_MSPAN53_SUM283.json b/solutions/small_free_000_10x10_30_30/small_free_000_10x10_30_30_BFS_0_SUCCESS_MSPAN53_SUM283.json
+new file mode 100644
+--- /dev/null	(date 1608844965150)
++++ b/solutions/small_free_000_10x10_30_30/small_free_000_10x10_30_30_BFS_0_SUCCESS_MSPAN53_SUM283.json	(date 1608844965150)
+@@ -0,0 +1,1 @@
++{"instance": "small_free_000_10x10_30_30", "steps": [{"24": "E", "6": "E", "17": "E", "0": "E", "20": "W", "3": "E", "16": "E", "4": "E", "23": "W", "9": "E", "29": "W", "18": "W", "8": "S", "10": "W", "12": "N", "13": "W", "7": "S", "28": "W", "1": "W", "15": "W"}, {"27": "S", "11": "E", "9": "E", "0": "E", "17": "E", "12": "N", "1": "N", "7": "S", "2": "N", "20": "W", "29": "W", "23": "W", "28": "W", "16": "E", "13": "S", "3": "N", "18": "W", "25": "W"}, {"5": "N", "27": "S", "1": "N", "25": "W", "28": "W", "16": "E", "10": "W", "18": "W", "29": "W", "14": "W", "2": "N", "12": "N", "9": "E"}, {"29": "W", "14": "W", "5": "N", "2": "N", "18": "W", "10": "S"}, {"26": "S", "8": "S", "29": "N", "28": "S", "3": "S", "0": "W", "10": "S", "4": "W", "25": "W", "19": "W", "7": "S", "27": "S"}, {"19": "N", "21": "S", "29": "N", "10": "S", "14": "W", "11": "E", "23": "W", "26": "W", "13": "S", "0": "S", "25": "S", "3": "W", "28": "W"}, {"25": "S", "10": "S", "28": "W", "14": "W", "21": "S", "19": "N", "23": "S", "27": "S", "8": "S"}, {"19": "E", "26": "W", "22": "W", "14": "W", "8": "S", "10": "S"}, {"19": "E", "0": "E", "17": "W", "26": "E", "16": "E", "10": "E", "28": "W"}, {"20": "W", "0": "S", "25": "W", "26": "S", "23": "E", "10": "S", "28": "W", "3": "E", "6": "S", "19": "E", "29": "N", "4": "S"}, {"23": "S", "19": "E", "16": "E", "28": "W", "3": "N", "6": "S", "4": "S", "0": "S", "10": "S"}, {"3": "N", "23": "S", "6": "E", "28": "N", "10": "S", "15": "W"}, {"3": "N", "28": "N", "15": "W", "16": "W", "23": "W", "18": "E", "4": "S", "17": "W", "6": "E", "10": "S", "29": "E"}, {"20": "W", "15": "S", "28": "N", "25": "S", "10": "W", "29": "N", "27": "S", "17": "S", "6": "S", "4": "E"}, {"4": "S", "28": "N", "17": "S", "20": "W", "25": "S", "15": "S", "29": "N", "1": "N"}, {"4": "S", "25": "E", "29": "W", "17": "E", "19": "E", "20": "W"}, {"17": "E", "29": "W", "20": "S", "19": "E"}, {"22": "W", "11": "N", "18": "S", "17": "S", "19": "E", "16": "S", "29": "S"}, {"17": "E", "18": "W", "19": "E", "11": "E", "23": "W"}, {"11": "E", "26": "N", "17": "E", "19": "E", "18": "W"}, {"17": "E", "19": "E", "16": "E", "11": "E", "18": "W"}, {"17": "S", "18": "N", "16": "S"}, {"25": "W", "21": "E", "16": "N", "26": "E", "18": "N"}, {"21": "E", "26": "N", "28": "E", "16": "N", "23": "W"}, {"21": "S", "22": "S", "26": "N", "16": "E"}, {"26": "W", "16": "E", "21": "S", "22": "S"}, {"26": "W", "22": "S", "16": "N"}, {"22": "E", "26": "W", "21": "E", "17": "E", "23": "E"}, {"11": "N", "17": "E", "16": "N", "26": "W", "21": "E", "23": "E"}, {"17": "E", "11": "N", "26": "S", "23": "S", "21": "S", "16": "E"}, {"23": "S", "21": "E", "17": "S", "16": "N"}, {"21": "S", "17": "S", "23": "S"}, {"21": "S", "17": "W", "23": "W"}, {"21": "S", "17": "S", "23": "W"}, {"21": "W", "23": "W", "17": "W"}, {"23": "W", "21": "W", "17": "W"}, {"23": "W", "21": "W", "17": "S"}, {"21": "W", "23": "N"}, {"21": "W", "23": "N"}, {"23": "N", "21": "N"}, {"18": "W"}, {"18": "W", "25": "S"}, {"18": "W", "25": "S"}, {"25": "S", "18": "N"}, {"18": "N", "25": "E"}, {"18": "N", "25": "E"}, {"18": "N", "25": "E"}, {"18": "N", "25": "N"}, {"18": "E", "25": "N"}, {"18": "E", "25": "W"}, {"18": "N"}, {"18": "E"}, {"18": "E"}], "result": "SUCCESS", "makespan": 53, "sum": 283, "algo_name": "BFS_0"}
+\ No newline at end of file
+Index: .idea/inspectionProfiles/profiles_settings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><component name=\"InspectionProjectProfileManager\">\n  <settings>\n    <option name=\"USE_PROJECT_PROFILE\" value=\"false\" />\n    <version value=\"1.0\" />\n  </settings>\n</component>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/inspectionProfiles/profiles_settings.xml b/.idea/inspectionProfiles/profiles_settings.xml
+--- a/.idea/inspectionProfiles/profiles_settings.xml	(revision 973ca6f58082c1f8a708c4de698b5343382c6bb9)
++++ b/.idea/inspectionProfiles/profiles_settings.xml	(date 1608842267439)
+@@ -1,5 +1,6 @@
+ <component name="InspectionProjectProfileManager">
+   <settings>
++    <option name="PROJECT_PROFILE" value="Default" />
+     <option name="USE_PROJECT_PROFILE" value="false" />
+     <version value="1.0" />
+   </settings>
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"ProjectRootManager\" version=\"2\" project-jdk-name=\"Python 3.7\" project-jdk-type=\"Python SDK\" />\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision 973ca6f58082c1f8a708c4de698b5343382c6bb9)
++++ b/.idea/misc.xml	(date 1608842267442)
+@@ -1,4 +1,4 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7" project-jdk-type="Python SDK" />
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (venv)" project-jdk-type="Python SDK" />
+ </project>
+\ No newline at end of file
