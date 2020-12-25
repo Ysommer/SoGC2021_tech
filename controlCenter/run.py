@@ -15,7 +15,7 @@ from algos.init_algos.BFS import *
 
 
 def main():
-    instances_id = [i for i in range(51, 71)]
+    instances_id = [i for i in range(0, 10)]
 
     # instances_id = [40]
     instances = load_all_instances()
@@ -83,6 +83,7 @@ def load_solutions(paths: list):
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    main()
+    # main()
     # analyze()
+    compress_solutions_and_validate()
     print("Done!")
