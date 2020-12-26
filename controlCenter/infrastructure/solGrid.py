@@ -3,6 +3,7 @@ from typing import List, Set
 from infrastructure.robot import *
 from defines import *
 from utils import sum_tuples
+from infrastructure.robot import *
 
 class SolGrid:
     def __init__(self, robots: List[Robot], obsticales: List[List[int]], solution: Solution,
@@ -121,7 +122,36 @@ class SolGrid:
         return t
 
     def get_last_moving_robots(self) -> List[int]:
+        last_index = -1
         last = []
-        for robot_id in self.grid[self.max_time].values():
-            last.append(robot_id)
+        while len(last) == 0:
+            for robot_id in self.solution["steps"][-1]:
+                last.append(robot_id)
+            last_index -= 1
         return last
+
+    def update_robot_path(self, robot_id: int, path: list):
+        robot_pos = self.robots[robot_id].pos
+        t = 1
+        max_t = len(path)
+        while t <=self.max_time:
+            for pos, r_id in self.grid[t].items():
+                if r_id == robot_id:
+                    del self.grid[t][pos]
+                    break
+            if len(path) >= t:
+                direction = path[t-1]
+                robot_pos = sum_tuples(robot_pos, directions_to_coords(direction))
+                assert robot_pos not in self.grid[t]
+                self.grid[t][robot_pos] = robot_id
+            elif self.grid[t] != self.grid[t-1]: # update max_time
+                max_t = t
+
+        old_max_time = self.max_time
+        self.max_time = max_t
+        while old_max_time > self.max_time:
+            del self.grid[old_max_time]
+            old_max_time -= 1
+
+
+

@@ -5,7 +5,9 @@ class OptimizationAlgo:
     def __init__(self, instance_name: str, solution: Solution, robots: list,
                  targets: list, obstacles: list, preprocess=None, name="", print_info=True):
         self.instance_name = instance_name
-        self.solution = solution
+        self.solution = Solution(solution.out["instance"],
+                                 solution.out["algo_name"] + name,
+                                 steps=solution.out["steps"])
         self.robots = deepcopy(robots)
         self.targets = targets
         self.obs = obstacles
