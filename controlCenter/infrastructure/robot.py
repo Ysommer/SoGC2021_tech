@@ -23,7 +23,8 @@ class Robot:
 
     def __str__(self):
         out = "<Robot = (ID: " + str(self.robot_id)
-        out += ", Target ID: " + str(self.target_pos)
+        out += ", Pos: " + str(self.pos)
+        out += ", Target: " + str(self.target_pos)
         out += ", Extra data: " + str(self.extra_data)
         out += " )>"
         return out

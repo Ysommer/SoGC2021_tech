@@ -63,7 +63,7 @@ class ControlCenter:
                 print(res)
             except Exception as e:
                 print("Failure in :", i.name, "| error: ", e)
-                # traceback.print_exc()
+                traceback.print_exc()
                 continue
             try:
                 if validate:

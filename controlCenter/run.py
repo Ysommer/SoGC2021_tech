@@ -1,3 +1,5 @@
+import traceback
+
 from cgshop2021_pyutils import Instance
 from controlCenter import ControlCenter
 from solution.solution import *
@@ -11,13 +13,14 @@ import json
 # Algos
 from algos.init_algos.LeftPillar import *
 from algos.init_algos.OutAndInBFS import *
+from algos.init_algos.OutAndInByPercentage import *
 from algos.init_algos.BFS import *
 
 
 def main():
-    # instances_id = [i for i in range(31, 40)]
+    instances_id = [i for i in range(168, 171)]
 
-    instances_id = [180]
+    # instances_id = [180]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -30,10 +33,11 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
-            control_center.run_all(print_only_success=False, stop_on_success=True, validate=True)
+            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center.run_all(print_only_success=True, stop_on_success=False, validate=True)
         except Exception as e:
             print(e)
+            traceback.print_exc()
         print()
 
 def make_a_zip():
@@ -44,7 +48,10 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     print_info = True
     data_bundle = None
     control_center = ControlCenter(instance, out_path, -1, -1)
-    control_center.add_init_algo(OutAndInBFS, name="_default", print_info=print_info, data_bundle=data_bundle)
+    # control_center.add_init_algo(OutAndInBFS, name="_default", print_info=print_info, data_bundle=data_bundle)
+    for i in range(3, 10):
+        for j in range(5):
+            control_center.add_init_algo(OutAndInByPercentage, name="i_"+ str(i) + "_j_" + str(j), print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
 
     return control_center
 
@@ -82,8 +89,8 @@ def load_solutions(paths: list):
     return sols
 
 if __name__ == "__main__":
-    # clean_bad_solutions()
+    clean_bad_solutions()
     main()
     # analyze()
-    compress_solutions_and_validate()
+    # compress_solutions_and_validate()
     print("Done!")

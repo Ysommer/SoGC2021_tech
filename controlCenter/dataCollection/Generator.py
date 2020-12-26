@@ -175,6 +175,26 @@ class Generator:
         assert 0, "get_next_move_by_dist_and_obs: Failed to find next"
 
     @staticmethod
+    def get_next_move_by_dist_and_obs_from_bfs_map_copy(
+            map: dict,
+            pos: (int, int),
+            preferred_direction_order=None):
+
+        if preferred_direction_order is None:
+            preferred_direction_order = directions_to_coords.keys()
+
+        current_dist = map[pos]
+
+        for d in preferred_direction_order:
+            next_pos = sum_tuples(pos, directions_to_coords[d])
+            next_dist = map.get(next_pos, -1)
+
+            if -1 < next_dist < current_dist:
+                return d
+
+        assert 0, "get_next_move_by_dist_and_obs: Failed to find next"
+
+    @staticmethod
     def calc_a_star_path(
             grid: Grid,
             boundaries,
@@ -185,7 +205,7 @@ class Generator:
             calc_configure_value_params=None,
             check_move_func=CheckMoveFunction.check_free_from_obs,
             check_move_params=None,
-            preferred_direction_order=None):
+            preferred_direction_order=None) -> deque:
         if blocked is None:
             blocked = set()
 

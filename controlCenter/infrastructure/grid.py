@@ -111,6 +111,13 @@ class Grid:
     def get_cell_distance(self, pos):
         return self.get_cell_for_bfs(pos).get_distance(self.bfs_counter)
 
+    def get_copy_bfs_map_(self) -> dict:
+        out = {}
+        for pos in self.bfs_grid:
+            out[pos] = self.get_cell_distance(pos)
+
+        return out
+
     def __set_robots(self):
         for r in range(len(self.robots)):
             robot = self.robots[r]
