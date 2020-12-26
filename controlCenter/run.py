@@ -18,7 +18,7 @@ from algos.init_algos.BFS import *
 
 
 def main():
-    instances_id = [i for i in range(168, 171)]
+    instances_id = [i for i in range(107, 108)]
 
     # instances_id = [180]
     instances = load_all_instances()
@@ -34,7 +34,7 @@ def main():
 
         try:
             control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
-            control_center.run_all(print_only_success=True, stop_on_success=False, validate=True)
+            control_center.run_all(print_only_success=False, stop_on_success=False, validate=True)
         except Exception as e:
             print(e)
             traceback.print_exc()
@@ -48,10 +48,13 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     print_info = True
     data_bundle = None
     control_center = ControlCenter(instance, out_path, -1, -1)
-    # control_center.add_init_algo(OutAndInBFS, name="_default", print_info=print_info, data_bundle=data_bundle)
-    for i in range(3, 10):
-        for j in range(5):
-            control_center.add_init_algo(OutAndInByPercentage, name="i_"+ str(i) + "_j_" + str(j), print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
+    control_center.add_init_algo(OutAndInByPercentage, name="_sea_level_", print_info=print_info, data_bundle=data_bundle)
+    # for i in range(5, 11):
+        # control_center.add_init_algo(OutAndInByPercentage, name="_per_" + str(i*10) + "_SW_", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
+        # control_center.add_init_algo(OutAndInByPercentage, name="_per_" + str(i*10) + "_NW_", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10, "start_fill_from": (-1, control_center.grid.size)})
+        # control_center.add_init_algo(OutAndInByPercentage, name="_per_" + str(i*10) + "_SE_", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10, "start_fill_from": (control_center.grid.size, -1)})
+        # control_center.add_init_algo(OutAndInByPercentage, name="_per_" + str(i*10) + "_NE_", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10, "start_fill_from": (control_center.grid.size, control_center.grid.size)})
+
 
     return control_center
 

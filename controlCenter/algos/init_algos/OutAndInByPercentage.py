@@ -28,9 +28,12 @@ class OutAndInByPercentage(InitAlgo):
             0: push all robots outside the board
             1: move robots to targets with a BFS
         """
+
+        # Time init
         init_time = Timer(self.name + " init")
         init_time.start()
 
+        # Init phases
         self.phase = 0
         self.phases = [
             self.step_phase_0,
@@ -41,7 +44,20 @@ class OutAndInByPercentage(InitAlgo):
             Timer("phase 1 timer")
         ]
 
-        self.start_fill_from = (-1, -1)
+        # Parse data bundle
+        if data_bundle is None:
+            data_bundle = {}
+
+        self.start_fill_from = data_bundle.get("start_fill_from", (-1, -1))
+        self.reverse_fill = data_bundle.get("reverse_fill", True)
+        self.boundaries = data_bundle.get("boundaries", {
+            "N": self.grid.size + 2,
+            "E": self.grid.size + 2,
+            "W": -3,
+            "S": -3,
+        })
+        self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside",0)
+        self.timeout = data_bundle.get("timeout", 10)
         self.reverse_fill = True
         self.boundaries = {
             "N": self.grid.size + 2,
@@ -49,25 +65,22 @@ class OutAndInByPercentage(InitAlgo):
             "W": -3,
             "S": -3,
         }
-        self.percent_to_leave_inside = 0
         self.timeout = 10
 
-        if data_bundle is not None:
-            if "start_fill_from" in data_bundle:
-                self.start_fill_from = data_bundle["start_fill_from"]
-            if "reverse_fill" in data_bundle:
-                self.reverse_fill = data_bundle["reverse_fill"]
-            if "boundaries" in data_bundle:
-                self.boundaries = data_bundle["boundaries"]
-            if "percent_to_leave_inside" in data_bundle:
-                self.percent_to_leave_inside = data_bundle["percent_to_leave_inside"]
-
+        # All Phases params
         self.bfs_list = [None] * len(self.robots)
-        self.q_by_robot_id = [None] * len(self.robots)
+        self.q_by_robot_id = [self.q_reaching_out for i in range(len(self.robots))]
+        self.inside_group = []
+        self.out_of_boundaries_permutation = []
+        self.reaching_out_permutation = []
 
+
+        # Phase 0 params
         random_quantity = (len(self.robots) * self.percent_to_leave_inside) // 100
         self.inside_group = sample(range(0, len(self.robots)), random_quantity)
+        shuffle(self.inside_group)
 
+        # Calc paths for the inside group
         for i in self.inside_group:
             robot = self.robots[i]
             robot.extra_data = 0
@@ -76,16 +89,18 @@ class OutAndInByPercentage(InitAlgo):
                 self.q_by_robot_id[i] = self.q_arrived
                 continue
 
-
             self.bfs_list[i] = Generator.calc_a_star_path(
                 grid=self.grid,
                 boundaries=self.boundaries,
                 source_pos=robot.pos,
                 dest_pos=robot.target_pos,
-                check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs,
+                check_move_func=CheckMoveFunction.check_free_from_obs,
                 calc_configure_value_func=AStarHeuristics.manhattan_distance
             )
+
+            assert self.bfs_list[i] is not None, "Can't find any path without obstacles"
             self.q_by_robot_id[i] = self.q_stay_inside
+
 
         Generator.calc_bfs_map(grid=self.grid,
                                boundaries={
@@ -98,23 +113,23 @@ class OutAndInByPercentage(InitAlgo):
                                check_move_func=CheckMoveFunction.check_free_from_obs)
 
         self.bfs_map_copy = self.grid.get_copy_bfs_map_()
-
+        temp_robot_list = []
 
         for robot in self.robots:
-            if self.q_by_robot_id[robot.robot_id] in [self.q_stay_inside, self.q_arrived] :
+            # Ignoring the robots that stay inside
+            if self.q_by_robot_id[robot.robot_id] in [self.q_stay_inside, self.q_arrived]:
                 continue
-            robot.extra_data = self.grid.get_cell_distance(robot.pos)
-            assert robot.extra_data > 0, "robot" + str(robot) + "can't find a path from pos"
-            self.q_by_robot_id[robot.robot_id] = self.q_reaching_out
 
-        # Arranging the robots in a way that the first robot to act will be the ones who want to get out and are closest to the boundaries
-        # After all robots who reaching out acted, the ones which stay inside will act
-        self.permutation = []
-        self.preprocess.generic_robots_sort(self.permutation, "EXTRA", self.robots)
-        permutation_going_out = self.permutation[random_quantity:]
-        permutation_stay_in = self.permutation[:random_quantity]
-        self.permutation = permutation_going_out + permutation_stay_in
-        self.out_permutation = []
+            # Check every robots and target are reachable
+            assert self.grid.get_cell_distance(robot.pos) > 0, str(robot) + " is unreachable"
+            assert self.grid.get_cell_distance(robot.target_pos) > 0, str(robot) + "'s target is unreachable"
+
+            # Extra data = distance
+            robot.extra_data = self.grid.get_cell_distance(robot.pos)
+            temp_robot_list.append(robot)
+
+        # Arranging by distance in increasing order
+        self.preprocess.generic_robots_sort(self.reaching_out_permutation, "EXTRA", temp_robot_list)
 
         self.last_index_on_the_road = 0
 
@@ -126,7 +141,7 @@ class OutAndInByPercentage(InitAlgo):
         if moved == 0 and len(self.inside_group) == self.grid.numOfRobotsArrived:
             self.phases_timers[self.phase].end(self.print_info)
             if self.phase == 0:
-                if self.switch_phase_0_to_1():
+                if self.switch_phase_0_to_1_v2():
                     return self.phases[self.phase]()
                 return 0
 
@@ -140,72 +155,26 @@ class OutAndInByPercentage(InitAlgo):
                 *robot haven't found a spot: keep North
         """
         moved = 0
-        for i in self.out_permutation:
+        for i in self.out_of_boundaries_permutation:
             moved += self.q_by_robot_id[i](self.robots[i])
+            # Is this check necessary?
             if self.q_by_robot_id[i] == self.q_stuck:
                 return 0
 
         temp_permutation = []
-        for i in self.permutation:
+        for i in self.reaching_out_permutation:
             moved += self.q_by_robot_id[i](self.robots[i])
             if self.q_by_robot_id[i] == self.q_stuck:
                 return 0
             if self.q_by_robot_id[i] == self.q_outside_in_main_road:
-                self.out_permutation.append(i)
+                self.out_of_boundaries_permutation.append(i)
             else:
                 temp_permutation.append(i)
 
-        self.permutation = temp_permutation
+        self.reaching_out_permutation = temp_permutation
 
         if moved == 0 and self.grid.numOfRobotsArrived < len(self.inside_group):
             moved += self.shake_map()
-
-        return moved
-
-    def shake_robot(self, i: int) -> bool:
-        robot = self.robots[i]
-        if robot.robot_arrived():
-            return True
-
-        self.bfs_list[i] = Generator.calc_a_star_path(
-            grid=self.grid,
-            boundaries=self.boundaries,
-            source_pos=robot.pos,
-            dest_pos=robot.target_pos,
-            check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs,
-            calc_configure_value_func=AStarHeuristics.manhattan_distance
-        )
-        if self.bfs_list[i] is None:
-            self.bfs_list[i] = Generator.calc_a_star_path(
-                grid=self.grid,
-                boundaries=self.boundaries,
-                source_pos=robot.pos,
-                dest_pos=robot.target_pos,
-                check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs,
-                calc_configure_value_func=AStarHeuristics.manhattan_distance
-            )
-            if self.bfs_list[i] is None:
-                print("Robot" + str(robot) + "can't find any valid path")
-                self.q_by_robot_id[i] = self.q_stuck
-                return False
-
-        robot.extra_data //= 2
-        return True
-
-    def shake_map(self):
-        moved = 0
-        shuffle(self.inside_group)
-        for i in self.inside_group:
-            robot = self.robots[i]
-            if robot.robot_arrived():
-                continue
-
-            if not self.shake_robot(i):
-                return 0
-
-            moved += self.q_by_robot_id[i](self.robots[i])
-            if self.q_by_robot_id[i] == self.q_stuck:
-                return 0
 
         return moved
 
@@ -213,10 +182,7 @@ class OutAndInByPercentage(InitAlgo):
         self.phase += 1
 
         blocked = set()
-        for r in self.robots:
-            blocked.add(r.pos)
 
-        self.permutation.clear()
         if self.grid.has_robot_on_target(self.start_fill_from):
             print("The point to start fill from is full")
             return False
@@ -227,34 +193,34 @@ class OutAndInByPercentage(InitAlgo):
                                source_container=[self.start_fill_from],
                                check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs)
 
-        for r in self.robots:
-            if r.robot_arrived():
-                r.extra_data = -2
-                continue
-            r.extra_data = self.grid.get_cell_distance(r.target_pos)
-            if r.extra_data == -1:
-                print(r, "has no clear path to target")
+        temp_robots = []
+        for i in self.out_of_boundaries_permutation:
+            robot = self.robots[i]
+            robot.extra_data = self.grid.get_cell_distance(robot.target_pos)
+            if robot.extra_data == -1:
+                print(robot, "has no clear path to target")
                 return False
+            temp_robots.append(robot)
 
-        self.preprocess.generic_robots_sort(self.permutation, "EXTRA", self.robots)  # sort by dists
-        self.permutation = self.permutation[self.grid.numOfRobotsArrived:] # cut the robots that arrived
+        self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by dists
 
         if self.reverse_fill:
-            self.permutation.reverse()
+            self.out_of_boundaries_permutation.reverse()
 
-        for i in self.permutation:
+        for i in self.out_of_boundaries_permutation:
             robot = self.robots[i]
-            # TODO: Narrow boundaries
+
             self.bfs_list[i] = Generator.calc_a_star_path(
                 grid=self.grid,
                 boundaries=self.boundaries,
                 source_pos=robot.pos,
                 dest_pos=robot.target_pos,
                 blocked=blocked,
-                calc_configure_value_func=AStarHeuristics.manhattan_distance
-            )
+                calc_configure_value_func=AStarHeuristics.manhattan_distance,
+                check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
 
             # Because distance is not -1, there must be a way
+
             assert self.bfs_list[i] is not None, "Step 1: can't find any path for robot:" + str(i)
             blocked.add(robot.target_pos)
 
@@ -269,9 +235,11 @@ class OutAndInByPercentage(InitAlgo):
         """
         moved = 0
 
-        moving_robot_id = self.permutation[self.last_index_on_the_road]
+        moving_robot_id = self.out_of_boundaries_permutation[self.last_index_on_the_road]
         robot = self.robots[moving_robot_id]
 
+        # Making sure BFS list isn't empty nor None
+        assert self.bfs_list[moving_robot_id] and self.bfs_list[moving_robot_id] is not None
         if InitAlgo.move_robot_to_dir(moving_robot_id, self.grid, self.bfs_list[moving_robot_id][0],
                                       self.current_turn, self.solution):
             self.bfs_list[moving_robot_id].popleft()
@@ -282,18 +250,63 @@ class OutAndInByPercentage(InitAlgo):
 
         return moved
 
-    def is_pos_on_target(self, i, pos):
-        return pos == tuple(self.targets[i])
+    def switch_phase_0_to_1_v2(self):
+        self.phase += 1
+        blocked = set()
+
+        Generator.calc_sea_level_bfs_map(grid=self.grid,
+                               boundaries=self.boundaries,
+                               check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs)
+
+        temp_robots = []
+        for i in self.out_of_boundaries_permutation:
+            robot = self.robots[i]
+            robot.extra_data = self.grid.get_cell_distance(robot.target_pos)
+            if robot.extra_data == -1:
+                print(robot, "has no clear path to target")
+                return False
+            temp_robots.append(robot)
+
+        self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by highs
+
+        self.out_of_boundaries_permutation.reverse()
+
+        for i in self.out_of_boundaries_permutation:
+            robot = self.robots[i]
+
+            self.bfs_list[i] = Generator.calc_a_star_path(
+                grid=self.grid,
+                boundaries=self.boundaries,
+                source_pos=robot.pos,
+                dest_pos=robot.target_pos,
+                blocked=blocked,
+                calc_configure_value_func=AStarHeuristics.manhattan_distance,
+                check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
+
+            # Because distance is not -1, there must be a way
+            if self.bfs_list[i] is None:
+                print(i)
+                print(self.robots[i])
+                for d in directions_to_coords:
+                    print(self.grid.get_cell(sum_tuples(robot.target_pos, directions_to_coords[d])))
+                print(self.out_of_boundaries_permutation)
+                return False
+
+            assert self.bfs_list[i] is not None, "Step 1: can't find any path for robot:" + str(i)
+            blocked.add(robot.target_pos)
+
+        return True
 
     # states
     def q_reaching_out(self, robot: Robot) -> int:
-        next_direction = Generator.get_next_move_by_dist_and_obs_from_bfs_map_copy(self.bfs_map_copy, robot.pos)
-        if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, next_direction, self.current_turn, self.solution):
-            robot.extra_data -= 1
-            if robot.extra_data == 0:
-                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_main_road
-                robot.extra_data = next_direction
-            return 1
+        next_directions = Generator.get_next_move_by_dist_and_obs_from_bfs_map_copy(self.bfs_map_copy, robot.pos)
+        for next_dir in next_directions:
+            if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, next_dir, self.current_turn, self.solution):
+                robot.extra_data -= 1
+                if robot.extra_data == 0:
+                    self.q_by_robot_id[robot.robot_id] = self.q_outside_in_main_road
+                    robot.extra_data = next_dir
+                return 1
         return 0
 
     def q_outside_in_main_road(self, robot: Robot) -> int:
@@ -316,6 +329,7 @@ class OutAndInByPercentage(InitAlgo):
             self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_left
             return 1
         if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(robot.extra_data, "U"), self.current_turn, self.solution):
+            self.stretch_boundaries(robot)
             return 1
         return 0
 
@@ -338,13 +352,7 @@ class OutAndInByPercentage(InitAlgo):
             else:
                 moved += InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "U"), self.current_turn, self.solution)
 
-        stretch_param = self.get_row_by_direction(d, robot.pos)
-        if d in ["N", "E"]:
-            stretch_func = max
-        else:
-            stretch_func = min
-
-        self.boundaries[d] = stretch_func(self.boundaries[d], stretch_param)
+        self.stretch_boundaries(robot)
         return moved
 
     def q_outside_in_place_left(self, robot: Robot) -> int:
@@ -365,13 +373,7 @@ class OutAndInByPercentage(InitAlgo):
             else:
                 moved += InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "U"), self.current_turn, self.solution)
 
-        stretch_param = self.get_row_by_direction(d, robot.pos)
-        if d in ["N", "E"]:
-            stretch_func = max
-        else:
-            stretch_func = min
-
-        self.boundaries[d] = stretch_func(self.boundaries[d], stretch_param)
+        self.stretch_boundaries(robot)
         return moved
 
     def q_stay_inside(self, robot: Robot) -> int:
@@ -386,6 +388,8 @@ class OutAndInByPercentage(InitAlgo):
             if not self.shake_robot(i):
                 return 0
 
+        # Making sure BFS list isn't empty nor None
+        assert self.bfs_list[i] and self.bfs_list[i] is not None
         if InitAlgo.move_robot_to_dir(i, self.grid, self.bfs_list[i][0], self.current_turn, self.solution):
             self.bfs_list[i].popleft()
             robot.extra_data = 0
@@ -415,7 +419,6 @@ class OutAndInByPercentage(InitAlgo):
 
     @staticmethod
     def create_boundaries_queue(source_container, source_container_params) -> queue:
-
         q = queue.Queue()
         # N & S
         for i in range(0, source_container_params):
@@ -473,3 +476,60 @@ class OutAndInByPercentage(InitAlgo):
             "W": (-1, pos[1])
         }
         return road_by_direction[direction]
+
+    def shake_robot(self, i: int) -> bool:
+        robot = self.robots[i]
+        if robot.robot_arrived():
+            return True
+
+        self.bfs_list[i] = Generator.calc_a_star_path(
+            grid=self.grid,
+            boundaries=self.boundaries,
+            source_pos=robot.pos,
+            dest_pos=robot.target_pos,
+            check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs,
+            calc_configure_value_func=AStarHeuristics.manhattan_distance
+        )
+        if self.bfs_list[i] is None:
+            self.bfs_list[i] = Generator.calc_a_star_path(
+                grid=self.grid,
+                boundaries=self.boundaries,
+                source_pos=robot.pos,
+                dest_pos=robot.target_pos,
+                check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs,
+                calc_configure_value_func=AStarHeuristics.manhattan_distance
+            )
+            if self.bfs_list[i] is None:
+                print("Robot" + str(robot) + "can't find any valid path")
+                self.q_by_robot_id[i] = self.q_stuck
+                return False
+
+        robot.extra_data = 0
+        return True
+
+    def shake_map(self):
+        moved = 0
+        shuffle(self.inside_group)
+        for i in self.inside_group:
+            robot = self.robots[i]
+            if robot.robot_arrived():
+                continue
+
+            if not self.shake_robot(i):
+                return 0
+
+            moved += self.q_by_robot_id[i](self.robots[i])
+            if self.q_by_robot_id[i] == self.q_stuck:
+                return 0
+
+        return moved
+
+    def stretch_boundaries(self, robot):
+        if robot.extra_data == "N":
+            self.boundaries["N"] = max(self.boundaries["N"], robot.pos[1])
+        elif robot.extra_data == "W":
+            self.boundaries["W"] = min(self.boundaries["W"], robot.pos[0])
+        elif robot.extra_data == "S":
+            self.boundaries["S"] = min(self.boundaries["S"], robot.pos[1])
+        elif robot.extra_data == "E":
+            self.boundaries["E"] = max(self.boundaries["E"], robot.pos[0])
