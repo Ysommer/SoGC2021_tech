@@ -66,7 +66,7 @@ class ControlCenter:
                 traceback.print_exc()
                 continue
             try:
-                if validate:
+                if validate and res.out["result"] == SolutionResult.SUCCESS.name:
                     self.validator(res)
             except Exception as e:
                 print("Failure in :", i.name, "| error: ", e)

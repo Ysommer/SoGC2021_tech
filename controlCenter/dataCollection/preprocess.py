@@ -123,6 +123,8 @@ class Preprocess:
         if robots is None:
             robots = self.robots
 
+        res.clear()
+
         # A list of tuples ( data_to_sort_by , robot_id)
         data_to_sort_by_index = 0
         robot_id_index = 1

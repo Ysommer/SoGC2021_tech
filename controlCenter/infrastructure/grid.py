@@ -34,6 +34,12 @@ class Grid:
 
         self.bfs_counter = 0
 
+    def is_completely_clean_cell(self, pos):
+        if pos not in self.grid:
+            return True
+        cell = self.get_cell(pos)
+        return cell.is_empty() and cell.target_id == -1
+
     def is_obs(self, pos) -> bool:
         return pos in self.obstacles
 
