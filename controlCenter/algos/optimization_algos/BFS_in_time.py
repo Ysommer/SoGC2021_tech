@@ -5,7 +5,7 @@ from dataCollection.Generator import *
 class BFS_in_time(OptimizationAlgo):
     def __init__(self, instance_name: str, solution: Solution, robots: list,
                  targets: list, obstacles: list, num_to_improve: int, preprocess=None, name="", print_info=True):
-        super().__init__(instance_name, solution, robots, targets, preprocess, name, print_info)
+        super().__init__(instance_name, solution, robots, targets, preprocess, "_BIT" + name, print_info)
         self.sol_grid = SolGrid(self.robots, self.obs, solution)
         self.boundaries = {"N": self.sol_grid.max_y,
                            "S": self.sol_grid.min_y,
