@@ -4,16 +4,20 @@ import json
 
 class Solution:
     def __init__(self, instance_name: str, algo_name: str, makespan: int = 0, sum: int = 0,
-                 result: str = SolutionResult.RUNNING.name, steps: list = None):
+                 result: str = SolutionResult.RUNNING.name, steps: list = None, extra_data= None):
         if steps is None:
             steps = []
+
+        if extra_data is None:
+            extra_data = {}
 
         self.out = {"instance": instance_name,
                     "steps": steps,
                     "result": result,
                     "makespan": makespan,
                     "sum": sum,
-                    "algo_name": algo_name}
+                    "algo_name": algo_name,
+                    "extra": extra_data}
 
     def put_result(self, result: SolutionResult, makespan: int, sum: int):
         self.out["result"] = result.name
