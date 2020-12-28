@@ -1,5 +1,6 @@
 from algos.optimizationAlgo import OptimizationAlgo
 from infrastructure.solGrid import SolGrid
+from solution.solution import Solution
 from dataCollection.Generator import *
 from defines import *
 
@@ -78,7 +79,7 @@ class BFS_in_time(OptimizationAlgo):
             if next_robot_id in improved:
                 break
             new_path = self.calc_new_path(next_robot_id)
-            assert path is not None, "BIT: a_star failed to find legal path" # should at worst find old path
+            assert new_path is not None, "BIT: a_star failed to find legal path" # should at worst find old path
             self.sol_grid.update_robot_path(next_robot_id, new_path)
             self.update_solution(next_robot_id, new_path)
 

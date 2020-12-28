@@ -7,12 +7,14 @@ from dataCollection.postprocess import *
 from algos.initAlgo import *
 from algos.init_algos.BFS import *
 from algos.optimizationAlgo import *
+from algos.OptimizationShell import *
 from solution.solution import *
 from cgshop2021_pyutils import Instance
 import json
 import os
 from math import ceil
 import traceback
+from typing import List
 
 
 class ControlCenter:
@@ -44,7 +46,7 @@ class ControlCenter:
         self.grid = Grid(self.size, self.robots, self.instance.obstacles)
 
         self.init_algos = []
-        self.optimization_algos = []
+        self.optimization_shells = []
         self.solutions = []
         self.max_makespan = max_makespan
         self.max_sum = max_sum
@@ -55,9 +57,15 @@ class ControlCenter:
             pass
 
     def run_all(self, print_only_success=False, stop_on_success=False, validate=False):
+        self.run_all_init_algos(print_only_success, stop_on_success, validate)
+        self.run_all_opt_algos(print_only_success, stop_on_success, validate)
+
+        return self.analyze()
+
+    def run_all_init_algos(self, print_only_success=False, stop_on_success=False, validate=False):
         # Run init algos
         for i in self.init_algos:
-            print("Algo:", i.name,"starts running")
+            print("Algo:", i.name, "starts running")
             try:
                 res = i.run()
                 print(res)
@@ -80,7 +88,46 @@ class ControlCenter:
 
             print("\n")
 
-        return self.analyze()
+    def run_all_opt_algos(self, print_only_success=False, stop_on_success=False, validate=False):
+        new_solutions = []
+        for sol in self.solutions:
+            for shell in self.optimization_shells:
+                opt_algo = shell.algo_class(
+                    self.instance.name,
+                    sol,
+                    self.robots,
+                    self.targets,
+                    self.instance.obstacles,
+                    self.preprocess,
+                    shell.algo_name,
+                    shell.print_info,
+                    shell.data_bundle
+                )
+                print("Algo:", opt_algo.name, "starts running")
+
+                try:
+                    res = opt_algo.run()
+                    print(res)
+                except Exception as e:
+                    print("Failure in :", opt_algo.name, "| error: ", e)
+                    traceback.print_exc()
+                    continue
+                try:
+                    if validate and res.out["result"] == SolutionResult.SUCCESS.name:
+                        self.validator(res)
+                except Exception as e:
+                    print("Failure in :", opt_algo.name, "| error: ", e)
+                print("Algo:", opt_algo.name, "done with solutions", res.out["result"])
+                new_solutions.append(opt_algo)
+                if (not print_only_success) or res.out["result"] == SolutionResult.SUCCESS.name:
+                    self.print_last_solution()
+
+                if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
+                    break
+
+                print("\n")
+
+        self.solutions += new_solutions
 
     def run_an_init_algo(self, algo_id: int) -> Solution:
         # TODO: After initAlgo will be ready
@@ -102,6 +149,12 @@ class ControlCenter:
                 name=name,
                 print_info=print_info,
                 data_bundle=data_bundle))
+
+    def add_opt_algo(self, algo: classmethod, name="_", print_info=True, data_bundle=None):
+        self.optimization_shells.append(OptimizationShell(algo, name, print_info, data_bundle))
+
+    def add_solution(self, solution: Solution, to_validate):
+        self.solutions.append(solution)
 
     def print_last_solution(self):
         self.solutions[-1].output(self.solution_path, self.name)
