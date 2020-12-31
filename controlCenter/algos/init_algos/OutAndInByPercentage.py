@@ -33,17 +33,6 @@ class OutAndInByPercentage(InitAlgo):
         init_time = Timer(self.name + " init")
         init_time.start()
 
-        # Init phases
-        self.phase = 0
-        self.phases = [
-            self.step_phase_0,
-            self.step_phase_1
-        ]
-        self.phases_timers = [
-            Timer("phase 0 timer"),
-            Timer("phase 1 timer")
-        ]
-
         # Parse data bundle
         if data_bundle is None:
             data_bundle = {}
@@ -56,8 +45,9 @@ class OutAndInByPercentage(InitAlgo):
             "W": -3,
             "S": -3,
         })
-        self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside",0)
+        self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside", 0)
         self.timeout = data_bundle.get("timeout", 10)
+        self.sync_insertion = data_bundle.get("sync_insertion", True)
         self.reverse_fill = True
         self.boundaries = {
             "N": self.grid.size + 2,
@@ -67,12 +57,31 @@ class OutAndInByPercentage(InitAlgo):
         }
         self.timeout = 10
 
+        # Init phases
+        self.phase = 0
+        self.phases = [
+            self.step_phase_0,
+            self.step_phase_1
+        ]
+        if self.sync_insertion:
+            self.phases[1] = self.step_phase_1_simultaneously
+            self.name += "_sync_insertion"
+
+        self.phases_timers = [
+            Timer("phase 0 timer"),
+            Timer("phase 1 timer")
+        ]
+
         # All Phases params
+        if self.percent_to_leave_inside > 0:
+            name += "_per_" + str(self.percent_to_leave_inside)
+
         self.bfs_list = [None] * len(self.robots)
         self.q_by_robot_id = [self.q_reaching_out for i in range(len(self.robots))]
         self.inside_group = []
         self.out_of_boundaries_permutation = []
         self.reaching_out_permutation = []
+
 
 
         # Phase 0 params
@@ -132,6 +141,7 @@ class OutAndInByPercentage(InitAlgo):
         self.preprocess.generic_robots_sort(self.reaching_out_permutation, "EXTRA", temp_robot_list)
 
         self.last_index_on_the_road = 0
+        self.phase_1_turns = 0
 
         init_time.end(to_print=self.print_info)
 
@@ -250,6 +260,30 @@ class OutAndInByPercentage(InitAlgo):
 
         return moved
 
+    def get_min_offset(self, robot) -> int:
+        i = robot.robot_id
+        min_offset = 0
+        next_pos = robot.pos
+        for d_index in range(len(self.bfs_list[i])):
+            dir = self.bfs_list[i][d_index]
+            next_pos = sum_tuples(next_pos, directions_to_coords[dir])
+            last_turn_cell_in_use = self.grid.get_cell(next_pos).extra_data
+            if last_turn_cell_in_use + 1 > min_offset + d_index:    # +1 For tail
+                min_offset = last_turn_cell_in_use + 2 - d_index
+        return min_offset
+
+    def tag_cells(self):
+        for i in self.out_of_boundaries_permutation:
+            robot = self.robots[i]
+            min_offset = self.get_min_offset(robot)
+            robot.extra_data = min_offset
+            next_pos = robot.pos
+
+            for d_index in range(len(self.bfs_list[i])):
+                dir = self.bfs_list[i][d_index]
+                next_pos = sum_tuples(next_pos, directions_to_coords[dir])
+                self.grid.get_cell(next_pos).extra_data = min_offset + d_index + 1
+
     def switch_phase_0_to_1_v2(self):
         self.phase += 1
         blocked = set()
@@ -292,10 +326,55 @@ class OutAndInByPercentage(InitAlgo):
                 print(self.out_of_boundaries_permutation)
                 return False
 
+            self.q_by_robot_id[i] = self.q_waiting_outside
+
             assert self.bfs_list[i] is not None, "Step 1: can't find any path for robot:" + str(i)
             blocked.add(robot.target_pos)
 
+        self.tag_cells()
+        self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by turn offsets
         return True
+
+    def unplug_jam(self, robot_id: int) -> bool:
+        r = self.robots[robot_id]
+        next_pos = sum_tuples(r.pos, directions_to_coords[self.bfs_list[robot_id][0]])
+        if self.grid.has_robot(next_pos):
+            other_robot_id = self.grid.get_cell(next_pos).get_robot()
+            other_robot_next_pos = sum_tuples(next_pos, directions_to_coords[self.bfs_list[other_robot_id][0]])
+            if other_robot_next_pos == r.pos:
+                self.bfs_list[robot_id] = Generator.calc_a_star_path(
+                    grid=self.grid,
+                    boundaries=self.boundaries,
+                    source_pos=r.pos,
+                    dest_pos=r.target_pos,
+                    blocked={next_pos},
+                    calc_configure_value_func=AStarHeuristics.manhattan_distance,
+                    check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
+                assert self.bfs_list[robot_id] is not None, "unplug_jam failed"
+                return True
+
+        return False
+
+    def step_phase_1_simultaneously(self):
+        moved = 0
+
+        # Set states
+        for i in self.out_of_boundaries_permutation:
+            robot = self.robots[i]
+            if robot.robot_arrived():
+                continue
+
+            if robot.extra_data > self.phase_1_turns:
+                break
+
+            if self.q_getting_inside(robot):
+                moved += 1
+            else:
+                print(robot)
+                return 0
+
+        self.phase_1_turns += 1
+        return moved
 
     # states
     def q_reaching_out(self, robot: Robot) -> int:
@@ -406,6 +485,23 @@ class OutAndInByPercentage(InitAlgo):
         return 0
 
     def q_stuck(self, robot: Robot) -> int:
+        return 0
+
+    def q_getting_inside(self, robot: Robot) -> int:
+        i = robot.robot_id
+        if InitAlgo.move_robot_to_dir(i, self.grid, self.bfs_list[i][0],
+                                      self.current_turn, self.solution):
+            self.bfs_list[i].popleft()
+            if not self.bfs_list[i]:
+                # Empty bfs_list
+                assert robot.robot_arrived(), "Robot " + str(
+                    robot) + " is With empty bfs list and didn't hit the target."
+                self.q_by_robot_id[i] = self.q_arrived
+            return 1
+
+        return 0
+
+    def q_waiting_outside(self, robot: Robot) -> int:
         return 0
 
     # Helpers

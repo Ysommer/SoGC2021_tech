@@ -8,7 +8,7 @@ class Cell:
         self.target_id = -1                 # -1 if no target
         self.occupied = None                # -1 if obs [0, n] robot id, None if empty
         self.tail: (str, int) = ("", -1)    # (direction, turn_updated)
-        self.extra_data = None
+        self.extra_data = -1
 
 
     def __eq__(self, other):
