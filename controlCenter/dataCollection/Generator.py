@@ -272,10 +272,10 @@ class Generator:
 
         q = queue.Queue()
         q.put(source_pos)
-        grid.start_bfs(q)
+        grid.start_bfs(q, is_a_star=True)
 
         for pos in blocked:
-            grid.check_cell_for_bfs(pos)
+            grid.check_cell_for_a_star(pos, parent="", g_value=0)
 
         g_val = 0
         h_val = calc_configure_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
@@ -287,6 +287,9 @@ class Generator:
 
         while len(h) > 0:
             (f_val, g_val, pos) = heapq.heappop(h)
+            g_val *= (-1)
+            if not grid.check_if_cell_is_open(pos, g_val):
+                continue
             if pos == dest_pos:
                 return Generator.construct_path(grid, pos)
             preferred_direction_order = Generator.get_preferred_direction_order(pos)
@@ -294,8 +297,8 @@ class Generator:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if Generator.check_if_in_boundaries(next_pos, boundaries) \
                         and check_move_func(next_pos, grid, check_move_params) \
-                        and grid.check_cell_for_bfs(next_pos, parent=direction):
-                    next_g_val = (-1)*g_val + 1
+                        and grid.check_cell_for_a_star(next_pos, parent=direction, g_value=g_val + 1):
+                    next_g_val = g_val + 1
                     next_h_val = calc_configure_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
                                                            calc_configure_value_params=calc_configure_value_params)
                     next_f_val = next_g_val + next_h_val

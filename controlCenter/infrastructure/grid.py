@@ -91,14 +91,17 @@ class Grid:
     def solution_found(self) -> bool:
         return self.numOfRobotsArrived == self.numOfRobots
 
-    def start_bfs(self, started_positions: queue.Queue):
+    def start_bfs(self, started_positions: queue.Queue, is_a_star: bool = False):
         assert started_positions is not None, "start_bfs: started_positions is None"
         self.bfs_counter += 1
 
         started_positions.put(None)
         pos = started_positions.get()
         while pos is not None:
-            self.check_cell_for_bfs(pos=pos, parent="", dist=0)
+            if is_a_star:
+                self.check_cell_for_a_star(pos=pos, parent="", g_value=0)
+            else:
+                self.check_cell_for_bfs(pos=pos, parent="", dist=0)
             started_positions.put(pos)
             pos = started_positions.get()
 
@@ -110,6 +113,12 @@ class Grid:
 
     def check_cell_for_bfs(self, pos, parent: str = "", dist=-1, to_update=True) -> bool:
         return self.get_cell_for_bfs(pos).check_move(new_bfs_counter=self.bfs_counter, parent=parent, dist=dist, to_update=to_update)
+
+    def check_cell_for_a_star(self, pos, parent: str, g_value: int) -> bool:
+        return self.get_cell_for_bfs(pos).check_move_a_star(new_bfs_counter=self.bfs_counter, parent=parent, g_value=g_value)
+
+    def check_if_cell_is_open(self, pos, g_value):
+        return self.get_cell_for_bfs(pos).check_if_open(new_bfs_counter=self.bfs_counter, g_value=g_value)
 
     def get_cell_parent(self, pos):
         return self.get_cell_for_bfs(pos).get_parent(self.bfs_counter)

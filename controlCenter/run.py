@@ -19,9 +19,9 @@ from algos.optimization_algos.BFS_in_time import *
 
 
 def main():
-    # instances_id = [i for i in range(107, 108)]
+    instances_id = [i for i in range(161, 170)]
 
-    instances_id = [177]
+    # instances_id = [82]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -34,13 +34,12 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
-            control_center.run_all(print_only_success=False, stop_on_success=False, validate=False)
+            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center.run_all(print_only_success=True, stop_on_success=False, validate=True)
         except Exception as e:
             print(e)
             traceback.print_exc()
         print()
-
 
 def make_a_zip():
     compress_solutions_and_validate()
@@ -52,24 +51,23 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center = ControlCenter(instance, out_path, -1, -1)
     # control_center.add_init_algo(OutAndInByPercentage, name="_sea_level", print_info=print_info, data_bundle=data_bundle)
     for i in range(0, 11):
-        control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info,
-                                     data_bundle={"percent_to_leave_inside": i * 10})
+        control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
+
 
     return control_center
 
 
-def ys_control_center_initiate(instance, out_path, max_makespan, max_sum):
+def ys_control_center_initiate(instance, out_path , max_makespan, max_sum):
     Sol_name = "the_king_94_OutAndInBFS_default_SUCCESS_MSPAN3038_SUM4339.json"
-    path = "../solutions/" + instance.name + "/" + Sol_name
+    path = "../solutions/"+instance.name+"/"+Sol_name
     # sol = load_solutions([path])
     max_makespan = -1
     max_sum = -1
-    data_bundle = None  # {"sync_insertion": True}
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
-    control_center.add_init_algo(OutAndInBFS, print_info=False, data_bundle=data_bundle)
-    control_center.add_opt_algo(BFS_in_time, data_bundle={"num_to_improve": 3})
+    control_center.add_init_algo(OutAndInByPercentage, name="_sea_level_", print_info=False, data_bundle=None)
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"num_to_improve": 1})
     # for i in range(1):
-    #   control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
+      #   control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
     return control_center
 
 
@@ -86,17 +84,14 @@ def analyze(to_console=True, to_file=False):
         for i in data:
             print(i, file=out_file)
 
-
 def load_solutions(paths: list):
     sols = []
     for path in paths:
         file = open(path, "r")
         sol_json = json.load(file)
-        sols.append(
-            Solution(sol_json["instance"], sol_json["algo_name"], int(sol_json["makespan"]), int(sol_json["sum"]),
-                     sol_json["result"], sol_json["steps"], sol_json["extra"]))
+        sols.append(Solution(Instance_name, sol_json["algo_name"], int(sol_json["makespan"]), int(sol_json["sum"]),
+                 sol_json["result"], sol_json["steps"]))
     return sols
-
 
 if __name__ == "__main__":
     # clean_bad_solutions()

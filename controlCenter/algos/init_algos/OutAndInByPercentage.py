@@ -74,7 +74,7 @@ class OutAndInByPercentage(InitAlgo):
 
         # All Phases params
         if self.percent_to_leave_inside > 0:
-            name += "_per_" + str(self.percent_to_leave_inside)
+            self.name += "_per_" + str(self.percent_to_leave_inside)
 
         self.bfs_list = [None] * len(self.robots)
         self.q_by_robot_id = [self.q_reaching_out for i in range(len(self.robots))]
@@ -142,6 +142,8 @@ class OutAndInByPercentage(InitAlgo):
 
         self.last_index_on_the_road = 0
         self.phase_1_turns = 0
+
+        self.solution.out["algo_name"] = self.name
 
         init_time.end(to_print=self.print_info)
 
@@ -326,13 +328,12 @@ class OutAndInByPercentage(InitAlgo):
                 print(self.out_of_boundaries_permutation)
                 return False
 
-            self.q_by_robot_id[i] = self.q_waiting_outside
-
             assert self.bfs_list[i] is not None, "Step 1: can't find any path for robot:" + str(i)
             blocked.add(robot.target_pos)
 
-        self.tag_cells()
-        self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by turn offsets
+        if self.sync_insertion:
+            self.tag_cells()
+            self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by turn offsets
         return True
 
     def unplug_jam(self, robot_id: int) -> bool:
