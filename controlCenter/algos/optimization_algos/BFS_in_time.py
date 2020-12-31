@@ -16,23 +16,25 @@ class BFS_in_time(OptimizationAlgo):
                  robots: list,
                  targets: list,
                  obstacles: list,
-                 num_to_improve: int,
                  preprocess=None,
                  name="",
-                 print_info=True):
+                 print_info=True,
+                 data_bundle=None):
         super().__init__(instance_name,
                          solution,
                          robots,
                          targets,
+                         obstacles,
                          preprocess,
                          "_BIT" + name,
-                         print_info)
+                         print_info,
+                         data_bundle)
         self.sol_grid = SolGrid(self.robots, self.obs, solution)
         self.boundaries = {"N": self.sol_grid.max_y,
                            "S": self.sol_grid.min_y,
                            "W": self.sol_grid.min_x,
                            "E": self.sol_grid.max_x}
-        self.num_to_improve = num_to_improve
+        self.num_to_improve = data_bundle.get("num_to_improve", 1)
         if self.solution.out["algo_name"].find("BIT_BIT") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1)*len("_BIT")]
             self.solution.out["extra"]["BIT_runs"] += 1
@@ -44,29 +46,34 @@ class BFS_in_time(OptimizationAlgo):
         self.sum = solution.out["sum"]
 
     def calc_new_path(self, robot_id):
-        return Generator.calc_a_star_path_in_time(self.sol_grid,
+        last_step_on_loc = self.sol_grid.find_last_step_on_location(robot_id,self.targets[robot_id])
+        goal_time = last_step_on_loc + 3
+        start_time = goal_time - 100
+        source_pos = self.sol_grid.get_robot_location(robot_id, start_time)
+        source_pos_t = (source_pos[0], source_pos[1], start_time)
+        dest_pos = self.targets[robot_id]
+        dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
+        new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
                                                   self.boundaries,
-                                                  self.robots[robot_id],
-                                                  self.targets[robot_id],
+                                                  source_pos_t,
+                                                  dest_pos_t,
                                                   robot_id,
-                                                  self.sol_grid.find_last_step_on_location(robot_id,self.targets[robot_id]),
                                                   self.sol_grid.max_time)
+        assert new_path is not None, "BIT: a_star failed to find legal path" # should at worst find old path
+        self.sol_grid.update_robot_path(robot_id, new_path, start_time)
+        self.update_solution(robot_id, new_path, start_time)
+        return new_path
 
-    def update_solution(self, robot_id, path: list):
-        to_delete = []
-        for step in range(len(self.solution.out["steps"])):
-            if step <= len(path):
-                if path[step] != "X":
-                    self.solution.out["steps"][step][robot_id] = path[step]
-                    self.solution.out["sum"] += 1
-                else:
-                    if self.solution.out["steps"][step].pop(robot_id, None) is not None:
-                        self.solution.out["sum"] -= 1
-                        if len(self.solution.out["steps"][step]) == 0:
-                            to_delete.append(step)
-
-        for i in to_delete:
-            del self.solution.out["steps"][i]
+    def update_solution(self, robot_id, path: list, start_time: int):
+        counter = 0
+        for step in range(start_time, len(self.solution.out["steps"])):
+            if self.solution.out["steps"][step].pop(str(robot_id), None) is not None:
+                self.sum -= 1
+            if counter < len(path):
+                if path[counter] != "X":
+                    self.solution.out["steps"][step][str(robot_id)] = path[counter]
+                    self.sum += 1
+            counter += 1
 
 
     def run(self):
@@ -79,11 +86,10 @@ class BFS_in_time(OptimizationAlgo):
             if next_robot_id in improved:
                 break
             new_path = self.calc_new_path(next_robot_id)
-            assert new_path is not None, "BIT: a_star failed to find legal path" # should at worst find old path
-            self.sol_grid.update_robot_path(next_robot_id, new_path)
-            self.update_solution(next_robot_id, new_path)
+            improved.append(next_robot_id)
 
         self.solution.out["extra"]["improved"] += str(improved) + ","
+        self.solution.clean_solution()
         self.solution.put_result(SolutionResult.SUCCESS, len(self.solution.out["steps"]), self.sum)
         return self.solution
 

@@ -311,7 +311,6 @@ class Generator:
             source_pos,
             dest_pos,
             robot_id: int,
-            min_time: int,
             max_time: int,
             blocked_N_visited: set = None,
             calc_h_value_func=AStarHeuristics.manhattan_distance_with_time,
@@ -325,41 +324,66 @@ class Generator:
         if preferred_direction_order is None:
             preferred_direction_order = directions_to_coords_with_time.keys()
 
-        q = queue.Queue()
-        q.put(source_pos)
+        open = {}
+        close = {}
         parents = {source_pos: None}
 
         g_val = 0
         h_val = calc_h_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
-                                  calc_configure_value_params=calc_configure_value_params)
+                                  calc_h_value_params=calc_h_value_params)
         f_val = g_val+h_val
 
         h = [(f_val, g_val, source_pos)]
+        open[source_pos] = (f_val, g_val)
         heapq.heapify(h)
 
         def construct_path(parents: dict, pos: (int, int, int))-> list:
             path = []
             while parents[pos] is not None:
                 path.append(parents[pos])
-                pos = sub_tuples(pos, directions_to_coords_with_time[parents[pos]])
+                pos = sub_tuples_with_time(pos, directions_to_coords_with_time[parents[pos]])
 
             return path[::-1]  # return reversed path
 
+        def internal_check_move(next_pos: (int, int, int), direction: str) -> bool:
+            boundaries_check = Generator.check_if_in_boundaries(next_pos, boundaries)
+            can_make_it = dest_pos[2] - next_pos[2] >= \
+                          AStarHeuristics.manhattan_distance((next_pos[0], next_pos[1]), (next_pos[0], next_pos[1]), (dest_pos[0], dest_pos[1]))
+            not_blocked = next_pos not in blocked_N_visited
+            legal_move = check_move_func(grid ,robot_id, next_pos, direction, check_move_params)
+            return boundaries_check and can_make_it and not_blocked and legal_move
+
         while len(h) > 0:
             (f_val, g_val, pos) = heapq.heappop(h)
-            if pos[0] == dest_pos[0] and pos[1] == dest_pos[1] and min_time <= pos[2] <= max_time:
+            g_val = (-1)*g_val
+            if open[pos] != (f_val, g_val):
+                (f_val, g_val) = open[pos]
+            open.pop(pos)
+            close[pos] = (f_val, g_val)
+
+            if pos == dest_pos:
                 return construct_path(parents, pos)
             for direction in preferred_direction_order:
                 next_pos = sum_tuples_with_time(pos, directions_to_coords_with_time[direction])
-                if Generator.check_if_in_boundaries(next_pos, boundaries) \
-                        and next_pos not in blocked_N_visited \
-                        and check_move_func(robot_id, next_pos, direction, check_move_params):
-                    parents[next_pos] = direction
-                    next_g_val = (-1)*g_val + (1 if direction != 'X' else 0)
+                if internal_check_move(next_pos, direction):
+                    next_g_val = g_val + (1 if direction != 'X' else (1/(max_time+1)))
                     next_h_val = calc_h_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
-                                                   calc_configure_value_params=calc_configure_value_params)
+                                                   calc_h_value_params=calc_h_value_params)
                     next_f_val = next_g_val + next_h_val
-                    heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
+                    if next_pos in open:
+                        if next_g_val < open[next_pos][1]:
+                            open[next_pos] = (next_g_val + next_h_val, next_g_val)
+                            parents[next_pos] = direction
+                    elif next_pos in close:
+                        if next_g_val < close[next_pos][1]:
+                            close[next_pos] = (next_g_val + next_h_val, next_g_val)
+                            open[next_pos] = close.pop(next_pos)
+                            heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
+                            parents[next_pos] = direction
+                    else:
+                        parents[next_pos] = direction
+                        open[next_pos] = (next_g_val + next_h_val, next_g_val)
+                        heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
         return None

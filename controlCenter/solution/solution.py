@@ -46,3 +46,17 @@ class Solution:
         out += ", makespan: " + str(self.out["makespan"])
         out += ", sum: " + str(self.out["sum"]) + ")>"
         return out
+
+    def clean_solution(self):
+        to_delete = []
+        i = 0
+        for step in self.out["steps"]:
+            if len(step) == 0:
+                to_delete.append(i)
+                continue
+            else:
+                i += 1
+
+        for k in to_delete[::-1]:
+            assert len(self.out["steps"][k]) == 0
+            del self.out["steps"][k]

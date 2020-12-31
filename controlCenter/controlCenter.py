@@ -60,7 +60,7 @@ class ControlCenter:
         self.run_all_init_algos(print_only_success, stop_on_success, validate)
         self.run_all_opt_algos(print_only_success, stop_on_success, validate)
 
-        return self.analyze()
+        return  # self.analyze()
 
     def run_all_init_algos(self, print_only_success=False, stop_on_success=False, validate=False):
         # Run init algos
@@ -118,9 +118,9 @@ class ControlCenter:
                 except Exception as e:
                     print("Failure in :", opt_algo.name, "| error: ", e)
                 print("Algo:", opt_algo.name, "done with solutions", res.out["result"])
-                new_solutions.append(opt_algo)
+                new_solutions.append(res)
                 if (not print_only_success) or res.out["result"] == SolutionResult.SUCCESS.name:
-                    self.print_last_solution()
+                    self.print_last_solution(new_solutions)
 
                 if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
                     break
@@ -156,8 +156,11 @@ class ControlCenter:
     def add_solution(self, solution: Solution, to_validate):
         self.solutions.append(solution)
 
-    def print_last_solution(self):
-        self.solutions[-1].output(self.solution_path, self.name)
+    def print_last_solution(self, list= None):
+        if list:
+            list[-1].output(self.solution_path, self.name)
+        else:
+            self.solutions[-1].output(self.solution_path, self.name)
 
     def analyze(self):
         NUM_OF_DIFFERENT_ALGO = 2
