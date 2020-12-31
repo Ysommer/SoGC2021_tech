@@ -356,8 +356,8 @@ class Generator:
         while len(h) > 0:
             (f_val, g_val, pos) = heapq.heappop(h)
             g_val = (-1)*g_val
-            if open[pos] != (f_val, g_val):
-                (f_val, g_val) = open[pos]
+            if pos not in open or open[pos] != (f_val, g_val):
+                continue
             open.pop(pos)
             close[pos] = (f_val, g_val)
 
@@ -373,6 +373,7 @@ class Generator:
                     if next_pos in open:
                         if next_g_val < open[next_pos][1]:
                             open[next_pos] = (next_g_val + next_h_val, next_g_val)
+                            heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
                             parents[next_pos] = direction
                     elif next_pos in close:
                         if next_g_val < close[next_pos][1]:

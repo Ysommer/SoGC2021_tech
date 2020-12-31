@@ -91,6 +91,8 @@ class ControlCenter:
     def run_all_opt_algos(self, print_only_success=False, stop_on_success=False, validate=False):
         new_solutions = []
         for sol in self.solutions:
+            if sol.out["result"] != SolutionResult.SUCCESS.name:
+                continue
             for shell in self.optimization_shells:
                 opt_algo = shell.algo_class(
                     self.instance.name,

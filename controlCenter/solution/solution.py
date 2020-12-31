@@ -53,9 +53,7 @@ class Solution:
         for step in self.out["steps"]:
             if len(step) == 0:
                 to_delete.append(i)
-                continue
-            else:
-                i += 1
+            i += 1
 
         for k in to_delete[::-1]:
             assert len(self.out["steps"][k]) == 0
