@@ -18,11 +18,12 @@ from typing import List
 
 
 class ControlCenter:
-    def __init__(self, instance: Instance, solution_path=None, max_makespan=-1, max_sum=-1):
+    def __init__(self, instance: Instance, solution_path=None, max_makespan=-1, max_sum=-1, automate_makespan_and_sum = False):
         # inputs
         self.solution_path = solution_path
         self.instance = instance
         self.name = instance.name
+        self.automate_makespan_and_sum = automate_makespan_and_sum
 
         try:
             first_size_index = self.name.rfind('x') + 1
@@ -65,6 +66,8 @@ class ControlCenter:
     def run_all_init_algos(self, print_only_success=False, stop_on_success=False, validate=False):
         # Run init algos
         for i in self.init_algos:
+            i.max_makespan = self.max_makespan
+            i.max_sum = self.max_sum
             print("Algo:", i.name, "starts running")
             try:
                 res = i.run()
@@ -85,6 +88,13 @@ class ControlCenter:
 
             if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
                 break
+
+            if res.out["result"] == SolutionResult.SUCCESS.name and self.automate_makespan_and_sum:
+                if self.max_makespan == -1 or self.max_makespan > res.out["makespan"]:
+                    self.max_makespan = res.out["makespan"]
+
+                if self.max_sum == -1 or self.max_sum > res.out["sum"]:
+                    self.max_sum = res.out["sum"]
 
             print("\n")
 
