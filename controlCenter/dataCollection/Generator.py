@@ -1,5 +1,6 @@
 from typing import Union, List
 
+from infrastructure.cell import Cell
 from infrastructure.robot import Robot
 from infrastructure.grid import Grid
 from collections import deque
@@ -32,7 +33,7 @@ class CheckMoveFunction:
 
     @staticmethod
     def cell_free_from_robots_and_obs(pos, grid: Grid, check_move_params=None) -> bool:
-        return not (grid.is_obs(pos) or grid.has_robot(pos))
+        return grid.grid.get(pos, Cell(pos)).occupied is None
 
 
 class CheckIfDestFunction:

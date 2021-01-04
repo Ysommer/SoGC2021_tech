@@ -19,7 +19,7 @@ from algos.optimization_algos.BFS_in_time import *
 
 
 def main():
-    instances_id = [i for i in range(3, 10)]
+    instances_id = [i for i in range(0, 11)]
 
     # instances_id = [82]
     instances = load_all_instances()
@@ -35,11 +35,12 @@ def main():
 
         try:
             control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
-            control_center.run_all(print_only_success=True, stop_on_success=False, validate=True)
+            control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         except Exception as e:
             print(e)
             traceback.print_exc()
         print()
+
 
 def make_a_zip():
     compress_solutions_and_validate()
@@ -49,10 +50,10 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     print_info = True
     data_bundle = None
     control_center = ControlCenter(instance, out_path, -1, -1)
-    # control_center.add_init_algo(OutAndInByPercentage, name="_sea_level", print_info=print_info, data_bundle=data_bundle)
-    for i in range(0, 11):
-        control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
-
+    control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle=data_bundle)
+    control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
+    #for i in range(0, 11):
+        #control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
 
     return control_center
 
@@ -96,6 +97,6 @@ def load_solutions(paths: list):
 if __name__ == "__main__":
     clean_bad_solutions()
     main()
-    analyze()
+    # analyze()
     # compress_solutions_and_validate()
     print("Done!")
