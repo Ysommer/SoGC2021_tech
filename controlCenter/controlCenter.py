@@ -153,7 +153,7 @@ class ControlCenter:
         # TODO
         pass
 
-    def add_init_algo(self, algo: classmethod, name="_", print_info=True, data_bundle=None):
+    def add_init_algo(self, algo: classmethod, name="", print_info=True, data_bundle=None):
         self.init_algos.append(
             algo(
                 self.name,

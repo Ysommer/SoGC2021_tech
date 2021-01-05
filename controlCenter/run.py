@@ -41,6 +41,7 @@ def main():
             traceback.print_exc()
         print()
 
+
 def make_a_zip():
     compress_solutions_and_validate()
 
@@ -49,10 +50,10 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     print_info = True
     data_bundle = None
     control_center = ControlCenter(instance, out_path, -1, -1)
-    # control_center.add_init_algo(OutAndInByPercentage, name="_sea_level", print_info=print_info, data_bundle=data_bundle)
-    for i in range(0, 11):
-        control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
-
+    control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle=data_bundle)
+    control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
+    #for i in range(0, 11):
+        #control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
 
     return control_center
 
