@@ -15,6 +15,7 @@ import os
 from math import ceil
 import traceback
 from typing import List
+from utils import Timer
 
 
 class ControlCenter:
@@ -103,6 +104,8 @@ class ControlCenter:
         for sol in self.solutions:
             if sol.out["result"] != SolutionResult.SUCCESS.name:
                 continue
+            timer = Timer("opt runtime: ")
+            timer.start()
             for shell in self.optimization_shells:
                 opt_algo = shell.algo_class(
                     self.instance.name,
@@ -119,6 +122,7 @@ class ControlCenter:
 
                 try:
                     res = opt_algo.run()
+                    timer.end(True)
                     print(res)
                 except Exception as e:
                     print("Failure in :", opt_algo.name, "| error: ", e)

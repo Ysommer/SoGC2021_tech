@@ -27,8 +27,8 @@ BOUNDARIES_FACTOR = 3
 
 Categories = ["uniform", "images", "manual"]
 Category = Categories[0]
-Instance_name = "small_free_019_20x20_90_360"
-Sol_name = "small_free_019_20x20_90_360_OutAndInByPercentage_sea_level__BIT__SUCCESS_MSPAN9095_SUM12350.json"
+Instance_name = "small_free_017_20x20_80_320"
+Sol_name = "small_free_017_20x20_80_320_OutAndInByPercentage_sea_level__SUCCESS_MSPAN8295_SUM11055.json.json.json.json.json.json"
 
 while Sol_name.find(".json.json") != -1:
     Sol_name = Sol_name[:(-1)*len(".json")]

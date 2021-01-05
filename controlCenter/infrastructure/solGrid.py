@@ -22,6 +22,8 @@ class SolGrid:
         self.min_y = 0
         self.max_y = 0
         self.max_time = 0
+        self.time_arrived = [0 for i in range(len(self.robots))]
+        self.arrival_order = []
         self.__set_robot_pos()
         self.__set_obs(obstacles)
         self.__set_grid()
@@ -34,24 +36,25 @@ class SolGrid:
         t = 1  # time
 
         for step in self.solution.out["steps"]:
-            moves_for_validation = []
             self.append_empty_stage(t)
-            for robot_id, direction in step.items():
-                robot_id = int(robot_id)
-                old_pos = self.__robot_pos[robot_id]
-                new_pos = sum_tuples(old_pos, directions_to_coords[direction])
-                # if self.validate:
-                # assert self.validate_move(t, robot_id, direction), "illegal move you stupid ass"
-                self.grid[t][new_pos] = robot_id  # update robot's pos in time t
-                self.__robot_pos[robot_id] = new_pos
-                moves_for_validation.append((robot_id, direction))
-                self.min_x = min(self.min_x, new_pos[0])
-                self.max_x = max(self.max_x, new_pos[0])
-                self.min_y = min(self.min_y, new_pos[1])
-                self.max_y = max(self.max_y, new_pos[1])
-            for r_id in range(len(self.robots)):
-                if str(r_id) not in step.keys():
-                    self.grid[t][self.__robot_pos[r_id]] = r_id
+            for robot_id in range(len(self.robots)):
+                if str(robot_id) in step:
+                    direction = step[str(robot_id)]
+                    old_pos = self.__robot_pos[robot_id]
+                    new_pos = sum_tuples(old_pos, directions_to_coords[direction])
+                    # if self.validate:
+                    # assert self.validate_move(t, robot_id, direction), "illegal move you stupid ass"
+                    self.grid[t][new_pos] = robot_id  # update robot's pos in time t
+                    self.__robot_pos[robot_id] = new_pos
+                    if self.robots[robot_id].target_pos == new_pos:
+                        self.time_arrived[robot_id] = t
+                        self.arrival_order.append(robot_id)
+                    self.min_x = min(self.min_x, new_pos[0])
+                    self.max_x = max(self.max_x, new_pos[0])
+                    self.min_y = min(self.min_y, new_pos[1])
+                    self.max_y = max(self.max_y, new_pos[1])
+                else:
+                    self.grid[t][self.__robot_pos[robot_id]] = robot_id
             t += 1
             if self.dynamic and t > self.max_grid_len:
                 break
@@ -145,10 +148,11 @@ class SolGrid:
         can_leave = old_cell_now_empty or (tail_to_before_is_robot and old_cell_now == tail_to_before)
         return can_leave
 
-    def find_last_step_on_location(self, robot_id: int, target: (int, int)) -> (
+    def find_last_step_on_location(self, robot_id: int, target: (int, int), t: int = -1) -> (
             int, int):  # returns last time the target had any robot on it and the robot id
         assert target not in self.obs
-        t = self.max_time
+        if t < 0 or t > self.max_time:
+            t = self.max_time
         while self.get_cell_content(t, target, -2) in [-2, -1, robot_id] and t >= 0:
             t -= 1
 
@@ -170,31 +174,57 @@ class SolGrid:
             last_index -= 1
         return last
 
-    def update_robot_path(self, robot_id: int, path: list, start_time: int = 0):
-        robot_pos = (-1, -1)
-        for pos, r_id in self.grid[start_time].items():
-            if r_id == robot_id:
-                robot_pos = pos
-                break
+    def update_robot_path(self, robot_id: int, start_pos: (int, int), path: list, start_time: int, end_time: int):
+        robot_pos = start_pos
+        old_pos = start_pos
+        # last = False
+        # if robot_id in self.get_last_moving_robots():
+        # last = True
+
+        # for pos, r_id in self.grid[start_time].items():
+        # if r_id == robot_id:
+        # robot_pos = pos
+        # break
 
         t = start_time + 1
-        max_t = len(path) + start_time
-        while t <= self.max_time:
-            for pos, r_id in self.grid[t].items():
-                if r_id == robot_id:
-                    del self.grid[t][pos]
-                    break
+        # max_t = len(path) + start_time
+        while t <= end_time:
+            # for pos, r_id in self.grid[t].items():
+            # if r_id == robot_id:
+            # del self.grid[t][pos]
+            # break
+            if self.grid[t].get(old_pos, -1) == robot_id:
+                old_pos = old_pos
+            else:
+                for d in directions_to_coords:
+                    pos = sum_tuples(old_pos, directions_to_coords[d])
+                    if self.grid[t].get(pos, -1) == robot_id:
+                        old_pos = pos
+            del self.grid[t][old_pos]
             if len(path) + start_time >= t:
                 direction = path[t - start_time - 1]
                 robot_pos = robot_pos if direction == "X" else sum_tuples(robot_pos, directions_to_coords[direction])
-                assert robot_pos not in self.grid[t]
-                self.grid[t][robot_pos] = robot_id
-            elif self.grid[t] != self.grid[t - 1]:  # update max_time
-                max_t = t
+            assert robot_pos not in self.grid[t]
+            self.grid[t][robot_pos] = robot_id
+            # if last and len(path) + start_time < t and self.grid[t] != self.grid[t - 1]:
+            # max_t = t
             t += 1
 
-        old_max_time = self.max_time
-        self.max_time = max_t
-        while old_max_time > self.max_time:
-            del self.grid[old_max_time]
-            old_max_time -= 1
+        self.time_arrived[robot_id] = start_time + len(path)
+        new_max_time = max(self.time_arrived)
+        while self.max_time > new_max_time:
+            del self.grid[self.max_time]
+            self.max_time -= 1
+
+
+        # old_max_time = self.max_time
+        # self.max_time = max_t
+        # while old_max_time > self.max_time:
+        # del self.grid[old_max_time]
+        # old_max_time -= 1
+
+    def get_arrival_order(self):
+        return self.arrival_order
+
+    def get_time_arrived(self):
+        return self.time_arrived
