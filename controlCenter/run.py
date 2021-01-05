@@ -19,9 +19,9 @@ from algos.optimization_algos.BFS_in_time import *
 
 
 def main():
-    # instances_id = [i for i in range(107, 108)]
+    instances_id = [i for i in range(141, 151)]
 
-    instances_id = [179]
+    # instances_id = [172]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -52,15 +52,15 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center = ControlCenter(instance, out_path, -1, -1)
     control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle=data_bundle)
     control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
-    #for i in range(0, 11):
-        #control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
+    # for i in range(0, 11):
+    # control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
 
     return control_center
 
 
-def ys_control_center_initiate(instance, out_path , max_makespan, max_sum):
+def ys_control_center_initiate(instance, out_path, max_makespan, max_sum):
     Sol_name = "the_king_94_OutAndInBFS_default_SUCCESS_MSPAN3038_SUM4339.json"
-    path = "../solutions/"+instance.name+"/"+Sol_name
+    path = "../solutions/" + instance.name + "/" + Sol_name
     # sol = load_solutions([path])
     max_makespan = -1
     max_sum = -1
@@ -86,6 +86,7 @@ def analyze(to_console=True, to_file=False):
         for i in data:
             print(i, file=out_file)
 
+
 def load_solutions(paths: list):
     sols = []
     for path in paths:
@@ -95,6 +96,7 @@ def load_solutions(paths: list):
             Solution(sol_json["instance"], sol_json["algo_name"], int(sol_json["makespan"]), int(sol_json["sum"]),
                      sol_json["result"], sol_json["steps"], sol_json["extra"]))
     return sols
+
 
 if __name__ == "__main__":
     # clean_bad_solutions()

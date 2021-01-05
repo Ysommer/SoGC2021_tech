@@ -17,8 +17,9 @@ class AStarHeuristics:
         manhattan_distance_val = abs(pos[0]-dest_pos[0]) + abs(pos[1]-dest_pos[1])
         return manhattan_distance_val
 
-    def manhattan_distance_with_time(pos: (int, int, int),source_pos: (int, int, int), dest_pos: (int, int, int), calc_h_value_params=None) -> int:
-        manhattan_distance_val = abs(pos[0]-dest_pos[0]) + abs(pos[1]-dest_pos[1]) + abs(pos[2]- dest_pos[2])
+    @staticmethod
+    def manhattan_distance_with_time(pos: (int, int, int), source_pos: (int, int, int), dest_pos: (int, int, int), calc_h_value_params=None) -> int:
+        manhattan_distance_val = abs(pos[0]-dest_pos[0]) + abs(pos[1]-dest_pos[1]) + abs(pos[2] - dest_pos[2])
         return manhattan_distance_val
 
 
@@ -316,12 +317,17 @@ class Generator:
             dest_pos,
             robot_id: int,
             max_time: int,
+            last_step: int,
             blocked_N_visited: set = None,
             calc_h_value_func=AStarHeuristics.manhattan_distance_with_time,
             calc_h_value_params=None,
-            check_move_func=SolGrid.check_move,
+            check_move_func=None,
             check_move_params=None,
             preferred_direction_order=None): #list of moves
+
+        if check_move_func is None:
+            check_move_func = grid.check_move
+
         if blocked_N_visited is None:
             blocked_N_visited = set()
 
@@ -341,11 +347,11 @@ class Generator:
         open[source_pos] = (f_val, g_val)
         heapq.heapify(h)
 
-        def construct_path(parents: dict, pos: (int, int, int))-> list:
+        def construct_path(parents: dict, pos_t: (int, int, int)) -> list:
             path = []
-            while parents[pos] is not None:
-                path.append(parents[pos])
-                pos = sub_tuples_with_time(pos, directions_to_coords_with_time[parents[pos]])
+            while parents[pos_t] is not None:
+                path.append(parents[pos_t])
+                pos_t = sub_tuples_with_time(pos_t, directions_to_coords_with_time[parents[pos_t]])
 
             return path[::-1]  # return reversed path
 
@@ -353,9 +359,9 @@ class Generator:
             boundaries_check = Generator.check_if_in_boundaries(next_pos, boundaries)
             can_make_it = dest_pos[2] - next_pos[2] >= \
                           AStarHeuristics.manhattan_distance((next_pos[0], next_pos[1]), (next_pos[0], next_pos[1]), (dest_pos[0], dest_pos[1]))
-            not_blocked = next_pos not in blocked_N_visited
-            legal_move = check_move_func(grid ,robot_id, next_pos, direction, check_move_params)
-            return boundaries_check and can_make_it and not_blocked and legal_move
+            # not_blocked = next_pos not in blocked_N_visited
+            legal_move = boundaries_check and can_make_it and check_move_func(robot_id, next_pos, direction, check_move_params)
+            return legal_move
 
         while len(h) > 0:
             (f_val, g_val, pos) = heapq.heappop(h)
@@ -365,7 +371,9 @@ class Generator:
             open.pop(pos)
             close[pos] = (f_val, g_val)
 
-            if pos == dest_pos:
+            # if pos == dest_pos:
+                # return construct_path(parents, pos)
+            if pos[0] == dest_pos[0] and pos[1] == dest_pos[1] and pos[2] > last_step:
                 return construct_path(parents, pos)
             for direction in preferred_direction_order:
                 next_pos = sum_tuples_with_time(pos, directions_to_coords_with_time[direction])
@@ -376,18 +384,18 @@ class Generator:
                     next_f_val = next_g_val + next_h_val
                     if next_pos in open:
                         if next_g_val < open[next_pos][1]:
-                            open[next_pos] = (next_g_val + next_h_val, next_g_val)
+                            open[next_pos] = (next_f_val, next_g_val)
                             heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
                             parents[next_pos] = direction
                     elif next_pos in close:
                         if next_g_val < close[next_pos][1]:
-                            close[next_pos] = (next_g_val + next_h_val, next_g_val)
-                            open[next_pos] = close.pop(next_pos)
+                            close.pop(next_pos)
+                            open[next_pos] = (next_f_val, next_g_val)
                             heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
                             parents[next_pos] = direction
                     else:
                         parents[next_pos] = direction
-                        open[next_pos] = (next_g_val + next_h_val, next_g_val)
+                        open[next_pos] = (next_f_val, next_g_val)
                         heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))

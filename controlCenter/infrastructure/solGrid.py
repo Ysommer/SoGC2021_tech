@@ -48,7 +48,6 @@ class SolGrid:
                     self.__robot_pos[robot_id] = new_pos
                     if self.robots[robot_id].target_pos == new_pos:
                         self.time_arrived[robot_id] = t
-                        self.arrival_order.append(robot_id)
                     self.min_x = min(self.min_x, new_pos[0])
                     self.max_x = max(self.max_x, new_pos[0])
                     self.min_y = min(self.min_y, new_pos[1])
@@ -59,7 +58,9 @@ class SolGrid:
             if self.dynamic and t > self.max_grid_len:
                 break
 
+        self.arrival_order = sorted(range(len(self.time_arrived)), key=lambda x: self.time_arrived[x])
         self.max_time = t - 1
+
 
     """
     def __set_dynamic_grid(self):
