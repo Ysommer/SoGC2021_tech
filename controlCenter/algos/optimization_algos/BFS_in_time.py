@@ -149,6 +149,7 @@ class BFS_in_time(OptimizationAlgo):
         high = start_time + len(new_path)
         other_new_path = None
         other = True  # True when last successful run was in new_path
+        print("robot_id:", robot_id, "high:", high, "last goal:", goal_time-goal_time_raise)
 
         while high > low:
             mid = (high + low) // 2
