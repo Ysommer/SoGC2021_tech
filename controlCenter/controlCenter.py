@@ -111,7 +111,7 @@ class ControlCenter:
         print("Algo:", algo.name, "done with solutions", res.out["result"])
         if res.out["result"] != SolutionResult.SUCCESS.name:
             if not print_only_success:
-                self.print_last_solution()
+                self.print_last_solution([res])
             return False
 
         self.solutions.append(res)
