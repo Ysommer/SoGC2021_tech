@@ -82,8 +82,6 @@ class OutAndInByPercentage(InitAlgo):
         self.out_of_boundaries_permutation = []
         self.reaching_out_permutation = []
 
-
-
         # Phase 0 params
         random_quantity = (len(self.robots) * self.percent_to_leave_inside) // 100
         self.inside_group = sample(range(0, len(self.robots)), random_quantity)
@@ -96,6 +94,8 @@ class OutAndInByPercentage(InitAlgo):
 
             if robot.robot_arrived():
                 self.q_by_robot_id[i] = self.q_arrived
+                self.arrived_order.append(robot.robot_id)
+                self.time_arrived[robot.robot_id] = self.current_turn + 1
                 continue
 
             self.bfs_list[i] = Generator.calc_a_star_path(
@@ -109,7 +109,6 @@ class OutAndInByPercentage(InitAlgo):
 
             assert self.bfs_list[i] is not None, "Can't find any path without obstacles"
             self.q_by_robot_id[i] = self.q_stay_inside
-
 
         Generator.calc_bfs_map(grid=self.grid,
                                boundaries={
@@ -184,6 +183,14 @@ class OutAndInByPercentage(InitAlgo):
                 temp_permutation.append(i)
 
         self.reaching_out_permutation = temp_permutation
+
+
+        for i in self.inside_group:
+            moved += self.q_by_robot_id[i](self.robots[i])
+            if self.q_by_robot_id[i] == self.q_stuck:
+                return 0
+            else:
+                temp_permutation.append(i)
 
         if moved == 0 and self.grid.numOfRobotsArrived < len(self.inside_group):
             moved += self.shake_map()
@@ -260,6 +267,9 @@ class OutAndInByPercentage(InitAlgo):
 
         if robot.robot_arrived():
             self.last_index_on_the_road += 1
+            self.q_by_robot_id[moving_robot_id] = self.q_arrived
+            self.arrived_order.append(robot.robot_id)
+            self.time_arrived[robot.robot_id] = self.current_turn + 1
 
         return moved
 
@@ -336,7 +346,6 @@ class OutAndInByPercentage(InitAlgo):
             self.tag_cells()
             self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by turn offsets
 
-        self.solution.out["extra"]["arrival_order"] = self.out_of_boundaries_permutation
         return True
 
     def unplug_jam(self, robot_id: int) -> bool:
@@ -480,6 +489,8 @@ class OutAndInByPercentage(InitAlgo):
                 #Empty bfs_list
                 assert robot.robot_arrived(), "Robot " + str(robot) + " is With empty bfs list and didn't hit the target."
                 self.q_by_robot_id[i] = self.q_arrived
+                self.arrived_order.append(robot.robot_id)
+                self.time_arrived[robot.robot_id] = self.current_turn + 1
             return 1
 
         robot.extra_data += 1
@@ -501,6 +512,8 @@ class OutAndInByPercentage(InitAlgo):
                 assert robot.robot_arrived(), "Robot " + str(
                     robot) + " is With empty bfs list and didn't hit the target."
                 self.q_by_robot_id[i] = self.q_arrived
+                self.arrived_order.append(robot.robot_id)
+                self.time_arrived[robot.robot_id] = self.current_turn + 1
             return 1
 
         return 0
