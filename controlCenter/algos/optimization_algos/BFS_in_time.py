@@ -30,7 +30,7 @@ class BFS_in_time(OptimizationAlgo):
                          "_BIT" + name,
                          print_info,
                          data_bundle)
-        self.max_grid_len = data_bundle.get("grid_limit", 1000)
+        self.max_grid_len = data_bundle.get("grid_limit", -1)
         if self.max_grid_len != -1:
             self.solution.out["steps"] = self.solution.out["steps"][:self.max_grid_len]
         self.sol_grid = SolGrid(self.robots, self.obs, self.solution, max_grid_len=self.max_grid_len)
@@ -196,19 +196,22 @@ class BFS_in_time(OptimizationAlgo):
         """
         counter = 0
         for step in range(start_time, end_time):
-            if self.solution.out["steps"][step].pop(str(robot_id), None) is not None:
-                self.sum -= 1
+            self.solution.out["steps"][step].pop(str(robot_id), None)
             if counter < len(path):
                 if path[counter] != "X":
                     self.solution.out["steps"][step][str(robot_id)] = path[counter]
-                    self.sum += 1
+
             counter += 1
+
+    def calc_sum(self):
+        return sum(len(x) for x in self.solution.out["steps"])
 
     def run(self):
         # self.improve_last_moving()
         self.improve_all_by_arrival_order()
         # self.improve_last_by_arrival_order(min(len(self.robots)//20, 5))
         self.solution.clean_solution()
+        self.sum = self.calc_sum()
         self.solution.put_result(SolutionResult.SUCCESS, len(self.solution.out["steps"]), self.sum)
         return self.solution
 

@@ -22,10 +22,12 @@ class SolGrid:
         self.min_y = 0
         self.max_y = 0
         self.max_time = 0
-        self.time_arrived = [self.max_grid_len for i in range(len(self.robots))]
-        self.arrival_order = [] if "arrival_order" not in solution.out["extra"]\
+        self.time_arrived = [-1 for i in range(len(self.robots))] if self.max_grid_len < 0 \
+            else [min(solution.out["extra"]["time_arrived"][i], self.max_grid_len) for i in range(len(robots))]
+        self.arrival_order = [] if self.max_grid_len < 0 \
             else solution.out["extra"]["arrival_order"]
         assert len(self.arrival_order) > 0 or self.max_grid_len == -1
+        assert self.time_arrived[0] != -1 or self.max_grid_len == -1
         self.__set_robot_pos()
         self.__set_obs(obstacles)
         self.__set_grid()
@@ -49,7 +51,7 @@ class SolGrid:
                     # assert self.validate_move(t, robot_id, direction), "illegal move you stupid ass"
                     self.grid[t][new_pos] = robot_id  # update robot's pos in time t
                     self.__robot_pos[robot_id] = new_pos
-                    if self.robots[robot_id].target_pos == new_pos:
+                    if not limit and self.robots[robot_id].target_pos == new_pos:
                         self.time_arrived[robot_id] = t
                     self.min_x = min(self.min_x, new_pos[0])
                     self.max_x = max(self.max_x, new_pos[0])

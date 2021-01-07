@@ -21,7 +21,7 @@ from algos.optimization_algos.BFS_in_time import *
 def main():
     # instances_id = [i for i in range(111, 112)]
 
-    instances_id = [141]
+    instances_id = [155]
     instances = load_all_instances()
 
     for id in instances_id:
