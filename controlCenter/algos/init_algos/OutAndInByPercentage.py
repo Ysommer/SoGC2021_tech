@@ -267,6 +267,9 @@ class OutAndInByPercentage(InitAlgo):
 
         if robot.robot_arrived():
             self.last_index_on_the_road += 1
+            self.q_by_robot_id[moving_robot_id] = self.q_arrived
+            self.arrived_order.append(robot.robot_id)
+            self.time_arrived[robot.robot_id] = self.current_turn + 1
 
         return moved
 
