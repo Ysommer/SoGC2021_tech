@@ -30,12 +30,16 @@ class BFS_in_time(OptimizationAlgo):
                          "_BIT" + name,
                          print_info,
                          data_bundle)
-        self.sol_grid = SolGrid(self.robots, self.obs, self.solution)
+        self.max_grid_len = data_bundle.get("grid_limit", 1000)
+        if self.max_grid_len != -1:
+            self.solution.out["steps"] = self.solution.out["steps"][:self.max_grid_len]
+        self.sol_grid = SolGrid(self.robots, self.obs, self.solution, max_grid_len=self.max_grid_len)
         self.boundaries = {"N": self.sol_grid.max_y,
                            "S": self.sol_grid.min_y,
                            "W": self.sol_grid.min_x,
                            "E": self.sol_grid.max_x}
         self.num_to_improve = data_bundle.get("num_to_improve", 1)
+        self.goal_raise = data_bundle.get("gaol_raise", 32)
         if self.solution.out["algo_name"].find("BIT_BIT") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_BIT")]
             self.solution.out["extra"]["BIT_runs"] += 1
@@ -227,7 +231,7 @@ class BFS_in_time(OptimizationAlgo):
         improved = []
         arrival_order = self.sol_grid.get_arrival_order()
         robots_remaining = len(self.robots)
-        goal_raise = 32
+        goal_raise = self.goal_raise
         offset_from_last_step = 1
         calc_tries = 300
         i = 0

@@ -8,7 +8,7 @@ from infrastructure.robot import *
 
 class SolGrid:
     def __init__(self, robots: List[Robot], obstacles: List[List[int]], solution: Solution,
-                 dynamic: bool = False, max_grid_len: int = 5000, validate: bool = True):
+                 dynamic: bool = False, max_grid_len: int = -1, validate: bool = True):
         self.robots = robots
         self.solution = solution
         self.dynamic = dynamic
@@ -22,13 +22,16 @@ class SolGrid:
         self.min_y = 0
         self.max_y = 0
         self.max_time = 0
-        self.time_arrived = [0 for i in range(len(self.robots))]
-        self.arrival_order = []
+        self.time_arrived = [self.max_grid_len for i in range(len(self.robots))]
+        self.arrival_order = [] if "arrival_order" not in solution.out["extra"]\
+            else solution.out["extra"]["arrival_order"]
+        assert len(self.arrival_order) > 0 or self.max_grid_len == -1
         self.__set_robot_pos()
         self.__set_obs(obstacles)
         self.__set_grid()
 
     def __set_grid(self):
+        limit = (self.max_grid_len != -1)
         self.append_empty_stage(0)
         for i in range(len(self.__robot_pos)):
             self.grid[0][self.__robot_pos[i]] = i
@@ -55,12 +58,13 @@ class SolGrid:
                 else:
                     self.grid[t][self.__robot_pos[robot_id]] = robot_id
             t += 1
-            if self.dynamic and t > self.max_grid_len:
+            if limit and t > self.max_grid_len:
                 break
 
-        self.arrival_order = sorted(range(len(self.time_arrived)), key=lambda x: self.time_arrived[x])
-        self.max_time = t - 1
+        if not limit:
+            self.arrival_order = sorted(range(len(self.time_arrived)), key=lambda x: self.time_arrived[x])
 
+        self.max_time = t - 1
 
     """
     def __set_dynamic_grid(self):
@@ -78,8 +82,8 @@ class SolGrid:
             self.__robot_pos.append(self.robots[r].pos)
 
     def __set_obs(self, obs_list: List[List[int]]):
-        for obsticale in obs_list:
-            pos = (obsticale[0], obsticale[1])
+        for obstacle in obs_list:
+            pos = (obstacle[0], obstacle[1])
             self.obs.add(pos)
 
     def get_cell_content(self, time: int, pos: (int, int),

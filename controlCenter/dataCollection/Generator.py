@@ -372,7 +372,7 @@ class Generator:
             close[pos] = (f_val, g_val)
 
             # if pos == dest_pos:
-                # return construct_path(parents, pos)
+            # return construct_path(parents, pos)
             if pos[0] == dest_pos[0] and pos[1] == dest_pos[1] and pos[2] > last_step:
                 return construct_path(parents, pos)
             for direction in preferred_direction_order:
