@@ -236,6 +236,7 @@ class OutAndInByPercentage(InitAlgo):
             assert self.bfs_list[i] is not None, "Step 1: can't find any path for robot:" + str(i)
             blocked.add(robot.target_pos)
 
+        self.solution.out["extra"]["arrival_order"] = self.out_of_boundaries_permutation
         return True
 
     def step_phase_1(self) -> int:
