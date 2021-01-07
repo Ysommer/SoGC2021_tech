@@ -4,6 +4,7 @@ import json
 
 INSTANCES_PATH = "../instances/instances-zip/instances.zip"
 INIT_ALGOS_PATH = "../controlCenter/algos/init_algos"
+OPT_ALGOS_PATH = "../controlCenter/algos/optimization_algos"
 SOLUTIONS_PATH = "../Solutions/"
 SOLUTION_ZIP_NAME = "solutions.zip"
 SOLUTIONS_ZIP_PATH = ""
@@ -70,6 +71,10 @@ class InstanceAnalyzedData:
         if list_of_init_algos is None:
             list_of_init_algos = []
             for algo in os.listdir(INIT_ALGOS_PATH):
+                if algo[0] == "_":
+                    continue
+                list_of_init_algos.append(algo[:(-1) * len(".py")])
+            for algo in os.listdir(OPT_ALGOS_PATH):
                 if algo[0] == "_":
                     continue
                 list_of_init_algos.append(algo[:(-1) * len(".py")])
