@@ -23,6 +23,9 @@ class InitAlgo(abc.ABC):
         self.print_info = print_info
         self.run_timer = Timer(self.name + " runtime")
 
+        self.arrived_order = []
+        self.time_arrived = [-1] * len(self.robots)
+
     @abc.abstractmethod
     def step(self) -> int:
         """
@@ -80,6 +83,9 @@ class InitAlgo(abc.ABC):
                 print(last_milestone,"% of robots arrived")
 
         self.run_timer.end(self.print_info)
+        self.solution.out["extra"]["arrival_order"] = self.arrived_order
+        self.solution.out["extra"]["time_arrived"] = self.time_arrived
+
         return self.solution
 
 
