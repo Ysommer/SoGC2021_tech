@@ -51,10 +51,10 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     data_bundle = None
     control_center = ControlCenter(instance, out_path, -1, -1)
     # control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle=data_bundle)
-    control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
-    control_center.add_opt_algo(BFS_in_time, data_bundle={})
-    # for i in range(0, 11):
-    #   control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"percent_to_leave_inside": 100})
+    #control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
+    #control_center.add_opt_algo(BFS_in_time, data_bundle={})
+    for i in range(0, 11):
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False})
     return control_center
 
 

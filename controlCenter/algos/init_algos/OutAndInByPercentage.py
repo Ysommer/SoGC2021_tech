@@ -5,7 +5,7 @@ from infrastructure.robot import Robot
 from dataCollection.preprocess import Preprocess
 from defines import *
 from utils import *
-from random import shuffle, randint, sample, shuffle
+from random import shuffle, randint, sample, shuffle, random
 import queue
 from collections import deque
 from dataCollection.Generator import *
@@ -308,13 +308,18 @@ class OutAndInByPercentage(InitAlgo):
         temp_robots = []
         for i in self.out_of_boundaries_permutation:
             robot = self.robots[i]
-            robot.extra_data = self.grid.get_cell_distance(robot.target_pos)
-            if robot.extra_data == -1:
+            robot.extra_data = (self.grid.get_cell_distance(robot.target_pos), random())
+            if robot.extra_data[0] == -1:
                 print(robot, "has no clear path to target")
                 return False
             temp_robots.append(robot)
 
         self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by highs
+
+        for i in self.out_of_boundaries_permutation:
+            robot = self.robots[i]
+            robot.extra_data = robot.extra_data[0]
+
 
         self.out_of_boundaries_permutation.reverse()
 
