@@ -316,7 +316,7 @@ class Generator:
             source_pos,
             dest_pos,
             robot_id: int,
-            max_time: int,
+            epsilon: float,
             last_step: int,
             blocked_N_visited: set = None,
             calc_h_value_func=AStarHeuristics.manhattan_distance_with_time,
@@ -378,7 +378,7 @@ class Generator:
             for direction in preferred_direction_order:
                 next_pos = sum_tuples_with_time(pos, directions_to_coords_with_time[direction])
                 if internal_check_move(next_pos, direction):
-                    next_g_val = g_val + (1 if direction != 'X' else (1/(max_time+1)))
+                    next_g_val = g_val + (1 if direction != 'X' else epsilon)
                     next_h_val = calc_h_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
                                                    calc_h_value_params=calc_h_value_params)
                     next_f_val = next_g_val + next_h_val

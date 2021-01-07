@@ -3,6 +3,7 @@ from infrastructure.solGrid import SolGrid
 from solution.solution import Solution
 from dataCollection.Generator import *
 from defines import *
+from random import random
 
 """
 BIT run modes:
@@ -39,7 +40,7 @@ class BFS_in_time(OptimizationAlgo):
                            "W": self.sol_grid.min_x,
                            "E": self.sol_grid.max_x}
         self.num_to_improve = data_bundle.get("num_to_improve", 1)
-        self.goal_raise = data_bundle.get("gaol_raise", 32)
+        self.goal_raise = data_bundle.get("goal_raise", 32)
         if self.solution.out["algo_name"].find("BIT_BIT") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_BIT")]
             self.solution.out["extra"]["BIT_runs"] += 1
@@ -49,6 +50,9 @@ class BFS_in_time(OptimizationAlgo):
         self.solution.out["extra"]["old_sum"] = solution.out["sum"]
         self.solution.out["extra"]["improved"] = ""
         self.sum = solution.out["sum"]
+        self.epsilon_noise = data_bundle.get("epsilon_noise", False)
+        self.epsilon = 1/(int(self.solution.out["extra"]["old_makespan"])+1) if not self.epsilon_noise else \
+            (1/(int(self.solution.out["extra"]["old_makespan"])+1))*random()
 
     def calc_new_path(self, robot_id, offset_from_last_step: int = 1, offset_to_start_before_goal: int = 110,
                       calc_tries: int = 20, goal_time_raise: int = 10):
@@ -69,7 +73,7 @@ class BFS_in_time(OptimizationAlgo):
                                                           source_pos_t,
                                                           dest_pos_t,
                                                           robot_id,
-                                                          self.sol_grid.max_time,
+                                                          self.epsilon,
                                                           last_step_on_loc)
             if counter > 0:
                 offset_from_last_step += goal_time_raise
@@ -109,7 +113,7 @@ class BFS_in_time(OptimizationAlgo):
                                                           source_pos_t,
                                                           dest_pos_t,
                                                           robot_id,
-                                                          self.sol_grid.max_time,
+                                                          self.epsilon,
                                                           last_step_on_loc)
             if new_path is not None:
                 self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
@@ -123,7 +127,7 @@ class BFS_in_time(OptimizationAlgo):
                                                       source_pos_t,
                                                       dest_pos_t,
                                                       robot_id,
-                                                      self.sol_grid.max_time,
+                                                      self.epsilon,
                                                       last_step_on_loc)
         if new_path is not None:
             self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
@@ -138,7 +142,7 @@ class BFS_in_time(OptimizationAlgo):
                                                           source_pos_t,
                                                           dest_pos_t,
                                                           robot_id,
-                                                          self.sol_grid.max_time,
+                                                          self.epsilon,
                                                           last_step_on_loc)
             goal_time = min(goal_time + goal_time_raise, time_arrived)
             dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
@@ -149,7 +153,6 @@ class BFS_in_time(OptimizationAlgo):
         high = start_time + len(new_path)
         other_new_path = None
         other = True  # True when last successful run was in new_path
-        print("robot_id:", robot_id, "high:", high, "last goal:", goal_time-goal_time_raise)
 
         while high > low:
             mid = (high + low) // 2
@@ -160,7 +163,7 @@ class BFS_in_time(OptimizationAlgo):
                                                                     source_pos_t,
                                                                     dest_pos_t,
                                                                     robot_id,
-                                                                    self.sol_grid.max_time,
+                                                                    self.epsilon,
                                                                     last_step_on_loc)
                 if other_new_path is None:
                     low = mid + 1
@@ -173,7 +176,7 @@ class BFS_in_time(OptimizationAlgo):
                                                               source_pos_t,
                                                               dest_pos_t,
                                                               robot_id,
-                                                              self.sol_grid.max_time,
+                                                              self.epsilon,
                                                               last_step_on_loc)
                 if new_path is None:
                     low = mid + 1
