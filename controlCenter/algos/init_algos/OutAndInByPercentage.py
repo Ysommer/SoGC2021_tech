@@ -48,14 +48,8 @@ class OutAndInByPercentage(InitAlgo):
         self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside", 0)
         self.timeout = data_bundle.get("timeout", 10)
         self.sync_insertion = data_bundle.get("sync_insertion", True)
-        self.reverse_fill = True
-        self.boundaries = {
-            "N": self.grid.size + 2,
-            "E": self.grid.size + 2,
-            "W": -3,
-            "S": -3,
-        }
-        self.timeout = 10
+        self.secondary_order = data_bundle.get("secondary_order", "")
+        self.descending_order = data_bundle.get("descending_order", False)
 
         # Init phases
         self.phase = 0
@@ -75,6 +69,12 @@ class OutAndInByPercentage(InitAlgo):
         # All Phases params
         if self.percent_to_leave_inside > 0:
             self.name += "_per_" + str(self.percent_to_leave_inside)
+
+        if self.secondary_order != "":
+            self.name += "_" + self.secondary_order
+
+        if self.descending_order:
+            self.name += "_desc"
 
         self.bfs_list = [None] * len(self.robots)
         self.q_by_robot_id = [self.q_reaching_out for i in range(len(self.robots))]
@@ -243,7 +243,6 @@ class OutAndInByPercentage(InitAlgo):
             assert self.bfs_list[i] is not None, "Step 1: can't find any path for robot:" + str(i)
             blocked.add(robot.target_pos)
 
-        self.solution.out["extra"]["arrival_order"] = self.out_of_boundaries_permutation
         return True
 
     def step_phase_1(self) -> int:
@@ -298,6 +297,46 @@ class OutAndInByPercentage(InitAlgo):
                 self.grid.get_cell(next_pos).extra_data = min_offset + d_index + 1
 
     def switch_phase_0_to_1_v2(self):
+        def get_dist_from_grid(robot: Robot) -> int:
+            res = {
+                "W": abs(robot.pos[0]),
+                "S": abs(robot.pos[1]),
+                "E": abs(robot.pos[0] - self.grid.size),
+                "N": abs(robot.pos[1] - self.grid.size)
+            }
+            return res[robot.extra_data]
+
+        def get_dist_from_target(robot: Robot) -> int:
+            return AStarHeuristics.manhattan_distance(robot.pos, robot.pos, robot.target_pos)
+
+        def get_bfs_dist(robot: Robot) -> int:
+            return len(Generator.calc_a_star_path(
+                grid=self.grid,
+                boundaries=self.boundaries,
+                source_pos=robot.pos,
+                dest_pos=robot.target_pos,
+                calc_configure_value_func=AStarHeuristics.manhattan_distance,
+                check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs))
+
+        def get_extra_data(robot: Robot) -> (int, int):
+            # Set secondary order
+            extra_data = (self.grid.get_cell_distance(robot.target_pos),0)
+            if self.secondary_order == "rand":
+                extra_data = (extra_data[0], random())
+            elif self.secondary_order == "dist_from_grid":
+                extra_data = (extra_data[0], get_dist_from_grid(robot))
+            elif self.secondary_order == "dist_from_target":
+                extra_data = (extra_data[0], get_dist_from_target(robot))
+            elif self.secondary_order == "dist_BFS":
+                extra_data = (extra_data[0], get_bfs_dist(robot))
+            else:
+                extra_data = (extra_data[0], 0)
+
+            if not self.descending_order:
+                extra_data = (extra_data[0], (-1)*extra_data[1])
+
+            return extra_data
+
         self.phase += 1
         blocked = set()
 
@@ -308,7 +347,7 @@ class OutAndInByPercentage(InitAlgo):
         temp_robots = []
         for i in self.out_of_boundaries_permutation:
             robot = self.robots[i]
-            robot.extra_data = (self.grid.get_cell_distance(robot.target_pos), random())
+            robot.extra_data = get_extra_data(robot)
             if robot.extra_data[0] == -1:
                 print(robot, "has no clear path to target")
                 return False
@@ -316,15 +355,11 @@ class OutAndInByPercentage(InitAlgo):
 
         self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by highs
 
-        for i in self.out_of_boundaries_permutation:
-            robot = self.robots[i]
-            robot.extra_data = robot.extra_data[0]
-
-
         self.out_of_boundaries_permutation.reverse()
 
         for i in self.out_of_boundaries_permutation:
             robot = self.robots[i]
+            robot.extra_data = robot.extra_data[0]
 
             self.bfs_list[i] = Generator.calc_a_star_path(
                 grid=self.grid,

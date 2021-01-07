@@ -20,12 +20,13 @@ from utils import Timer
 
 
 class ControlCenter:
-    def __init__(self, instance: Instance, solution_path=None, max_makespan=-1, max_sum=-1, automate_makespan_and_sum = False):
+    def __init__(self, instance: Instance, solution_path=None, max_makespan=-1, max_sum=-1, automate_makespan_and_sum=False, print_init_sol=True):
         # inputs
         self.solution_path = solution_path
         self.instance = instance
         self.name = instance.name
         self.automate_makespan_and_sum = automate_makespan_and_sum
+        self.print_init_sol = print_init_sol
 
         try:
             first_size_index = self.name.rfind('x') + 1
@@ -110,12 +111,13 @@ class ControlCenter:
 
         print("Algo:", algo.name, "done with solutions", res.out["result"])
         if res.out["result"] != SolutionResult.SUCCESS.name:
-            if not print_only_success:
+            if not print_only_success and self.print_init_sol:
                 self.print_last_solution([res])
             return False
 
         self.solutions.append(res)
-        self.print_last_solution()
+        if self.print_init_sol:
+            self.print_last_solution()
 
         if self.automate_makespan_and_sum:
             if self.max_makespan == -1 or self.max_makespan > res.out["makespan"]:
