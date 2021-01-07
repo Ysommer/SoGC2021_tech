@@ -36,7 +36,7 @@ class BFSCounterCell:
             return self.last_bfs_parent
         return ""
 
-    def get_distance(self, new_bfs_counter) -> int:
-        if self.last_bft_counter == new_bfs_counter:
+    def get_distance(self, new_bfs_counter, get_old_configure=True) -> int:
+        if self.last_bft_counter == new_bfs_counter or get_old_configure:
             return self.last_configured_dist
         return -1
