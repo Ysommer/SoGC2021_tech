@@ -227,7 +227,7 @@ class BFS_in_time(OptimizationAlgo):
         improved = []
         arrival_order = self.sol_grid.get_arrival_order()
         robots_remaining = len(self.robots)
-        goal_raise = 48
+        goal_raise = 32
         offset_from_last_step = 1
         calc_tries = 300
         i = 0
@@ -243,6 +243,7 @@ class BFS_in_time(OptimizationAlgo):
             robots_remaining -= 1
         print("improved:", i)
         self.solution.out["extra"]["improved"] += str(improved) + ","
+        self.solution.out["extra"]["goal_raise_for_bs"] = goal_raise
 
     def improve_last_by_arrival_order(self, num: int = 10):
         improved = []

@@ -14,6 +14,8 @@ SOLUTIONS_ZIP_PATH = ""
 def zipdir(path, ziph):
     for root, dirs, files in os.walk(path):
         for file in files:
+            if file == '.DS_Store':
+                continue
             if "SUCCESS" in file:
                 ziph.write(os.path.join(root, file), file)
 
@@ -27,6 +29,8 @@ def compress_solutions(solution_paths = SOLUTIONS_PATH, solution_zip_path = SOLU
 def clean_bad_solutions(solution_paths = SOLUTIONS_PATH):
     for root, dirs, files in os.walk(solution_paths):
         for file in files:
+            if file == '.DS_Store':
+                continue
             if "SUCCESS" not in file:
                 print("Removing:", root + "/" + file)
                 os.remove(root + "/" + file)
