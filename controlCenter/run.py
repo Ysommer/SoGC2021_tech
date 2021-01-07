@@ -19,9 +19,9 @@ from algos.optimization_algos.BFS_in_time import *
 
 
 def main():
-    # instances_id = [i for i in range(111, 112)]
+    instances_id = [i for i in range(141, 142)]
 
-    instances_id = [163]
+    # instances_id = [172]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -34,7 +34,7 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
             control_center.run_all(print_only_success=False, stop_on_success=False, validate=False)
         except Exception as e:
             print(e)
@@ -50,8 +50,9 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     print_info = True
     data_bundle = None
     control_center = ControlCenter(instance, out_path, -1, -1)
-    control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle=data_bundle)
+    # control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle=data_bundle)
     control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
+    control_center.add_opt_algo(BFS_in_time, data_bundle={})
     # for i in range(0, 11):
     # control_center.add_init_algo(OutAndInByPercentage, name="", print_info=print_info, data_bundle={"percent_to_leave_inside": i*10})
 
@@ -67,7 +68,7 @@ def ys_control_center_initiate(instance, out_path, max_makespan, max_sum):
     data_bundle = {"sync_insertion": False}
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
     control_center.add_init_algo(OutAndInByPercentage, name="_sea_level_", print_info=False, data_bundle=data_bundle)
-    control_center.add_opt_algo(BFS_in_time, data_bundle={"num_to_improve": 30})
+    control_center.add_opt_algo(BFS_in_time, data_bundle=None)
     # for i in range(1):
     #   control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
     return control_center
@@ -99,8 +100,8 @@ def load_solutions(paths: list):
 
 
 if __name__ == "__main__":
-    clean_bad_solutions()
+    # clean_bad_solutions()
     main()
-    analyze()
-    compress_solutions_and_validate()
+    # analyze()
+    # compress_solutions_and_validate()
     print("Done!")

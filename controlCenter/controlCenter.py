@@ -8,6 +8,7 @@ from algos.initAlgo import *
 from algos.init_algos.BFS import *
 from algos.optimizationAlgo import *
 from algos.OptimizationShell import *
+from algos.InitShell import *
 from solution.solution import *
 from cgshop2021_pyutils import Instance
 import json
@@ -48,7 +49,8 @@ class ControlCenter:
         self.grid = Grid(self.size, self.robots, self.instance.obstacles)
 
         self.init_algos = []
-        self.optimization_shells = []
+        self.init_shells: List[InitShell] = []
+        self.optimization_shells: List[OptimizationShell] = []
         self.solutions = []
         self.max_makespan = max_makespan
         self.max_sum = max_sum
@@ -66,105 +68,119 @@ class ControlCenter:
 
     def run_all_init_algos(self, print_only_success=False, stop_on_success=False, validate=False):
         # Run init algos
-        for i in self.init_algos:
-            i.max_makespan = self.max_makespan
-            i.max_sum = self.max_sum
-            print("Algo:", i.name, "starts running")
-            try:
-                res = i.run()
-                print(res)
-            except Exception as e:
-                print("Failure in :", i.name, "| error: ", e)
-                traceback.print_exc()
-                continue
-            try:
-                if validate and res.out["result"] == SolutionResult.SUCCESS.name:
-                    self.validator(res)
-            except Exception as e:
-                print("Failure in :", i.name, "| error: ", e)
-            print("Algo:", i.name, "done with solutions", res.out["result"])
-            self.solutions.append(res)
-            if (not print_only_success) or res.out["result"] == SolutionResult.SUCCESS.name:
-                self.print_last_solution()
-
-            if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
+        for i in range(len(self.init_shells)):
+            res = self.run_an_init_algo(i, print_only_success, validate)
+            if res and stop_on_success:
                 break
 
-            if res.out["result"] == SolutionResult.SUCCESS.name and self.automate_makespan_and_sum:
-                if self.max_makespan == -1 or self.max_makespan > res.out["makespan"]:
-                    self.max_makespan = res.out["makespan"]
+    def run_all_opt_algos(self, print_only_success=False, validate=False, auto_makespan=False, auto_sum=False):
+        solutions_counter = len(self.solutions)
 
-                if self.max_sum == -1 or self.max_sum > res.out["sum"]:
-                    self.max_sum = res.out["sum"]
-
-            print("\n")
-
-    def run_all_opt_algos(self, print_only_success=False, stop_on_success=False, validate=False):
-        new_solutions = []
-        for sol in self.solutions:
-            if sol.out["result"] != SolutionResult.SUCCESS.name:
-                continue
+        for sol_id in range(solutions_counter):
             timer = Timer("opt runtime: ")
             timer.start()
-            for shell in self.optimization_shells:
-                opt_algo = shell.algo_class(
-                    self.instance.name,
-                    sol,
-                    self.robots,
-                    self.targets,
-                    self.instance.obstacles,
-                    self.preprocess,
-                    shell.algo_name,
-                    shell.print_info,
-                    shell.data_bundle
-                )
-                print("Algo:", opt_algo.name, "starts running")
+            for shell_id in range(len(self.optimization_shells)):
+                self.run_an_optimization_algo(self.solutions[sol_id], shell_id, print_only_success, validate, auto_makespan, auto_sum)
 
-                try:
-                    res = opt_algo.run()
-                    timer.end(True)
-                    print(res)
-                except Exception as e:
-                    print("Failure in :", opt_algo.name, "| error: ", e)
-                    traceback.print_exc()
-                    continue
-                try:
-                    if validate and res.out["result"] == SolutionResult.SUCCESS.name:
-                        self.validator(res)
-                except Exception as e:
-                    print("Failure in :", opt_algo.name, "| error: ", e)
-                print("Algo:", opt_algo.name, "done with solutions", res.out["result"])
-                new_solutions.append(res)
-                if (not print_only_success) or res.out["result"] == SolutionResult.SUCCESS.name:
-                    self.print_last_solution(new_solutions)
-
-                if stop_on_success and res.out["result"] == SolutionResult.SUCCESS.name:
-                    break
-
-                print("\n")
-
-        self.solutions += new_solutions
-
-    def run_an_init_algo(self, algo_id: int) -> Solution:
-        # TODO: After initAlgo will be ready
-        return self.init_algos[algo_id].run()
-
-    def run_an_optimization_algo(self, solution: Solution, opt_algo: OptimizationAlgo):
-        # TODO
-        pass
-
-    def add_init_algo(self, algo: classmethod, name="", print_info=True, data_bundle=None):
-        self.init_algos.append(
-            algo(
+    def run_an_init_algo(self, algo_id: int, print_only_success=False, validate=False) -> bool:
+        algo = self.init_shells[algo_id].algo_class(
                 self.name,
                 self.grid,
                 self.targets,
                 self.max_makespan,
                 self.max_sum,
                 self.preprocess,
-                name=name,
-                print_info=print_info,
-                data_bundle=data_bundle))
+                name=self.init_shells[algo_id].algo_name,
+                print_info=self.init_shells[algo_id].print_info,
+                data_bundle=self.init_shells[algo_id].data_bundle)
+
+        print("Algo:", algo.name, "starts running")
+        try:
+            res = algo.run()
+            print(res)
+        except Exception as e:
+            print("Failure in :", algo.name, "| error: ", e)
+            traceback.print_exc()
+            return False
+        try:
+            if validate and res.out["result"] == SolutionResult.SUCCESS.name:
+                self.validator(res)
+        except Exception as e:
+            print("Failure in :", algo.name, "| error: ", e)
+
+        print("Algo:", algo.name, "done with solutions", res.out["result"])
+        if res.out["result"] != SolutionResult.SUCCESS.name:
+            if not print_only_success:
+                self.print_last_solution()
+            return False
+
+        self.solutions.append(res)
+        self.print_last_solution()
+
+        if self.automate_makespan_and_sum:
+            if self.max_makespan == -1 or self.max_makespan > res.out["makespan"]:
+                self.max_makespan = int(res.out["makespan"])
+
+            if self.max_sum == -1 or self.max_sum > res.out["sum"]:
+                self.max_sum = int(res.out["sum"])
+        return True
+
+    def run_an_optimization_algo(self, solution: Solution, opt_algo_id: int, print_only_success=False, validate=False, auto_makespan=False, auto_sum=False) -> bool:
+        if solution.out["result"] != SolutionResult.SUCCESS.name:
+            return False
+
+        timer = Timer("opt runtime: ")
+        timer.start()
+
+        algo = self.optimization_shells[opt_algo_id].algo_class(
+            self.instance.name,
+            solution,
+            self.robots,
+            self.targets,
+            self.instance.obstacles,
+            self.preprocess,
+            self.optimization_shells[opt_algo_id].algo_name,
+            self.optimization_shells[opt_algo_id].print_info,
+            self.optimization_shells[opt_algo_id].data_bundle)
+
+        print("Algo:", algo.name, "starts running")
+
+        try:
+            sol_res = algo.run()
+            timer.end(True)
+            print(sol_res)
+        except Exception as e:
+            print("Failure in :", algo.name, "| error: ", e)
+            traceback.print_exc()
+            return False
+        try:
+            if validate and sol_res.out["result"] == SolutionResult.SUCCESS.name:
+                self.validator(sol_res)
+        except Exception as e:
+            print("Failure in :", algo.name, "| error: ", e)
+
+        if sol_res.out["result"] != SolutionResult.SUCCESS.name:
+            if not print_only_success:
+                self.print_last_solution([sol_res])
+                return False
+
+        if auto_makespan and self.max_makespan < sol_res.out["makespan"]:
+            return False
+        else:
+            self.max_makespan = sol_res.out["makespan"]
+
+        if auto_sum and self.max_sum < sol_res.out["sum"]:
+            return False
+        else:
+            self.max_sum = sol_res.out["sum"]
+
+        print("Algo:", algo.name, "done with solutions", sol_res.out["result"])
+        self.solutions.append(sol_res)
+        self.print_last_solution([sol_res])
+        return True
+
+    def add_init_algo(self, algo: classmethod, name="", print_info=True, data_bundle=None):
+        self.init_shells.append(InitShell(algo, name, print_info, data_bundle))
 
     def add_opt_algo(self, algo: classmethod, name="_", print_info=True, data_bundle=None):
         self.optimization_shells.append(OptimizationShell(algo, name, print_info, data_bundle))
