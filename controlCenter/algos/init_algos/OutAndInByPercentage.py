@@ -335,6 +335,8 @@ class OutAndInByPercentage(InitAlgo):
         if self.sync_insertion:
             self.tag_cells()
             self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by turn offsets
+
+        self.solution.out["extra"]["arrival_order"] = self.out_of_boundaries_permutation
         return True
 
     def unplug_jam(self, robot_id: int) -> bool:
