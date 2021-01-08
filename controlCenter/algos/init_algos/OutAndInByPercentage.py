@@ -120,7 +120,7 @@ class OutAndInByPercentage(InitAlgo):
                                source_container_params=self.grid.size,
                                check_move_func=CheckMoveFunction.check_free_from_obs)
 
-        self.bfs_map_copy = self.grid.get_copy_bfs_map_()
+        self.bfs_map_copy = self.grid.get_copy_bfs_map()
         temp_robot_list = []
 
         for robot in self.robots:
@@ -320,7 +320,7 @@ class OutAndInByPercentage(InitAlgo):
 
         def get_extra_data(robot: Robot) -> (int, int):
             # Set secondary order
-            extra_data = (self.grid.get_cell_distance(robot.target_pos),0)
+            extra_data = (self.grid.get_cell_distance(robot.target_pos), 0)
             if self.secondary_order == "rand":
                 extra_data = (extra_data[0], random())
             elif self.secondary_order == "dist_from_grid":

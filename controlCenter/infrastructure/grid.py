@@ -123,10 +123,10 @@ class Grid:
     def get_cell_parent(self, pos):
         return self.get_cell_for_bfs(pos).get_parent(self.bfs_counter)
 
-    def get_cell_distance(self, pos):
-        return self.get_cell_for_bfs(pos).get_distance(self.bfs_counter)
+    def get_cell_distance(self, pos, get_old_configure=True):
+        return self.get_cell_for_bfs(pos).get_distance(self.bfs_counter, get_old_configure)
 
-    def get_copy_bfs_map_(self) -> dict:
+    def get_copy_bfs_map(self) -> dict:
         out = {}
         for pos in self.bfs_grid:
             out[pos] = self.get_cell_distance(pos)
