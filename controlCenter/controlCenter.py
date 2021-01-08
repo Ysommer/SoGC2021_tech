@@ -78,8 +78,6 @@ class ControlCenter:
         solutions_counter = len(self.solutions)
 
         for sol_id in range(solutions_counter):
-            timer = Timer("opt runtime: ")
-            timer.start()
             for shell_id in range(len(self.optimization_shells)):
                 self.run_an_optimization_algo(self.solutions[sol_id], shell_id, print_only_success, validate, auto_makespan, auto_sum)
 
@@ -131,8 +129,7 @@ class ControlCenter:
         if solution.out["result"] != SolutionResult.SUCCESS.name:
             return False
 
-        timer = Timer("opt runtime: ")
-        timer.start()
+        timer = Timer("opt runtime ")
 
         algo = self.optimization_shells[opt_algo_id].algo_class(
             self.instance.name,
@@ -148,6 +145,7 @@ class ControlCenter:
         print("Algo:", algo.name, "starts running")
 
         try:
+            timer.start()
             sol_res = algo.run()
             timer.end(True)
             print(sol_res)
