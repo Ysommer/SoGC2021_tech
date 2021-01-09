@@ -19,9 +19,9 @@ from algos.optimization_algos.BFS_in_time import *
 
 
 def main():
-    # instances_id = [i for i in range(111, 112)]
+    instances_id = [i for i in range(81, 121)]
 
-    instances_id = [146]
+    # instances_id = [172]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -34,7 +34,7 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
             control_center.run_all(print_only_success=False, stop_on_success=False, validate=False)
         except Exception as e:
             print(e)
@@ -108,8 +108,31 @@ def load_solutions(paths: list):
     return sols
 
 
+def generator_test():
+    obs = set()
+    obs.add((0, 0))
+    obs.add((1, 0))
+    obs.add((0, 1))
+    x_axis = dict()
+
+    x_axis[-3] = (0, 0)
+    x_axis[-2] = (0, 2)
+    x_axis[-1] = (0, 2)
+    x_axis[0] = (-2, 7)
+    x_axis[1] = (0, 4)
+    x_axis[2] = (-3, 4)
+    x_axis[3] = (0, 6)
+    x_axis[4] = (-2, 4)
+    x_axis[5] = (2, 2)
+    x_axis[6] = (2, 2)
+    x_axis[7] = (2, 2)
+    x_axis[8] = (2, 2)
+
+    mat = Generator.get_valid_directions_matrix((1, 1), obs, x_axis, 1)
+    print(mat)
+
 if __name__ == "__main__":
-    # clean_bad_solutions()
+    clean_bad_solutions()
     main()
     # analyze()
     # compress_solutions_and_validate()

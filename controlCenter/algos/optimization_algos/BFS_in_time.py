@@ -31,7 +31,7 @@ class BFS_in_time(OptimizationAlgo):
                          "_BIT" + name,
                          print_info,
                          data_bundle)
-        self.max_grid_len = data_bundle.get("grid_limit", -1)
+        self.max_grid_len = data_bundle.get("grid_limit", 750)
         if self.max_grid_len != -1:
             self.solution.out["steps"] = self.solution.out["steps"][:self.max_grid_len]
         self.sol_grid = SolGrid(self.robots, self.obs, self.solution, max_grid_len=self.max_grid_len)

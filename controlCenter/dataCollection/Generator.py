@@ -66,6 +66,42 @@ class Generator:
                boundaries["W"] <= pos[0] <= boundaries["E"]
 
     @staticmethod
+    def get_valid_directions_matrix(source_pos, obstacles: set, x_axis_min_max: dict, margin: int = 3):
+        def check_boundaries(pos):
+            for x in range((-1)*margin, margin+1):
+                if pos[0]+x in x_axis_min_max:
+                    if x_axis_min_max[pos[0]+x][0] - margin <= pos[1] <= x_axis_min_max[pos[0]+x][1] + margin:
+                        return True
+            """
+            for y in range((-1) * margin, margin):
+                if pos[1] + y in y_axis_min_max:
+                    if y_axis_min_max[pos[1] + y][0] - margin <= pos[0] <= y_axis_min_max[pos[1] + y][1] + margin:
+                        print("Flag")
+                        return True"""
+
+            return False
+
+
+        matrix = dict()
+
+        q = queue.Queue()
+        q.put(source_pos)
+
+        while not q.empty():
+            pos = q.get()
+            if pos in matrix:
+                continue
+            matrix[pos] = []
+            preferred_direction_order = Generator.get_preferred_direction_order(pos)
+            for direction in preferred_direction_order:
+                next_pos = sum_tuples(pos, directions_to_coords[direction])
+                if next_pos not in obstacles and check_boundaries(next_pos):
+                    q.put(next_pos)
+                    matrix[pos].append(direction)
+
+        return matrix
+
+    @staticmethod
     def construct_path(grid: Grid, pos: (int, int)) -> deque:
         path = []
         parent = grid.get_cell_parent(pos)
