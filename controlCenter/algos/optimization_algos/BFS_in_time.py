@@ -31,7 +31,7 @@ class BFS_in_time(OptimizationAlgo):
                          "_BIT" + name,
                          print_info,
                          data_bundle)
-        self.max_grid_len = data_bundle.get("grid_limit", 750)
+        self.max_grid_len = data_bundle.get("grid_limit", 700)
         if self.max_grid_len != -1:
             self.solution.out["steps"] = self.solution.out["steps"][:self.max_grid_len]
         self.sol_grid = SolGrid(self.robots, self.obs, self.solution, max_grid_len=self.max_grid_len)
@@ -96,6 +96,7 @@ class BFS_in_time(OptimizationAlgo):
     def calc_new_path_bs(self, robot_id, offset_to_start_before_goal: int = 110,
                          calc_tries: int = 20, goal_time_raise: int = 8,
                          skip_last_plus_one: bool = False):
+        # print(robot_id)
         time_arrived = self.sol_grid.get_time_arrived()[robot_id]
         last_step_on_loc = self.sol_grid.find_last_step_on_location(robot_id, self.targets[robot_id], time_arrived)[0]
         goal_time = min(last_step_on_loc + 1, self.sol_grid.max_time)

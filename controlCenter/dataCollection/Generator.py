@@ -9,6 +9,8 @@ from defines import *
 import queue
 import heapq
 from infrastructure.solGrid import SolGrid
+from utils import Timer
+
 
 
 class AStarHeuristics:
@@ -361,6 +363,11 @@ class Generator:
             check_move_params=None,
             preferred_direction_order=None): #list of moves
 
+        debug_info = False
+        if debug_info:
+            timer = Timer("Astar ")
+            timer.start()
+
         if check_move_func is None:
             check_move_func = grid.check_move
 
@@ -410,6 +417,9 @@ class Generator:
             # if pos == dest_pos:
             # return construct_path(parents, pos)
             if pos[0] == dest_pos[0] and pos[1] == dest_pos[1] and pos[2] > last_step:
+                if debug_info:
+                    print("robot_id: ", robot_id, "SUCCEEDED with close size: ", len(close))
+                    timer.end(True)
                 return construct_path(parents, pos)
             for direction in preferred_direction_order:
                 next_pos = sum_tuples_with_time(pos, directions_to_coords_with_time[direction])
@@ -435,4 +445,7 @@ class Generator:
                         heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
+        if debug_info:
+            print("robot_id: ", robot_id, "FAILED with close size: ", len(close))
+            timer.end(True)
         return None
