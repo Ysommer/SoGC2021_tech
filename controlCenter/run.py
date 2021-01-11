@@ -1,3 +1,10 @@
+import sys
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
+
+import functools
+print = functools.partial(print, flush=True)
+
 import traceback
 
 from cgshop2021_pyutils import Instance
@@ -19,9 +26,9 @@ from algos.optimization_algos.BFS_in_time import *
 
 
 def main():
-    instances_id = [i for i in range(81, 121)]
+    # instances_id = [i for i in range(81, 121)]
 
-    # instances_id = [172]
+    instances_id = [172]
     instances = load_all_instances()
 
     for id in instances_id:
