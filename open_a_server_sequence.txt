@@ -1,6 +1,6 @@
 Open a server:
 
-mk dir workspace
+mkdir workspace
 cd workspace
 git clone https://github.com/Ysommer/SoGC2021_tech.git
 

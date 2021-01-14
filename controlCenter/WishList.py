@@ -25,11 +25,14 @@ class PackagesFunctionsByType:
     def get_function(package_type: WishListPackagesTypes):
         functions = {
             WishListPackagesTypes.TINY.name: PackagesFunctionsByType.run_tiny,
-            WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small
+            WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small,
+            WishListPackagesTypes.MEDIUM.name: PackagesFunctionsByType.run_medium,
+            WishListPackagesTypes.MEDIUM_LARGE.name: PackagesFunctionsByType.run_medium
         }
+
         if package_type.name in functions:
             return functions[package_type.name]
-        return functions[WishListPackagesTypes.SMALL.name]
+        return functions[WishListPackagesTypes.MEDIUM_LARGE.name]
 
     @staticmethod
     def init_control_center(instance: Instance) -> ControlCenter:
@@ -105,6 +108,44 @@ class PackagesFunctionsByType:
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
             for i in range(0, 25):
+                control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                             data_bundle={"sync_insertion": False, "secondary_order": "rand"})
+
+        if optShells:
+            for i in optShells:
+                control_center.add_opt_algo(i)
+        else:
+            control_center.add_opt_algo(BFS_in_time, data_bundle={})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
+    def run_medium(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+
+        if initShells:
+            for i in initShells:
+                control_center.add_init_algo(i)
+        else:
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid"})
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid",
+                                                      "descending_order": True})
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
+                                                      "descending_order": True})
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS"})
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
+                                                      "descending_order": True})
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": ""})
+            for i in range(0, 5):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 
