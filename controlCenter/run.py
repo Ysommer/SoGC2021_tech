@@ -16,6 +16,7 @@ from Utils.solution_analyzer import analyze_solutions
 from Utils.validator import validate_solution_zip
 from Utils.compress_solutions_and_validate import compress_solutions, clean_bad_solutions
 import json
+from WishList import *
 
 # Algos
 from algos.init_algos.LeftPillar import *
@@ -139,8 +140,18 @@ def generator_test():
     print(mat)
 
 if __name__ == "__main__":
-    clean_bad_solutions()
-    main()
+    # clean_bad_solutions()
+    # main()
+
+
     # analyze()
     # compress_solutions_and_validate()
+
+
+    WishList.farm_instances(WishListPackagesTypes.TINY, 1)
+    """packages = InstancesPackage.get_instances_packages()
+
+    for p in packages:
+        print(len(packages[p]))
+        print(p,":", packages[p])"""
     print("Done!")

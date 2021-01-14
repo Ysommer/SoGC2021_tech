@@ -8,7 +8,7 @@ from utils import Timer
 
 class InitAlgo(abc.ABC):
 
-    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name="", print_info=True):
+    def __init__(self, instance_name: str, grid: Grid, targets: list, max_makespan: int = None, max_sum: int = None, preprocess=None, name="", print_info=False):
         self.name = name
         self.instance_name = instance_name
         self.grid = deepcopy(grid)
@@ -80,7 +80,8 @@ class InitAlgo(abc.ABC):
 
             if (100 * self.grid.numOfRobotsArrived) // len(self.robots) >= last_milestone + 10:
                 last_milestone = (((100 * self.grid.numOfRobotsArrived) // len(self.robots)) // 10) * 10
-                print(last_milestone,"% of robots arrived")
+                if self.print_info:
+                    print(last_milestone,"% of robots arrived")
 
         self.run_timer.end(self.print_info)
         self.solution.out["extra"]["arrival_order"] = self.arrived_order

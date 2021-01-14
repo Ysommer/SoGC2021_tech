@@ -56,6 +56,10 @@ class ControlCenter:
         self.max_makespan = max_makespan
         self.max_sum = max_sum
 
+        self.min_makespan = max_makespan
+        self.min_sum = max_sum
+
+
         try:
             os.mkdir(self.solution_path)
         except:
@@ -82,6 +86,7 @@ class ControlCenter:
                 self.run_an_optimization_algo(self.solutions[sol_id], shell_id, print_only_success, validate, auto_makespan, auto_sum)
 
     def run_an_init_algo(self, algo_id: int, print_only_success=False, validate=False) -> bool:
+        print()
         algo = self.init_shells[algo_id].algo_class(
                 self.name,
                 self.grid,
@@ -117,15 +122,17 @@ class ControlCenter:
         if self.print_init_sol:
             self.print_last_solution()
 
-        if self.automate_makespan_and_sum:
-            if self.max_makespan == -1 or self.max_makespan > res.out["makespan"]:
-                self.max_makespan = int(res.out["makespan"])
 
-            if self.max_sum == -1 or self.max_sum > res.out["sum"]:
-                self.max_sum = int(res.out["sum"])
+        if self.min_makespan == -1 or self.min_makespan > res.out["makespan"]:
+            self.min_makespan = int(res.out["makespan"])
+
+        if self.min_sum == -1 or self.min_sum > res.out["sum"]:
+            self.min_sum = int(res.out["sum"])
+
         return True
 
     def run_an_optimization_algo(self, solution: Solution, opt_algo_id: int, print_only_success=False, validate=False, auto_makespan=False, auto_sum=False) -> bool:
+        print()
         if solution.out["result"] != SolutionResult.SUCCESS.name:
             return False
 
@@ -165,15 +172,17 @@ class ControlCenter:
                 self.print_last_solution([sol_res])
                 return False
 
-        if auto_makespan and self.max_makespan < sol_res.out["makespan"]:
+        if auto_makespan and self.min_makespan < sol_res.out["makespan"]:
             return False
         else:
-            self.max_makespan = sol_res.out["makespan"]
+            if self.min_makespan == -1 or self.min_makespan > sol_res.out["makespan"]:
+                self.min_makespan = int(sol_res.out["makespan"])
 
-        if auto_sum and self.max_sum < sol_res.out["sum"]:
+        if auto_sum and self.min_sum < sol_res.out["sum"]:
             return False
         else:
-            self.max_sum = sol_res.out["sum"]
+            if self.min_sum == -1 or self.min_sum > sol_res.out["sum"]:
+                self.min_sum = int(sol_res.out["sum"])
 
         print("Algo:", algo.name, "done with solutions", sol_res.out["result"])
         self.solutions.append(sol_res)

@@ -1,0 +1,40 @@
+Open a server:
+
+mk dir workspace
+cd workspace
+git clone https://github.com/Ysommer/SoGC2021_tech.git
+
+Enter Git username
+Enter Git password
+
+Run a server:
+
+cd SoGC2021_tech/controlCenter/
+
+
+Check if you have python3.7
+
+python3.7 --version
+
+if not, install it:
+https://phoenixnap.com/kb/how-to-install-python-3-ubuntu
+
+Check if you have pip
+pip --version
+
+if not, install:
+sudo apt install python-pip
+
+pip install cgshop2021_pyutils
+
+if not working, it's probably because the pip version
+try:
+ curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7
+ pip3.7 install cgshop2021_pyutils
+
+
+
+python3.7 run-server.py <group-id> <server-id>
+
+e.g
+python3.7 run-server.py 1 1
