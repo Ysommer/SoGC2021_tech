@@ -83,7 +83,7 @@ def compress_solutions_and_validate():
     validate_solution_zip(INSTANCES_PATH, SOLUTION_ZIP_NAME)
 
 
-def compress_best_and_send(solution_paths = SOLUTIONS_PATH):
-    zipf = zipfile.ZipFile(SOLUTION_ZIP_NAME_WO_SUFFIX+time.strftime("%Y%m%d-%H%M%S")+".zip", 'w', zipfile.ZIP_DEFLATED)
+def compress_best_and_send(name="" ,solution_paths = SOLUTIONS_PATH):
+    zipf = zipfile.ZipFile(SOLUTION_ZIP_NAME_WO_SUFFIX+name+time.strftime("%Y%m%d-%H%M%S")+".zip", 'w', zipfile.ZIP_DEFLATED)
     zip_best(solution_paths, zipf)
     zipf.close()
