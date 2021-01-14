@@ -3,11 +3,14 @@ import os
 import zipfile
 from Utils.validator import validate_solution_zip
 from os.path import basename
+import time
 
 
 INSTANCES_PATH = "../instances/instances-zip/instances.zip"
 SOLUTIONS_PATH = "../Solutions/"
 SOLUTION_ZIP_NAME = "../solutions.zip"
+SOLUTION_ZIP_NAME_WO_SUFFIX = "../solutions"
+
 SOLUTIONS_ZIP_PATH = ""
 
 MAKESPAN_TAG = "MSPAN"
@@ -80,7 +83,7 @@ def compress_solutions_and_validate():
     validate_solution_zip(INSTANCES_PATH, SOLUTION_ZIP_NAME)
 
 
-def compress_best_and_send(solution_paths = SOLUTIONS_PATH, solution_zip_path = SOLUTION_ZIP_NAME):
-    zipf = zipfile.ZipFile(solution_zip_path, 'w', zipfile.ZIP_DEFLATED)
+def compress_best_and_send(solution_paths = SOLUTIONS_PATH):
+    zipf = zipfile.ZipFile(SOLUTION_ZIP_NAME_WO_SUFFIX+time.strftime("%Y%m%d-%H%M%S")+".zip", 'w', zipfile.ZIP_DEFLATED)
     zip_best(solution_paths, zipf)
     zipf.close()
