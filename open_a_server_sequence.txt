@@ -27,6 +27,12 @@ sudo apt install python-pip
 
 pip install cgshop2021_pyutils
 
+if not working, it's probably because the pip version
+try:
+ curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7
+ pip3.7 install cgshop2021_pyutils
+
+
 
 python3.7 run-server.py <group-id> <server-id>
 
