@@ -12,9 +12,9 @@ class OptimizationAlgo(abc.ABC):
         self.obs = obstacles
         self.size = size
         self.preprocess = preprocess
-        self.name = name
         self.print_info = print_info
         self.solution.out["algo_name"] += name
+        self.name = self.solution.out["algo_name"]
 
     @abc.abstractmethod
     def run(self):

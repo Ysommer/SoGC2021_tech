@@ -267,7 +267,7 @@ class BFS_in_time(OptimizationAlgo):
                 num_improved += 1
             robots_remaining -= 1
             num_processed += 1
-            if num_processed % 250 == 0:
+            if num_processed % 20 == 0:
                 percent = int((num_processed / len(self.robots)) * 100)
                 print(num_processed, "robots done,", robots_remaining, "remaining (", percent, "% )")
         print("improved:", num_improved)
