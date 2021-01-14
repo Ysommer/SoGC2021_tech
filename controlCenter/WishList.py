@@ -27,7 +27,9 @@ class PackagesFunctionsByType:
             WishListPackagesTypes.TINY.name: PackagesFunctionsByType.run_tiny,
             WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small
         }
-        return functions[package_type.name]
+        if package_type.name in functions:
+            return functions[package_type.name]
+        return functions[WishListPackagesTypes.SMALL.name]
 
     @staticmethod
     def init_control_center(instance: Instance) -> ControlCenter:
