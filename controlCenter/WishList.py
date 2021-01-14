@@ -34,7 +34,7 @@ class PackagesFunctionsByType:
         num_of_robots = instance.number_of_robots
         max_makespan = -1
         max_sum = -1
-        return ControlCenter(instance, out_path, max_makespan, max_sum, print_init_sol=False)
+        return ControlCenter(instance, out_path, max_makespan, max_sum, print_init_sol=True)
 
     @staticmethod
     def run_tiny(instance: Instance, initShells: List[InitShell]=None, optShells: List[InitShell]=None) -> (int, int):
@@ -61,7 +61,7 @@ class PackagesFunctionsByType:
                                                       "descending_order": True})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
-            for i in range(0, 100):
+            for i in range(0, 5):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 

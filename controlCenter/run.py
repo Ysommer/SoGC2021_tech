@@ -14,7 +14,7 @@ from Utils.loadInstances import *
 from Utils.compress_solutions_and_validate import compress_solutions_and_validate
 from Utils.solution_analyzer import analyze_solutions
 from Utils.validator import validate_solution_zip
-from Utils.compress_solutions_and_validate import compress_solutions, clean_bad_solutions
+from Utils.compress_solutions_and_validate import *
 import json
 from WishList import *
 
@@ -29,7 +29,7 @@ from algos.optimization_algos.BFS_in_time import *
 def main():
     # instances_id = [i for i in range(81, 121)]
 
-    instances_id = [96]
+    instances_id = [161]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -42,7 +42,7 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
             control_center.run_all(print_only_success=False, stop_on_success=False, validate=False)
         except Exception as e:
             print(e)
@@ -141,14 +141,14 @@ def generator_test():
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    # main()
+    main()
 
-
+    compress_best_and_send()
     # analyze()
     # compress_solutions_and_validate()
 
 
-    WishList.farm_instances(WishListPackagesTypes.TINY, 1)
+    # WishList.farm_instances(WishListPackagesTypes.TINY, 1)
     """packages = InstancesPackage.get_instances_packages()
 
     for p in packages:
