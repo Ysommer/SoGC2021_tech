@@ -1,3 +1,7 @@
+import sys
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
+
 from infrastructure.grid import Grid
 from infrastructure.cell import Cell
 from infrastructure.robot import Robot

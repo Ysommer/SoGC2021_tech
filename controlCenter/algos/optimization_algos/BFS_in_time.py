@@ -1,3 +1,7 @@
+import sys
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
+
 from algos.optimizationAlgo import OptimizationAlgo
 from infrastructure.solGrid import SolGrid
 from solution.solution import Solution
