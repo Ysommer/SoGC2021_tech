@@ -1,6 +1,5 @@
-import sys
-sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
-sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
+import functools
+print = functools.partial(print, flush=True)
 
 from infrastructure.grid import Grid
 from infrastructure.cell import Cell
