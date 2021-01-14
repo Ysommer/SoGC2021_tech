@@ -416,10 +416,10 @@ class Generator:
                 return construct_path(parents, pos)
             pushed_out_direction = grid.pushed_out(pos, robot_id)
             if pushed_out_direction is not None:
+                if len([x for x in valid_direction_matrix[pos[:2]] if x[1] == pushed_out_direction]) == 0:
+                    continue
                 next_poses = [(sum_tuples_with_time(pos, directions_to_coords_with_time[pushed_out_direction]),
                                pushed_out_direction)]
-                if next_poses[0][0][:2] in grid.obs:
-                    continue
             else:
                 next_poses_timeless = valid_direction_matrix[pos[:2]]
                 next_poses = [((np[0] + (pos[2]+1,),
