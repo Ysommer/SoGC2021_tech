@@ -1,3 +1,6 @@
+import functools
+print = functools.partial(print, flush=True)
+
 from enum import Enum
 from typing import List
 from algos.InitShell import *
