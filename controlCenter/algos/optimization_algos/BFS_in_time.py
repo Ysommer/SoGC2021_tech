@@ -125,7 +125,7 @@ class BFS_in_time(OptimizationAlgo):
             if new_path is not None:
                 self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
                 self.update_solution(robot_id, new_path, start_time, time_arrived)
-                # print("robot_id:", robot_id, "last goal:", goal_time)
+                # print("robot_id:", robot_id, "last goal:", goal_time - last_step_on_loc)
                 return new_path
             counter += 1
         goal_time = min(last_step_on_loc + 2, time_arrived)
@@ -140,7 +140,7 @@ class BFS_in_time(OptimizationAlgo):
         if new_path is not None:
             self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
             self.update_solution(robot_id, new_path, start_time, time_arrived)
-            # print("robot_id:", robot_id, "last goal:", goal_time)
+            # print("robot_id:", robot_id, "last goal:", goal_time - last_step_on_loc)
             return new_path
         counter += 1
         goal_time = min(goal_time + goal_time_raise, time_arrived)
@@ -200,7 +200,7 @@ class BFS_in_time(OptimizationAlgo):
             new_path = other_new_path
         self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
         self.update_solution(robot_id, new_path, start_time, time_arrived)
-        # print("robot_id:", robot_id, "last goal:", mid)
+        # print("robot_id:", robot_id, "last goal:", mid - last_step_on_loc)
         return new_path
 
     def update_solution(self, robot_id, path: list, start_time: int, end_time: int):
@@ -267,7 +267,7 @@ class BFS_in_time(OptimizationAlgo):
                 num_improved += 1
             robots_remaining -= 1
             num_processed += 1
-            if num_processed % 250 == 0:
+            if num_processed % 100 == 0:
                 percent = int((num_processed / len(self.robots)) * 100)
                 print(num_processed, "robots done,", robots_remaining, "remaining (", percent, "% )")
         print("improved:", num_improved)

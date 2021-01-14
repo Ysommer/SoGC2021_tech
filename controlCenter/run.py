@@ -29,7 +29,7 @@ from algos.optimization_algos.BFS_in_time import *
 def main():
     # instances_id = [i for i in range(81, 121)]
 
-    instances_id = [96]
+    instances_id = [155, 159, 106]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -141,14 +141,14 @@ def generator_test():
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    # main()
+    main()
 
 
     # analyze()
     # compress_solutions_and_validate()
 
 
-    WishList.farm_instances(WishListPackagesTypes.TINY, 1)
+    # WishList.farm_instances(WishListPackagesTypes.TINY, 1)
     """packages = InstancesPackage.get_instances_packages()
 
     for p in packages:
