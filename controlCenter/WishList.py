@@ -145,7 +145,7 @@ class PackagesFunctionsByType:
                                                       "descending_order": True})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
-            for i in range(0, 5):
+            for i in range(0, 3):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 
@@ -153,7 +153,7 @@ class PackagesFunctionsByType:
             for i in optShells:
                 control_center.add_opt_algo(i)
         else:
-            control_center.add_opt_algo(BFS_in_time, data_bundle={})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 2000})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         return (control_center.min_makespan, control_center.min_sum)
