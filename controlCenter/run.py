@@ -28,7 +28,7 @@ from algos.optimization_algos.BFS_in_time import *
 def main():
     # instances_id = [i for i in range(81, 121)]
 
-    instances_id = [172]
+    instances_id = [96]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -41,7 +41,7 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
             control_center.run_all(print_only_success=False, stop_on_success=False, validate=False)
         except Exception as e:
             print(e)

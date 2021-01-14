@@ -18,6 +18,7 @@ class BFS_in_time(OptimizationAlgo):
                  robots: list,
                  targets: list,
                  obstacles: list,
+                 size,
                  preprocess=None,
                  name="",
                  print_info=True,
@@ -27,6 +28,7 @@ class BFS_in_time(OptimizationAlgo):
                          robots,
                          targets,
                          obstacles,
+                         size,
                          preprocess,
                          "_BIT" + name,
                          print_info,
@@ -34,11 +36,15 @@ class BFS_in_time(OptimizationAlgo):
         self.max_grid_len = data_bundle.get("grid_limit", 700)
         if self.max_grid_len != -1:
             self.solution.out["steps"] = self.solution.out["steps"][:self.max_grid_len]
-        self.sol_grid = SolGrid(self.robots, self.obs, self.solution, max_grid_len=self.max_grid_len)
+        self.sol_grid = SolGrid(self.robots, self.obs, self.solution, max_grid_len=self.max_grid_len, size=size)
         self.boundaries = {"N": self.sol_grid.max_y,
                            "S": self.sol_grid.min_y,
                            "W": self.sol_grid.min_x,
                            "E": self.sol_grid.max_x}
+        self.valid_directions_matrix = Generator.get_valid_directions_matrix(self.robots[0].target_pos,
+                                                                             self.sol_grid.obs,
+                                                                             self.sol_grid.x_boundaries,
+                                                                             margin=8)
         self.num_to_improve = data_bundle.get("num_to_improve", 1)
         self.goal_raise = data_bundle.get("goal_raise", 32)
         if self.solution.out["algo_name"].find("BIT_BIT") != -1:
@@ -57,7 +63,7 @@ class BFS_in_time(OptimizationAlgo):
     def calc_new_path(self, robot_id, offset_from_last_step: int = 1, offset_to_start_before_goal: int = 110,
                       calc_tries: int = 20, goal_time_raise: int = 10):
         time_arrived = self.sol_grid.get_time_arrived()[robot_id]
-        last_step_on_loc = self.sol_grid.find_last_step_on_location(robot_id, self.targets[robot_id], time_arrived)[0]
+        last_step_on_loc = self.sol_grid.find_last_step_on_location(robot_id, self.targets[robot_id], time_arrived)
         goal_time = min(last_step_on_loc + offset_from_last_step, self.sol_grid.max_time)
         start_time = max(goal_time - offset_to_start_before_goal, 0)
         source_pos = self.sol_grid.get_robot_location(robot_id, start_time)
@@ -69,7 +75,7 @@ class BFS_in_time(OptimizationAlgo):
         counter = 0
         while new_path is None and counter < calc_tries and goal_time < time_arrived:
             new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
-                                                          self.boundaries,
+                                                          self.valid_directions_matrix,
                                                           source_pos_t,
                                                           dest_pos_t,
                                                           robot_id,
@@ -98,7 +104,7 @@ class BFS_in_time(OptimizationAlgo):
                          skip_last_plus_one: bool = False):
         # print(robot_id)
         time_arrived = self.sol_grid.get_time_arrived()[robot_id]
-        last_step_on_loc = self.sol_grid.find_last_step_on_location(robot_id, self.targets[robot_id], time_arrived)[0]
+        last_step_on_loc = self.sol_grid.find_last_step_on_location(robot_id, self.targets[robot_id], time_arrived)
         goal_time = min(last_step_on_loc + 1, self.sol_grid.max_time)
         start_time = max(goal_time - offset_to_start_before_goal, 0)
         source_pos = self.sol_grid.get_robot_location(robot_id, start_time)
@@ -110,7 +116,7 @@ class BFS_in_time(OptimizationAlgo):
         counter = 0
         if not skip_last_plus_one:
             new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
-                                                          self.boundaries,
+                                                          self.valid_directions_matrix,
                                                           source_pos_t,
                                                           dest_pos_t,
                                                           robot_id,
@@ -119,12 +125,13 @@ class BFS_in_time(OptimizationAlgo):
             if new_path is not None:
                 self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
                 self.update_solution(robot_id, new_path, start_time, time_arrived)
+                # print("robot_id:", robot_id, "last goal:", goal_time)
                 return new_path
             counter += 1
         goal_time = min(last_step_on_loc + 2, time_arrived)
         dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
         new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
-                                                      self.boundaries,
+                                                      self.valid_directions_matrix,
                                                       source_pos_t,
                                                       dest_pos_t,
                                                       robot_id,
@@ -133,13 +140,16 @@ class BFS_in_time(OptimizationAlgo):
         if new_path is not None:
             self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
             self.update_solution(robot_id, new_path, start_time, time_arrived)
+            # print("robot_id:", robot_id, "last goal:", goal_time)
             return new_path
         counter += 1
+        goal_time = min(goal_time + goal_time_raise, time_arrived)
+        dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
 
         # find first successful astar run
         while new_path is None and counter < calc_tries and goal_time < time_arrived:
             new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
-                                                          self.boundaries,
+                                                          self.valid_directions_matrix,
                                                           source_pos_t,
                                                           dest_pos_t,
                                                           robot_id,
@@ -152,6 +162,7 @@ class BFS_in_time(OptimizationAlgo):
             return None
         low = max(goal_time - 2*goal_time_raise + 1, 1)
         high = start_time + len(new_path)
+        mid = goal_time - goal_time_raise  # not needed
         other_new_path = None
         other = True  # True when last successful run was in new_path
 
@@ -160,7 +171,7 @@ class BFS_in_time(OptimizationAlgo):
             dest_pos_t = (dest_pos[0], dest_pos[1], mid)
             if other:
                 other_new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
-                                                                    self.boundaries,
+                                                                    self.valid_directions_matrix,
                                                                     source_pos_t,
                                                                     dest_pos_t,
                                                                     robot_id,
@@ -173,7 +184,7 @@ class BFS_in_time(OptimizationAlgo):
                     high = mid
             else:
                 new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
-                                                              self.boundaries,
+                                                              self.valid_directions_matrix,
                                                               source_pos_t,
                                                               dest_pos_t,
                                                               robot_id,
@@ -189,6 +200,7 @@ class BFS_in_time(OptimizationAlgo):
             new_path = other_new_path
         self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
         self.update_solution(robot_id, new_path, start_time, time_arrived)
+        # print("robot_id:", robot_id, "last goal:", mid)
         return new_path
 
     def update_solution(self, robot_id, path: list, start_time: int, end_time: int):
@@ -242,7 +254,8 @@ class BFS_in_time(OptimizationAlgo):
         goal_raise = self.goal_raise
         offset_from_last_step = 1
         calc_tries = 300
-        i = 0
+        num_improved = 0
+        num_processed = 0
         for robot_id in arrival_order:
             if robots_remaining == -1:
                 offset_from_last_step = 1
@@ -251,9 +264,13 @@ class BFS_in_time(OptimizationAlgo):
                                      goal_time_raise=goal_raise,
                                      calc_tries=calc_tries) is not None:
                 improved.append(robot_id)
-                i += 1
+                num_improved += 1
             robots_remaining -= 1
-        print("improved:", i)
+            num_processed += 1
+            if num_processed % 250 == 0:
+                percent = int((num_processed / len(self.robots)) * 100)
+                print(num_processed, "robots done,", robots_remaining, "remaining (", percent, "% )")
+        print("improved:", num_improved)
         self.solution.out["extra"]["improved"] += str(improved) + ","
         self.solution.out["extra"]["goal_raise_for_bs"] = goal_raise
 

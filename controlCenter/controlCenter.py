@@ -137,6 +137,7 @@ class ControlCenter:
             self.robots,
             self.targets,
             self.instance.obstacles,
+            self.size,
             self.preprocess,
             self.optimization_shells[opt_algo_id].algo_name,
             self.optimization_shells[opt_algo_id].print_info,

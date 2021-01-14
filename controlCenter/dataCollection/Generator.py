@@ -99,7 +99,8 @@ class Generator:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if next_pos not in obstacles and check_boundaries(next_pos):
                     q.put(next_pos)
-                    matrix[pos].append(direction)
+                    matrix[pos].append((next_pos, direction))
+            matrix[pos].append((pos, 'X'))
 
         return matrix
 
@@ -350,7 +351,7 @@ class Generator:
     @staticmethod
     def calc_a_star_path_in_time(
             grid: SolGrid,
-            boundaries,
+            valid_direction_matrix,
             source_pos,
             dest_pos,
             robot_id: int,
@@ -369,13 +370,7 @@ class Generator:
             timer.start()
 
         if check_move_func is None:
-            check_move_func = grid.check_move
-
-        if blocked_N_visited is None:
-            blocked_N_visited = set()
-
-        if preferred_direction_order is None:
-            preferred_direction_order = directions_to_coords_with_time.keys()
+            check_move_func = grid.new_check_move
 
         open = {}
         close = {}
@@ -399,11 +394,9 @@ class Generator:
             return path[::-1]  # return reversed path
 
         def internal_check_move(next_pos: (int, int, int), direction: str) -> bool:
-            boundaries_check = Generator.check_if_in_boundaries(next_pos, boundaries)
             can_make_it = dest_pos[2] - next_pos[2] >= \
-                          AStarHeuristics.manhattan_distance((next_pos[0], next_pos[1]), (next_pos[0], next_pos[1]), (dest_pos[0], dest_pos[1]))
-            # not_blocked = next_pos not in blocked_N_visited
-            legal_move = boundaries_check and can_make_it and check_move_func(robot_id, next_pos, direction, check_move_params)
+                          AStarHeuristics.manhattan_distance((next_pos[:2]), (next_pos[:2]), (dest_pos[:2]))
+            legal_move = can_make_it and (direction == 'X' or check_move_func(robot_id, next_pos, direction, check_move_params))
             return legal_move
 
         while len(h) > 0:
@@ -421,31 +414,40 @@ class Generator:
                     print("robot_id: ", robot_id, "SUCCEEDED with close size: ", len(close))
                     timer.end(True)
                 return construct_path(parents, pos)
-            for direction in preferred_direction_order:
-                next_pos = sum_tuples_with_time(pos, directions_to_coords_with_time[direction])
-                if internal_check_move(next_pos, direction):
+            pushed_out_direction = grid.pushed_out(pos, robot_id)
+            if pushed_out_direction is not None:
+                next_poses = [(sum_tuples_with_time(pos, directions_to_coords_with_time[pushed_out_direction]),
+                               pushed_out_direction)]
+                if next_poses[0][0][:2] in grid.obs:
+                    continue
+            else:
+                next_poses_timeless = valid_direction_matrix[pos[:2]]
+                next_poses = [((np[0] + (pos[2]+1,),
+                               np[1])) for np in next_poses_timeless]
+            for next_pos_t, direction in next_poses:
+                if internal_check_move(next_pos_t, direction):
                     next_g_val = g_val + (1 if direction != 'X' else epsilon)
-                    next_h_val = calc_h_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
+                    next_h_val = calc_h_value_func(pos=next_pos_t, source_pos=next_pos_t, dest_pos=dest_pos,
                                                    calc_h_value_params=calc_h_value_params)
                     next_f_val = next_g_val + next_h_val
-                    if next_pos in open:
-                        if next_g_val < open[next_pos][1]:
-                            open[next_pos] = (next_f_val, next_g_val)
-                            heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
-                            parents[next_pos] = direction
-                    elif next_pos in close:
-                        if next_g_val < close[next_pos][1]:
-                            close.pop(next_pos)
-                            open[next_pos] = (next_f_val, next_g_val)
-                            heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
-                            parents[next_pos] = direction
+                    if next_pos_t in open:
+                        if next_g_val < open[next_pos_t][1]:
+                            open[next_pos_t] = (next_f_val, next_g_val)
+                            heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos_t))
+                            parents[next_pos_t] = direction
+                    elif next_pos_t in close:
+                        if next_g_val < close[next_pos_t][1]:
+                            close.pop(next_pos_t)
+                            open[next_pos_t] = (next_f_val, next_g_val)
+                            heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos_t))
+                            parents[next_pos_t] = direction
                     else:
-                        parents[next_pos] = direction
-                        open[next_pos] = (next_f_val, next_g_val)
-                        heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
+                        parents[next_pos_t] = direction
+                        open[next_pos_t] = (next_f_val, next_g_val)
+                        heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos_t))
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
         if debug_info:
-            print("robot_id: ", robot_id, "FAILED with close size: ", len(close))
+            print("robot_id:", robot_id, "FAILED with close size: ", len(close))
             timer.end(True)
         return None
