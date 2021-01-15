@@ -46,6 +46,3 @@ python3.7 run-server.py 0 7 > tiny.txt &
 python3.7 run-server.py 1 7 > small.txt &
 python3.7 run-server.py 2 7 > medium.txt &
 python3.7 run-server.py 3 7 > ml.txt &
-
-
-

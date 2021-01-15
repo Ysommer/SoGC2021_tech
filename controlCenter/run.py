@@ -11,7 +11,7 @@ from cgshop2021_pyutils import Instance
 from controlCenter import ControlCenter
 from solution.solution import *
 from Utils.loadInstances import *
-from Utils.compress_solutions_and_validate import compress_solutions_and_validate
+from Utils.compress_solutions_and_validate import *
 from Utils.solution_analyzer import analyze_solutions
 from Utils.validator import validate_solution_zip
 from Utils.compress_solutions_and_validate import compress_solutions, clean_bad_solutions
@@ -104,6 +104,63 @@ def analyze(to_console=True, to_file=False):
         for i in data:
             print(i, file=out_file)
 
+def analyze_algo_based_on_makespan(path = "../Solutions/", to_console=True, to_file=False):
+    hist = {
+        "OutAndInByPercentage_BIT": 0,
+        "dist_from_grid_BIT": 0,
+        "dist_from_grid_desc_BIT": 0,
+        "dist_from_target_BIT": 0,
+        "dist_from_target_desc_BIT": 0,
+        "dist_BFS_BIT": 0,
+        "dist_BFS_desc_BIT": 0,
+        "rand_BIT": 0
+    }
+
+    counter = 0
+
+    for root, dirs, files in os.walk(path):
+        min_makespan = -1
+        makespan_files = []
+
+        for file in files:
+            if file == '.DS_Store':
+                continue
+            if "SUCCESS" in file:
+                left_index = file.find(MAKESPAN_TAG) + len(MAKESPAN_TAG)
+                right_index = file[left_index:].find("_") + left_index
+                temp_makespan = int(file[left_index:right_index])
+
+                if temp_makespan == min_makespan:
+                    makespan_files.append(file)
+
+                if temp_makespan < min_makespan or min_makespan is -1:
+                    min_makespan = temp_makespan
+                    makespan_files = [file]
+
+        if len(makespan_files) is 0:
+            continue
+
+        for algo in hist:
+            for file in makespan_files:
+                if algo in file:
+                    hist[algo] += 1
+                    counter += 1
+                    break
+
+    if to_console:
+        for algo in hist:
+            print(algo, ":", str(hist[algo]) + "/" + str(counter), "(" + str((100*hist[algo])//counter)+"%)")
+
+    if to_file:
+        out_file_str = "analyzed_data.csv"
+        out_file = open(out_file_str, "w")
+        data = analyze_solutions(False)
+        for i in data:
+            print(i, file=out_file)
+
+    return hist
+
+
 
 def load_solutions(paths: list):
     sols = []
@@ -141,14 +198,15 @@ def generator_test():
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    main()
-
+    # main()
+    # compress_best_and_send()
 
     # analyze()
+    analyze_algo_based_on_makespan()
     # compress_solutions_and_validate()
 
+    # WishList.farm_instances(WishListPackagesTypes.TINY, 0)
 
-    # WishList.farm_instances(WishListPackagesTypes.TINY, 1)
     """packages = InstancesPackage.get_instances_packages()
 
     for p in packages:
