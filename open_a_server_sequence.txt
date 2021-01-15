@@ -42,7 +42,9 @@ pip3.7 install cgshop2021_pyutils
 python3.7 run-server.py <group-id> <server-id>
 
 e.g
-python3.7 run-server.py 0 7 > tiny.txt &
-python3.7 run-server.py 1 7 > small.txt &
-python3.7 run-server.py 2 7 > medium.txt &
-python3.7 run-server.py 3 7 > ml.txt &
+python3.7 run-server.py 0 1 > tiny.txt &
+python3.7 run-server.py 1 1 > small.txt &
+python3.7 run-server.py 2 1 > medium.txt &
+python3.7 run-server.py 3 1 > ml.txt &
+python3.7 run-server.py 4 1 > large.txt &
+python3.7 run-server.py 5 1 > huge.txt &

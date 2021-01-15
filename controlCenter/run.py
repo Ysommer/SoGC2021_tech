@@ -123,7 +123,7 @@ def analyze_algo_based_on_makespan(path = "../Solutions/", to_console=True, to_f
         makespan_files = []
 
         for file in files:
-            if file == '.DS_Store':
+            if file == '.DS_Store' or file == 'not_empty.txt':
                 continue
             if "SUCCESS" in file:
                 left_index = file.find(MAKESPAN_TAG) + len(MAKESPAN_TAG)
