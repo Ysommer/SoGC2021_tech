@@ -17,29 +17,35 @@ Check if you have python3.7
 python3.7 --version
 
 if not, install it:
-sudo apt install python3.7-minimal
+sudo apt update
+pass for it :
+SoCG2021
+
+sudo apt install software-properties-common
+
+sudo add-apt-repository ppa:deadsnakes/ppa
+
+sudo apt update
+
+sudo apt install python3.7
+
 
 # not in use https://phoenixnap.com/kb/how-to-install-python-3-ubuntu
 
-Check if you have pip
-pip --version
+install pip:
 
-if not, install:
-sudo apt install python-pip
-
-pip install cgshop2021_pyutils
-
-if not working, it's probably because the pip version
-try:
- curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7
- pip3.7 install cgshop2021_pyutils
+curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7
+pip3.7 install cgshop2021_pyutils
 
 
 
 python3.7 run-server.py <group-id> <server-id>
 
 e.g
-python3.7 run-server.py 1 1
+python3.7 run-server.py 0 7 > tiny.txt &
+python3.7 run-server.py 1 7 > small.txt &
+python3.7 run-server.py 2 7 > medium.txt &
+python3.7 run-server.py 3 7 > ml.txt &
 
 
-SoCG2021
+
