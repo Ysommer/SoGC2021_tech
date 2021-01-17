@@ -254,7 +254,7 @@ class PackagesFunctionsByType:
 
 
 class InstancesPackage:
-    def __init__(self, package_type: WishListPackagesTypes, package_id, num_of_servers: int = 16, instances_packages=None, hard_coded_instances = None):
+    def __init__(self, package_type: WishListPackagesTypes, package_id: int, num_of_servers: int = 16, instances_packages=None, hard_coded_instances = None):
         self.instances_package = instances_packages
         if self.instances_package is None:
             self.instances_package = InstancesPackage.get_instances_packages()
@@ -358,7 +358,7 @@ class WishList:
         pass
 
     @staticmethod
-    def farm_instances(package_type: WishListPackagesTypes, package_id, num_of_servers: int = 16):
+    def farm_instances(package_type: WishListPackagesTypes, package_id: int, num_of_servers: int = 16):
         package = InstancesPackage(package_type, package_id, num_of_servers)
         print("Start farming", str(len(package.instances_id)), package_type.name, "instances.")
         print(package.instances_id)
