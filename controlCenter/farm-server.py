@@ -1,6 +1,11 @@
+import sys
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
+
 import subprocess
 from subprocess import Popen
 from WishList import WishList, WishListPackagesTypes
+
 
 servers_ips = {
     "132.69.8.13": 0,
