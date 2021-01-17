@@ -39,7 +39,7 @@ if packageType:
     compress_best_and_send(packageType.name)
 else:
     for packageType in WishListPackagesTypes:
-        cmd = "python3.7 run-server.py "+str(int(packageType))+" > ../out_files/"+packageType+".txt 2> ../out_files/"+packageType+"_err.txt &"
+        cmd = "python3.7 run-server.py "+str(packageType.value)+" > ../out_files/"+packageType.name+".txt 2> ../out_files/"+packageType.name+"_err.txt &"
         print("cmd", cmd)
         process = Popen([cmd])
 
