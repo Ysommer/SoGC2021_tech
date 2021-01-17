@@ -31,7 +31,8 @@ cmd = "ip route get 1 | awk '{print $(NF-2);exit}'"
 result = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 ip = "0"
 for line in result.stdout.readlines(): #read and store result in log file
-    print(line)
+    line.decode('UTF-8')
+    print(line[:-1])
     ip = line
 
 print("ip", ip)
