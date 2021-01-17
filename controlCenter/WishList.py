@@ -66,17 +66,17 @@ class PackagesFunctionsByType:
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
                                                       "descending_order": True})
-            """control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS"})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
                                                       "descending_order": True})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
-            for i in range(0, 300):
+            for i in range(0, 1000):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
-            """
+
         if optShells:
             for i in optShells:
                 control_center.add_opt_algo(i)
@@ -84,11 +84,11 @@ class PackagesFunctionsByType:
             control_center.add_opt_algo(BFS_in_time, data_bundle={})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
-
+        """
         for i in range(5):
             len_before = len(control_center.solutions)
             control_center.run_all_opt_algos()
-            control_center.solutions = control_center.solutions[len_before:]
+            control_center.solutions = control_center.solutions[len_before:]"""
 
         return (control_center.min_makespan, control_center.min_sum)
 
@@ -117,7 +117,7 @@ class PackagesFunctionsByType:
                                                       "descending_order": True})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
-            for i in range(0, 50):
+            for i in range(0, 250):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 
@@ -128,12 +128,12 @@ class PackagesFunctionsByType:
             control_center.add_opt_algo(BFS_in_time, data_bundle={})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
-
+        """
         for i in range(3):
             len_before = len(control_center.solutions)
             control_center.run_all_opt_algos()
             control_center.solutions = control_center.solutions[len_before:]
-
+        """
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
@@ -161,7 +161,7 @@ class PackagesFunctionsByType:
                                                       "descending_order": True})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
-            for i in range(0, 5):
+            for i in range(0, 25):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 
@@ -172,12 +172,12 @@ class PackagesFunctionsByType:
             control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 1250})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
-
+        """
         for i in range(3):
             len_before = len(control_center.solutions)
             control_center.run_all_opt_algos()
             control_center.solutions = control_center.solutions[len_before:]
-
+        """
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
