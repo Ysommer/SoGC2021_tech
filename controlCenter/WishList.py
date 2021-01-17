@@ -66,7 +66,7 @@ class PackagesFunctionsByType:
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
                                                       "descending_order": True})
-            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+            """control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS"})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
@@ -76,7 +76,7 @@ class PackagesFunctionsByType:
             for i in range(0, 300):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
-
+            """
         if optShells:
             for i in optShells:
                 control_center.add_opt_algo(i)

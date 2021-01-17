@@ -199,10 +199,10 @@ def generator_test():
 if __name__ == "__main__":
     # clean_bad_solutions()
     # main()
-    # compress_best_and_send()
+    compress_best_and_send()
 
     # analyze()
-    analyze_algo_based_on_makespan()
+    # analyze_algo_based_on_makespan()
     # compress_solutions_and_validate()
 
     # WishList.farm_instances(WishListPackagesTypes.TINY, 0)

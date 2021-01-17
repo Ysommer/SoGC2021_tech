@@ -39,12 +39,24 @@ pip3.7 install cgshop2021_pyutils
 
 
 
-python3.7 run-server.py <group-id> <server-id>
+RUN:
 
-e.g
-python3.7 run-server.py 0 1 > tiny.txt &
-python3.7 run-server.py 1 1 > small.txt &
-python3.7 run-server.py 2 1 > medium.txt &
-python3.7 run-server.py 3 1 > ml.txt &
-python3.7 run-server.py 4 1 > large.txt &
-python3.7 run-server.py 5 1 > huge.txt &
+cd workspace/SoGC2021_tech/controlCenter/
+
+python3.7 run-server.py 0 id > tiny.txt 2> tiny_err.txt &
+python3.7 run-server.py 1 id > small.txt 2> small_err.txt &
+python3.7 run-server.py 2 id > medium.txt 2> medium_err.txt &
+python3.7 run-server.py 3 id > ml.txt 2> ml_err.txt &
+python3.7 run-server.py 4 id > large.txt 2> large_err.txt &
+python3.7 run-server.py 5 id > huge.txt 2> huge_err.txt &
+disown -a
+jobs -l
+ps -A -j | grep py
+
+# after jobs -l there should't be any output
+# after jobs -l there should be 6 processes
+
+kill all "python3.7":
+for pid in $(ps -A | grep "python3.7" | awk '{print $2}'); do kill -9 $pid; done
+
+python3.7 run-server.py
