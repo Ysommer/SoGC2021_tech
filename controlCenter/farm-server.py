@@ -32,7 +32,7 @@ for packageType in WishListPackagesTypes:
     cmd = "python3.7 run-server.py " + str(
         packageType.value) + " > ../out_files/" + packageType.name + ".txt 2> ../out_files/" + packageType.name + "_err.txt &"
     print("cmd", cmd)
-    process = Popen([cmd])
+    # process = Popen([cmd])
 
 cmd = "disown -a"
 print("cmd", cmd)
