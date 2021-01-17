@@ -1,16 +1,14 @@
+import subprocess
 import sys
-import socket
 sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
 sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
-from subprocess import Popen, PIPE
+from subprocess import Popen
 
 
 from WishList import WishList, WishListPackagesTypes
 from Utils.compress_solutions_and_validate import compress_best_and_send
 
-hostname = socket.gethostname()
-ip = socket.gethostbyname(hostname)
-print("ip", ip)
+
 servers_ips = {
     "132.69.8.13": 0,
     "132.69.8.8": 1,
@@ -29,6 +27,14 @@ packageType = None
 if len(sys.argv) > 1:
     packageType = WishListPackagesTypes(int(sys.argv[1]))
 
+cmd = "ip route get 1 | awk '{print $(NF-2);exit}'"
+result = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+ip = "0"
+for line in result.stdout.readlines(): #read and store result in log file
+    print(line)
+    ip = line
+
+print("ip", ip)
 server_id = servers_ips[ip]
 
 if packageType:
