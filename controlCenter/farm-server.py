@@ -28,12 +28,14 @@ ip = result.stdout.readlines()[0].decode('UTF-8')[:-1]
 print("ip", ip)
 server_id = servers_ips[ip]
 
-for packageType in WishListPackagesTypes:
+types_to_farm = [WishListPackagesTypes.TINY, WishListPackagesTypes.SMALL, WishListPackagesTypes.MEDIUM]
+
+for packageType in types_to_farm:
     cmd = "python3.7 run-server.py " + str(
         packageType.value) + " > ../out_files/" + packageType.name + ".txt 2> ../out_files/" + packageType.name + "_err.txt &"
     print("cmd", cmd)
-    process = os.system(cmd)
+    os.system(cmd)
 
 cmd = "disown -a"
 print("cmd", cmd)
-process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
