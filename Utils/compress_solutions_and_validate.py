@@ -33,10 +33,14 @@ def zip_best(path, ziph):
         min_sum = -1
         sum_file = None
 
+        print("files", files)
+
         for file in files:
             if file == '.DS_Store' or file == 'not_empty.txt':
+                print("Flag 1")
                 continue
             if "SUCCESS" in file:
+                print("Flag 2")
                 left_index = file.find(MAKESPAN_TAG) + len(MAKESPAN_TAG)
                 right_index = file[left_index:].find("_") + left_index
                 temp_makespan = int(file[left_index:right_index])
@@ -54,8 +58,10 @@ def zip_best(path, ziph):
                     sum_file = file
 
         if makespan_file is None:
+            print("Flag 3")
             continue
 
+        print("Flag 4",makespan_file,min_makespan)
         ziph.write(os.path.join(root, makespan_file), makespan_file)
         if makespan_file != sum_file:
             ziph.write(os.path.join(root, sum_file), sum_file)
@@ -84,6 +90,8 @@ def compress_solutions_and_validate():
 
 
 def compress_best_and_send(name="" ,solution_paths = SOLUTIONS_PATH):
-    zipf = zipfile.ZipFile(SOLUTION_ZIP_NAME_WO_SUFFIX+name+time.strftime("%Y%m%d-%H%M%S")+".zip", 'w', zipfile.ZIP_DEFLATED)
+    zip_name =  SOLUTION_ZIP_NAME_WO_SUFFIX+name+time.strftime("%Y%m%d-%H%M%S")+".zip"
+    print(zip_name)
+    zipf = zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED)
     zip_best(solution_paths, zipf)
     zipf.close()

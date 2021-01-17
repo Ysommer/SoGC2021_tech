@@ -1,0 +1,4 @@
+from Utils.compress_solutions_and_validate import compress_best_and_send
+
+
+compress_best_and_send()
