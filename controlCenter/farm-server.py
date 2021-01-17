@@ -1,7 +1,7 @@
 import sys
 sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
 sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
-
+import os
 import subprocess
 from subprocess import Popen
 from WishList import WishList, WishListPackagesTypes
@@ -32,7 +32,7 @@ for packageType in WishListPackagesTypes:
     cmd = "python3.7 run-server.py " + str(
         packageType.value) + " > ../out_files/" + packageType.name + ".txt 2> ../out_files/" + packageType.name + "_err.txt &"
     print("cmd", cmd)
-    process = subprocess.Popen(cmd)
+    process = os.system(cmd)
 
 cmd = "disown -a"
 print("cmd", cmd)
