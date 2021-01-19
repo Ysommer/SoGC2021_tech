@@ -1,5 +1,9 @@
+import sys
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
 import functools
 import traceback
+import os
 
 print = functools.partial(print, flush=True)
 
@@ -370,7 +374,36 @@ class WishList:
             print(e)
             traceback.print_exc()
 
-
     def zip_and_verify(self):
         pass
 
+    @staticmethod
+    def farm_instance(instance_id: int, number_of_processors: int, number_of_inits_per_processor: int = 1) -> bool:
+        instance = load_all_instances()[instance_id]
+        algo_preference = [
+            ("dist_from_target", True),
+            ("", False),
+            ("dist_from_grid", False),
+            ("dist_BFS", True),
+            ("dist_from_grid", True),
+            ("rand", False)
+        ]
+
+        for i in range(number_of_processors):
+            control_center = PackagesFunctionsByType.init_control_center(instance)
+            for j in range(number_of_inits_per_processor):
+                algo_index = min(i*number_of_inits_per_processor + j, len(algo_preference) - 1 )
+                control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False,
+                                                      "secondary_order": algo_preference[algo_index][0],
+                                                      "descending_order": algo_preference[algo_index][1]})
+
+                control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 10000})
+
+            pid = os.fork()
+
+            if pid == 0:
+                control_center.run_all()
+                return False
+
+        return True
