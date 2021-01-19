@@ -61,3 +61,5 @@ for pid in $(ps -A | grep "python3.7" | awk '{print $2}'); do kill -9 $pid; done
 
 python3.7 run-server.py
 
+python3.7 compress-best.py
+
