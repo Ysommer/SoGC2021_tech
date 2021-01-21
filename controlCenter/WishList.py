@@ -398,15 +398,19 @@ class WishList:
             WishListPackagesTypes.MEDIUM.name: 1500,
             WishListPackagesTypes.MEDIUM_LARGE.name: 4000,
             WishListPackagesTypes.LARGE.name: 7500,
-            WishListPackagesTypes.HUGE.name: 15000
+            WishListPackagesTypes.HUGE.name: 13000
         }
-        grid_limit = 15000
+        grid_limit = -1
+
         packages = InstancesPackage.get_instances_packages()
         for p in packages:
             if instance_id in packages[p]:
                 grid_limit = grid_limits[p]
                 break
 
+        assert grid_limit != -1, "grid limit is -1"
+
+        print("grid_limit", grid_limit)
         for i in range(number_of_processors):
             control_center = PackagesFunctionsByType.init_control_center(instance)
             for j in range(number_of_inits_per_processor):
@@ -415,7 +419,7 @@ class WishList:
                                          data_bundle={"sync_insertion": False,
                                                       "secondary_order": algo_preference[algo_index][0],
                                                       "descending_order": algo_preference[algo_index][1]})
-                print("grid_limit", grid_limit)
+
                 control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": grid_limit})
 
             pid = os.fork()
