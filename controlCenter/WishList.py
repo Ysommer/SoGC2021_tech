@@ -389,12 +389,12 @@ class WishList:
             ("rand", False)
         ]
         grid_limits = {
-            WishListPackagesTypes.TINY: 750,
-            WishListPackagesTypes.SMALL: 1000,
-            WishListPackagesTypes.MEDIUM: 1500,
-            WishListPackagesTypes.MEDIUM_LARGE: 4000,
-            WishListPackagesTypes.LARGE: 10000,
-            WishListPackagesTypes.HUGE: 15000
+            WishListPackagesTypes.TINY.name: 750,
+            WishListPackagesTypes.SMALL.name: 1000,
+            WishListPackagesTypes.MEDIUM.name: 1500,
+            WishListPackagesTypes.MEDIUM_LARGE.name: 4000,
+            WishListPackagesTypes.LARGE.name: 10000,
+            WishListPackagesTypes.HUGE.name: 15000
         }
         grid_limit = 15000
         packages = InstancesPackage.get_instances_packages()

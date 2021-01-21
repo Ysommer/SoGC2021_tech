@@ -1,0 +1,9 @@
+python3.7 run-server.py type_id server_id:
+    run all instances from the same type that belong to that server
+
+python3.7 farm-server.py:
+    run all chunk (one per process) of the relevant server
+
+python 3.7 farm-instance.py instance_id number_of_processors number_of_inits_per_processor:
+    Run number_of_processors process in parallel
+
