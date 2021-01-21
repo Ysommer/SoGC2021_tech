@@ -251,7 +251,7 @@ class PackagesFunctionsByType:
             for i in optShells:
                 control_center.add_opt_algo(i)
         else:
-            control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 10000})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 12000})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         return (control_center.min_makespan, control_center.min_sum)
@@ -394,7 +394,7 @@ class WishList:
             WishListPackagesTypes.SMALL.name: 1000,
             WishListPackagesTypes.MEDIUM.name: 1500,
             WishListPackagesTypes.MEDIUM_LARGE.name: 4000,
-            WishListPackagesTypes.LARGE.name: 10000,
+            WishListPackagesTypes.LARGE.name: 7500,
             WishListPackagesTypes.HUGE.name: 15000
         }
         grid_limit = 15000
@@ -402,6 +402,7 @@ class WishList:
         for p in packages:
             if instance_id in packages[p]:
                 grid_limit = grid_limits[p]
+                break
 
         for i in range(number_of_processors):
             control_center = PackagesFunctionsByType.init_control_center(instance)
@@ -411,7 +412,7 @@ class WishList:
                                          data_bundle={"sync_insertion": False,
                                                       "secondary_order": algo_preference[algo_index][0],
                                                       "descending_order": algo_preference[algo_index][1]})
-
+                print("grid_limit", grid_limit)
                 control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": grid_limit})
 
             pid = os.fork()
