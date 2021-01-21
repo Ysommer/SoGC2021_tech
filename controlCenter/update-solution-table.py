@@ -33,11 +33,14 @@ def analyze_solutions():
 
     for (root, dirs, files) in os.walk(sol_path):
         for dir in dirs:
+            if dir == "not_empty":
+                continue
+
             instance_result = results_json.get(dir, {"min_makespan": -1,
                                    "min_sum": -1})
 
-
-
+            min_makespan = instance_result["min_makespan"]
+            min_sum = instance_result["min_sum"]
 
             for files in os.walk(os.path.join(root, dir)):
                 for file in files[2]:
@@ -49,15 +52,15 @@ def analyze_solutions():
                         right_index = file[left_index:].find("_") + left_index
                         temp_makespan = int(file[left_index:right_index])
 
-                        if temp_makespan < instance_result["min_makespan"] or instance_result["min_makespan"] is -1:
-                            instance_result["min_makespan"] = temp_makespan
+                        if temp_makespan < min_makespan or min_makespan is -1:
+                            min_makespan = temp_makespan
 
                         left_index = file.find(SUM_TAG) + len(SUM_TAG)
                         right_index = file[left_index:].find(".") + left_index
                         temp_sum = int(file[left_index:right_index])
 
-                        if temp_sum < instance_result["min_sum"] or instance_result["min_sum"] is -1:
-                            instance_result["min_sum"] = temp_sum
+                        if temp_sum < min_sum or min_sum is -1:
+                            min_sum = temp_sum
 
                         for algo in algos:
                             if algo in file:
@@ -68,6 +71,15 @@ def analyze_solutions():
                                     algo_results["sum"] = temp_sum
                                 instance_result[algo] = algo_results
                                 break
+
+            if min_makespan != instance_result["min_makespan"]:
+                print(dir, "'s makespan improved from",instance_result["min_makespan"], "to:", min_makespan)
+                instance_result["min_makespan"] = min_makespan
+
+            if min_sum != instance_result["min_sum"]:
+                print(dir, "'s Sum improved from",instance_result["min_sum"], "to:", min_sum)
+                instance_result["min_sum"] = min_sum
+
             results_json[dir] = instance_result
 
     results_f = open(results_table_json_path, "w")

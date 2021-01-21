@@ -41,7 +41,35 @@ pip3.7 install cgshop2021_pyutils
 
 RUN:
 
+Sommer:
 cd workspace/SoGC2021_tech/controlCenter/
+
+for pid in $(ps -A | grep "python3.7" | awk '{print $2}'); do kill -9 $pid; done
+
+or
+
+for pid in $(ps -A | grep "python3.7" | awk '{print $1}'); do kill -9 $pid; done
+
+
+git pull
+
+python3.7 update-solution-table.py
+
+git commit -a -m "update table"
+
+git push origin main
+
+python3.7 compress-best.py
+
+
+Jonathan:
+
+cd workspace/SoGC2021_tech/controlCenter/
+
+python3.7 update-run-huges-larges.py
+
+
+
 
 python3.7 run-server.py 0 8 > tiny.txt 2> tiny_err.txt &
 python3.7 run-server.py 1 8 > small.txt 2> small_err.txt &
@@ -62,5 +90,8 @@ for pid in $(ps -A | grep "python3.7" | awk '{print $2}'); do kill -9 $pid; done
 
 python3.7 run-server.py
 
+
+
 python3.7 compress-best.py
+
 
