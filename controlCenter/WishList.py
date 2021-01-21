@@ -378,7 +378,7 @@ class WishList:
         pass
 
     @staticmethod
-    def farm_instance(instance_id: int, number_of_processors: int, number_of_inits_per_processor: int = 1) -> bool:
+    def farm_instance(instance_id: int, number_of_processors: int, number_of_inits_per_processor: int = 1, first_algo: int = 0) -> bool:
         instance = load_all_instances()[instance_id]
         algo_preference = [
             ("dist_from_target", True),
@@ -388,6 +388,7 @@ class WishList:
             ("dist_from_grid", True),
             ("rand", False)
         ]
+        algo_preference = algo_preference[first_algo:]
         grid_limits = {
             WishListPackagesTypes.TINY.name: 750,
             WishListPackagesTypes.SMALL.name: 1000,
