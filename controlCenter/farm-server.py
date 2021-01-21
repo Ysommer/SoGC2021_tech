@@ -30,6 +30,11 @@ server_id = servers_ips[ip]
 
 types_to_farm = [WishListPackagesTypes.TINY, WishListPackagesTypes.SMALL, WishListPackagesTypes.MEDIUM]
 
+try:
+    os.mkdir("../out_files/")
+except:
+    pass
+
 for packageType in types_to_farm:
     cmd = "python3.7 run-server.py " + str(
         packageType.value) + " > ../out_files/" + packageType.name + ".txt 2> ../out_files/" + packageType.name + "_err.txt &"

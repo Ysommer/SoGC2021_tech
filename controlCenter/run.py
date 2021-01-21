@@ -29,7 +29,7 @@ from algos.optimization_algos.BFS_in_time import *
 def main():
     # instances_id = [i for i in range(81, 121)]
 
-    instances_id = [155, 159, 106]
+    instances_id = [162]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -85,7 +85,7 @@ def ys_control_center_initiate(instance, out_path, max_makespan, max_sum):
     data_bundle = {"sync_insertion": False}
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
     control_center.add_init_algo(OutAndInByPercentage, name="_sea_level_", print_info=False, data_bundle=data_bundle)
-    control_center.add_opt_algo(BFS_in_time, data_bundle={"num_to_improve": 30})
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0})
     # for i in range(1):
     #   control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
     return control_center
@@ -198,8 +198,8 @@ def generator_test():
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    # main()
-    compress_best_and_send()
+    main()
+    # compress_best_and_send()
 
     # analyze()
     # analyze_algo_based_on_makespan()
@@ -213,3 +213,6 @@ if __name__ == "__main__":
         print(len(packages[p]))
         print(p,":", packages[p])"""
     print("Done!")
+    list_rnd = [6, 7, 8, 19, 26, 27, 28, 38, 39, 47, 48, 49, 55, 56, 57, 58, 64, 65, 66, 77, 78, 100, 118, 119, 120, 127, 128, 137, 138, 139, 140, 188, 189, 190, 199, 200, 201]
+    shuffle(list_rnd)
+    print(list_rnd)

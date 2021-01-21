@@ -1,5 +1,9 @@
+import sys
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
+sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
 import functools
 import traceback
+import os
 
 print = functools.partial(print, flush=True)
 
@@ -250,7 +254,7 @@ class PackagesFunctionsByType:
             for i in optShells:
                 control_center.add_opt_algo(i)
         else:
-            control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 10000})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 12000})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         return (control_center.min_makespan, control_center.min_sum)
@@ -373,7 +377,51 @@ class WishList:
             print(e)
             traceback.print_exc()
 
-
     def zip_and_verify(self):
         pass
 
+    @staticmethod
+    def farm_instance(instance_id: int, number_of_processors: int, number_of_inits_per_processor: int = 1, first_algo: int = 0) -> bool:
+        instance = load_all_instances()[instance_id]
+        algo_preference = [
+            ("dist_from_target", True),
+            ("", False),
+            ("dist_from_grid", False),
+            ("dist_BFS", True),
+            ("dist_from_grid", True),
+            ("rand", False)
+        ]
+        algo_preference = algo_preference[first_algo:]
+        grid_limits = {
+            WishListPackagesTypes.TINY.name: 750,
+            WishListPackagesTypes.SMALL.name: 1000,
+            WishListPackagesTypes.MEDIUM.name: 1500,
+            WishListPackagesTypes.MEDIUM_LARGE.name: 4000,
+            WishListPackagesTypes.LARGE.name: 7500,
+            WishListPackagesTypes.HUGE.name: 15000
+        }
+        grid_limit = 15000
+        packages = InstancesPackage.get_instances_packages()
+        for p in packages:
+            if instance_id in packages[p]:
+                grid_limit = grid_limits[p]
+                break
+
+        for i in range(number_of_processors):
+            control_center = PackagesFunctionsByType.init_control_center(instance)
+            for j in range(number_of_inits_per_processor):
+                algo_index = min(i*number_of_inits_per_processor + j, len(algo_preference) - 1 )
+                control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False,
+                                                      "secondary_order": algo_preference[algo_index][0],
+                                                      "descending_order": algo_preference[algo_index][1]})
+                print("grid_limit", grid_limit)
+                control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": grid_limit})
+
+            pid = os.fork()
+
+            if pid == 0:
+                control_center.run_all()
+                return False
+
+        return True

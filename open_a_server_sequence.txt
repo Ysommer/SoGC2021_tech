@@ -41,11 +41,48 @@ pip3.7 install cgshop2021_pyutils
 
 RUN:
 
+Sommer:
+
+ps -A | grep "python3.7"
+
 cd workspace/SoGC2021_tech/controlCenter/
 
-python3.7 run-server.py 0 id > tiny.txt 2> tiny_err.txt &
-python3.7 run-server.py 1 id > small.txt 2> small_err.txt &
-python3.7 run-server.py 2 id > medium.txt 2> medium_err.txt &
+for pid in $(ps -A | grep "python3.7" | awk '{print $2}'); do kill -9 $pid; done
+
+or
+
+for pid in $(ps -A | grep "python3.7" | awk '{print $1}'); do kill -9 $pid; done
+
+python3.7 compress-best.py
+
+git stash
+
+git pull
+
+pip install pandas
+
+python3.7 update-solution-table.py
+
+git commit -a -m "update table"
+
+git push origin main
+
+
+
+
+Jonathan:
+
+cd workspace/SoGC2021_tech/controlCenter/
+
+python3.7 run-huges-larges.py
+
+
+
+
+python3.7 run-server.py 0 8 > tiny.txt 2> tiny_err.txt &
+python3.7 run-server.py 1 8 > small.txt 2> small_err.txt &
+python3.7 run-server.py 2 8 > medium.txt 2> medium_err.txt &
+disown -a
 python3.7 run-server.py 3 id > ml.txt 2> ml_err.txt &
 python3.7 run-server.py 4 id > large.txt 2> large_err.txt &
 python3.7 run-server.py 5 id > huge.txt 2> huge_err.txt &
@@ -60,4 +97,9 @@ kill all "python3.7":
 for pid in $(ps -A | grep "python3.7" | awk '{print $2}'); do kill -9 $pid; done
 
 python3.7 run-server.py
+
+
+
+python3.7 compress-best.py
+
 

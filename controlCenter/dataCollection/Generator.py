@@ -6,6 +6,7 @@ from infrastructure.grid import Grid
 from collections import deque
 from utils import *
 from defines import *
+from random import randint
 import queue
 import heapq
 from infrastructure.solGrid import SolGrid
@@ -355,6 +356,156 @@ class Generator:
             source_pos,
             dest_pos,
             robot_id: int,
+            noise: int,
+            last_step: int,
+            blocked_N_visited: set = None,
+            calc_h_value_func=AStarHeuristics.manhattan_distance_with_time,
+            calc_h_value_params=None,
+            check_move_func=None,
+            check_move_params=None,
+            preferred_direction_order=None): #list of moves
+
+        debug_info = False
+        if debug_info:
+            timer = Timer("Astar ")
+            timer.start()
+
+        if check_move_func is None:
+            check_move_func = grid.new_check_move
+
+        open = {}
+        close = {}
+        parents = {source_pos: None}
+
+        g_val = (0, 0)
+        h_val = calc_h_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
+                                  calc_h_value_params=calc_h_value_params)
+        f_val = -g_val[0]+h_val
+
+        h = [(f_val, g_val, source_pos)]
+        open[source_pos] = (f_val, g_val)
+        heapq.heapify(h)
+
+        def construct_path(parents: dict, pos_t: (int, int, int)) -> list:
+            path = []
+            while parents[pos_t] is not None:
+                path.append(parents[pos_t])
+                pos_t = sub_tuples_with_time(pos_t, directions_to_coords_with_time[parents[pos_t]])
+
+            return path[::-1]  # return reversed path
+
+        def internal_check_move(next_pos: (int, int, int), direction: str) -> bool:
+            can_make_it = dest_pos[2] - next_pos[2] >= \
+                          AStarHeuristics.manhattan_distance((next_pos[:2]), (next_pos[:2]), (dest_pos[:2]))
+            legal_move = can_make_it and (direction == 'X' or check_move_func(robot_id, next_pos, direction, check_move_params))
+            return legal_move
+
+        if noise > 0:
+            while len(h) > 0:
+                (f_val, g_val, pos) = heapq.heappop(h)
+                if pos not in open or open[pos] != (f_val, g_val):
+                    continue
+                open.pop(pos)
+                close[pos] = (f_val, g_val)
+
+                # if pos == dest_pos:
+                # return construct_path(parents, pos)
+                if pos[0] == dest_pos[0] and pos[1] == dest_pos[1] and pos[2] > last_step:
+                    if debug_info:
+                        print("robot_id: ", robot_id, "SUCCEEDED with close size: ", len(close))
+                        timer.end(True)
+                    return construct_path(parents, pos)
+                pushed_out_direction = grid.pushed_out(pos, robot_id)
+                if pushed_out_direction is not None:
+                    if len([x for x in valid_direction_matrix[pos[:2]] if x[1] == pushed_out_direction]) == 0:
+                        continue
+                    next_poses = [(sum_tuples_with_time(pos, directions_to_coords_with_time[pushed_out_direction]),
+                                   pushed_out_direction)]
+                else:
+                    next_poses_timeless = valid_direction_matrix[pos[:2]]
+                    next_poses = [((np[0] + (pos[2]+1,),
+                                   np[1])) for np in next_poses_timeless]
+                for next_pos_t, direction in next_poses:
+                    if internal_check_move(next_pos_t, direction):
+                        next_g_val = sub_tuples(g_val, ((1, 0) if direction != 'X' else (0, 12 + noise*randint(0, 1))))
+                        next_h_val = calc_h_value_func(pos=next_pos_t, source_pos=next_pos_t, dest_pos=dest_pos,
+                                                       calc_h_value_params=calc_h_value_params)
+                        next_f_val = -next_g_val[0] + next_h_val
+                        if next_pos_t in open:
+                            if next_g_val > open[next_pos_t][1]:
+                                open[next_pos_t] = (next_f_val, next_g_val)
+                                heapq.heappush(h, (next_f_val, next_g_val, next_pos_t))
+                                parents[next_pos_t] = direction
+                        elif next_pos_t in close:
+                            if next_g_val > close[next_pos_t][1]:
+                                close.pop(next_pos_t)
+                                open[next_pos_t] = (next_f_val, next_g_val)
+                                heapq.heappush(h, (next_f_val, next_g_val, next_pos_t))
+                                parents[next_pos_t] = direction
+                        else:
+                            parents[next_pos_t] = direction
+                            open[next_pos_t] = (next_f_val, next_g_val)
+                            heapq.heappush(h, (next_f_val, next_g_val, next_pos_t))
+        else:
+            while len(h) > 0:
+                (f_val, g_val, pos) = heapq.heappop(h)
+                if pos not in open or open[pos] != (f_val, g_val):
+                    continue
+                open.pop(pos)
+                close[pos] = (f_val, g_val)
+
+                # if pos == dest_pos:
+                # return construct_path(parents, pos)
+                if pos[0] == dest_pos[0] and pos[1] == dest_pos[1] and pos[2] > last_step:
+                    if debug_info:
+                        print("robot_id: ", robot_id, "SUCCEEDED with close size: ", len(close))
+                        timer.end(True)
+                    return construct_path(parents, pos)
+                pushed_out_direction = grid.pushed_out(pos, robot_id)
+                if pushed_out_direction is not None:
+                    if len([x for x in valid_direction_matrix[pos[:2]] if x[1] == pushed_out_direction]) == 0:
+                        continue
+                    next_poses = [(sum_tuples_with_time(pos, directions_to_coords_with_time[pushed_out_direction]),
+                                   pushed_out_direction)]
+                else:
+                    next_poses_timeless = valid_direction_matrix[pos[:2]]
+                    next_poses = [((np[0] + (pos[2]+1,),
+                                    np[1])) for np in next_poses_timeless]
+                for next_pos_t, direction in next_poses:
+                    if internal_check_move(next_pos_t, direction):
+                        next_g_val = sub_tuples(g_val, ((1, 0) if direction != 'X' else (0, 1)))
+                        next_h_val = calc_h_value_func(pos=next_pos_t, source_pos=next_pos_t, dest_pos=dest_pos,
+                                                       calc_h_value_params=calc_h_value_params)
+                        next_f_val = -next_g_val[0] + next_h_val
+                        if next_pos_t in open:
+                            if next_g_val > open[next_pos_t][1]:
+                                open[next_pos_t] = (next_f_val, next_g_val)
+                                heapq.heappush(h, (next_f_val, next_g_val, next_pos_t))
+                                parents[next_pos_t] = direction
+                        elif next_pos_t in close:
+                            if next_g_val > close[next_pos_t][1]:
+                                close.pop(next_pos_t)
+                                open[next_pos_t] = (next_f_val, next_g_val)
+                                heapq.heappush(h, (next_f_val, next_g_val, next_pos_t))
+                                parents[next_pos_t] = direction
+                        else:
+                            parents[next_pos_t] = direction
+                            open[next_pos_t] = (next_f_val, next_g_val)
+                            heapq.heappush(h, (next_f_val, next_g_val, next_pos_t))
+
+
+        # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
+        if debug_info:
+            print("robot_id:", robot_id, "FAILED with close size: ", len(close))
+            timer.end(True)
+        return None
+
+    def calc_a_star_path_in_time_old(
+            grid: SolGrid,
+            valid_direction_matrix,
+            source_pos,
+            dest_pos,
+            robot_id: int,
             epsilon: float,
             last_step: int,
             blocked_N_visited: set = None,
@@ -423,7 +574,7 @@ class Generator:
             else:
                 next_poses_timeless = valid_direction_matrix[pos[:2]]
                 next_poses = [((np[0] + (pos[2]+1,),
-                               np[1])) for np in next_poses_timeless]
+                                np[1])) for np in next_poses_timeless]
             for next_pos_t, direction in next_poses:
                 if internal_check_move(next_pos_t, direction):
                     next_g_val = g_val + (1 if direction != 'X' else epsilon)

@@ -27,7 +27,7 @@ def zipdir(path, ziph):
 
 
 def zip_best(path, ziph):
-    for root, dirs, files in os.walk(path):
+    for (root, dirs, files) in os.walk("/home/gilbe/workspace/SoGC2021_tech/solutions/"):
         min_makespan = -1
         makespan_file = None
         min_sum = -1
@@ -84,6 +84,7 @@ def compress_solutions_and_validate():
 
 
 def compress_best_and_send(name="" ,solution_paths = SOLUTIONS_PATH):
-    zipf = zipfile.ZipFile(SOLUTION_ZIP_NAME_WO_SUFFIX+name+time.strftime("%Y%m%d-%H%M%S")+".zip", 'w', zipfile.ZIP_DEFLATED)
+    zip_name =  SOLUTION_ZIP_NAME_WO_SUFFIX+name+time.strftime("%Y%m%d-%H%M%S")+".zip"
+    zipf = zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED)
     zip_best(solution_paths, zipf)
     zipf.close()
