@@ -102,6 +102,32 @@ python3.7 run-server.py
 python3.7 compress-best.py
 
 
+ps -o pid,user,%mem,command ax | sort -b -k3 -r | grep python3.7
+cd workspace/SoGC2021_tech/
+git stash
+git pull
 
+cd solutions
 
-python3.7 farm-instance.py id 1 3 0
+rm * -r
+mkdir not_empty
+mkdir large_free_005_100x100_50_5000
+echo not_empty > not_empty/not_empty.txt
+
+cd ..
+
+mkdir out_files
+
+cd controlCenter
+
+Large:
+
+python3.7 farm-instance.py 190 1 6 0 > ../out_files/Large_190.txt 2> ../out_files/Large_190_err.txt &
+
+Huge:
+
+python3.7 farm-instance.py 59 1 6 1 > ../out_files/Huge_59.txt 2> ../out_files/Huge_59_err.txt &
+
+ps -o pid,user,%mem,command ax | sort -b -k3 -r | grep python3.7
+cat /proc/meminfo | grep Active
+cat ../out_files/
