@@ -422,10 +422,12 @@ class WishList:
 
                 control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": grid_limit})
 
-            pid = os.fork()
+            """pid = os.fork()
 
             if pid == 0:
                 control_center.run_all()
-                return False
+                return False"""
+
+            control_center.run_all()
 
         return True
