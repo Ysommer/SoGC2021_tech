@@ -29,7 +29,7 @@ from algos.optimization_algos.BFS_in_time import *
 def main():
     # instances_id = [i for i in range(81, 121)]
 
-    instances_id = [155, 159, 106]
+    instances_id = [152]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -100,7 +100,6 @@ def analyze(to_console=True, to_file=False):
     if to_file:
         out_file_str = "analyzed_data.csv"
         out_file = open(out_file_str, "w")
-        data = analyze_solutions(False)
         for i in data:
             print(i, file=out_file)
 
@@ -198,8 +197,8 @@ def generator_test():
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    # main()
-    compress_best_and_send()
+    main()
+    # compress_best_and_send()
 
     # analyze()
     # analyze_algo_based_on_makespan()

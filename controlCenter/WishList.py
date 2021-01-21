@@ -398,7 +398,7 @@ class WishList:
                                                       "secondary_order": algo_preference[algo_index][0],
                                                       "descending_order": algo_preference[algo_index][1]})
 
-                control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 10000})
+                control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 15000})
 
             pid = os.fork()
 
