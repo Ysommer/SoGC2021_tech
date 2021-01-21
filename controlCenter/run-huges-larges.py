@@ -80,8 +80,8 @@ for instance_id in large_list:
     os.system(cmd)
 
 for instance_id in huge_list:
-    in_parallel = 6 // len(huge_list[server_id])
-    in_queue = len(huge_list[server_id])
+    in_parallel = 6 // len(huge_list)
+    in_queue = len(huge_list)
     cmd = "python3.7 farm-instance.py " + \
           str(instance_id) + " " + str(in_parallel) + " " + str(in_queue) + " > ../out_files/Huge"+ str(instance_id)+".txt 2> ../out_files/Huge"+ str(instance_id) + "_err.txt &"
 
