@@ -213,3 +213,6 @@ if __name__ == "__main__":
         print(len(packages[p]))
         print(p,":", packages[p])"""
     print("Done!")
+    list_rnd = [6, 7, 8, 19, 26, 27, 28, 38, 39, 47, 48, 49, 55, 56, 57, 58, 64, 65, 66, 77, 78, 100, 118, 119, 120, 127, 128, 137, 138, 139, 140, 188, 189, 190, 199, 200, 201]
+    shuffle(list_rnd)
+    print(list_rnd)
