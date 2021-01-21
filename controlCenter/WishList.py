@@ -240,8 +240,11 @@ class PackagesFunctionsByType:
                 control_center.add_init_algo(i)
         else:
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
+                                         data_bundle={"sync_insertion": False, "secondary_order": ""})
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid",
                                                       "descending_order": True})
+            
 
         if optShells:
             for i in optShells:
