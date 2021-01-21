@@ -379,8 +379,8 @@ class BFS_in_time(OptimizationAlgo):
             num_processed += 1
             if num_processed % 100 == 0 and robots_remaining > 0:
                 percent = int((num_processed / len(self.robots)) * 100)
-                print(num_processed, "robots done,", robots_remaining, "remaining (", percent, "% )", time.strftime("%Y/%m/%d-%H:%M:%S"))
-        print(num_processed, "robots done, 0 remaining ( 100 % )", time.strftime("%Y/%m/%d-%H:%M:%S"))
+                print(num_processed, "robots done,", robots_remaining, "remaining (", percent, "% )", time.strftime("%d/%m/%Y-%H:%M:%S"))
+        print(num_processed, "robots done, 0 remaining ( 100 % )", time.strftime("%d/%m/%Y-%H:%M:%S"))
         print("improved:", num_improved)
         self.solution.out["extra"]["improved"] += str(improved) + ","
         self.solution.out["extra"]["goal_raise_for_bs"] = goal_raise
