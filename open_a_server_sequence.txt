@@ -42,8 +42,9 @@ pip3.7 install cgshop2021_pyutils
 RUN:
 
 Sommer:
+pip install pandas
 
-ps -A | grep "python3.7"
+ps -o pid,user,%mem,command ax | sort -b -k3 -r | grep python3.7
 
 cd workspace/SoGC2021_tech/controlCenter/
 
@@ -53,13 +54,11 @@ or
 
 for pid in $(ps -A | grep "python3.7" | awk '{print $1}'); do kill -9 $pid; done
 
-python3.7 compress-best.py
-
 git stash
 
 git pull
 
-pip install pandas
+python3.7 compress-best.py
 
 python3.7 update-solution-table.py
 
