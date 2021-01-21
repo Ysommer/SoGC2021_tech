@@ -85,11 +85,9 @@ for instance_id in huge_list:
 
     for i in range(in_parallel):
         cmd = "python3.7 farm-instance.py " + \
-              str(instance_id) + " 1 " + str(in_queue) + " " + str(in_queue*i) + " > ../out_files/Huge"+ str(instance_id) + "Algo"+ str(in_queue*i) + ".txt 2> ../out_files/Huge"+ str(instance_id) + "Algo"+ str(in_queue*i) + "_err.txt &"
+              str(instance_id) + " 1 " + str(in_queue) + " " + str(in_queue*i) + " > ../out_files/Huge"+ str(instance_id) \
+              + "Algo"+ str(in_queue*i) + ".txt 2> ../out_files/Huge"+ str(instance_id) + "Algo"+ str(in_queue*i) + "_err.txt &"
 
-    print("cmd", cmd)
-    os.system(cmd)
+        print("cmd", cmd)
+        os.system(cmd)
 
-cmd = "disown -a"
-print("cmd", cmd)
-os.system(cmd)
