@@ -2,6 +2,7 @@ from solution.solution import Solution
 from copy import deepcopy
 import abc
 
+
 class OptimizationAlgo(abc.ABC):
     def __init__(self, instance_name: str, solution: Solution, robots: list,
                  targets: list, obstacles: list, size: int, preprocess=None, name="", print_info=True, data_bundle=None):
