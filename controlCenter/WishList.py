@@ -398,7 +398,7 @@ class WishList:
             WishListPackagesTypes.MEDIUM.name: 1500,
             WishListPackagesTypes.MEDIUM_LARGE.name: 4000,
             WishListPackagesTypes.LARGE.name: 7500,
-            WishListPackagesTypes.HUGE.name: 9400
+            WishListPackagesTypes.HUGE.name: 11000
         }
         grid_limit = -1
 
