@@ -120,7 +120,7 @@ cd controlCenter
 
 Large:
 
-python3.7 farm-instance.py 7 1 6 0 > ../out_files/Large_7.txt 2> ../out_files/Large_7_err.txt &
+python3.7 farm-instance.py 120 1 6 0 > ../out_files/Large_120.txt 2> ../out_files/Large_120_err.txt &
 
 Huge:
 

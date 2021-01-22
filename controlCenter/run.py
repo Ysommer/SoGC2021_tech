@@ -21,6 +21,7 @@ from WishList import *
 # Algos
 from algos.init_algos.LeftPillar import *
 from algos.init_algos.OutAndInBFS import *
+from algos.init_algos.Chill import *
 from algos.init_algos.OutAndInByPercentage import *
 from algos.init_algos.BFS import *
 from algos.optimization_algos.BFS_in_time import *
@@ -29,7 +30,7 @@ from algos.optimization_algos.BFS_in_time import *
 def main():
     # instances_id = [i for i in range(81, 121)]
 
-    instances_id = [162]
+    instances_id = [161]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -42,7 +43,7 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
             control_center.run_all(print_only_success=False, stop_on_success=False, validate=False)
         except Exception as e:
             print(e)
@@ -55,16 +56,10 @@ def make_a_zip():
 
 
 def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
-    print_info = True
-    data_bundle = None
-    control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=False)
-    # control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle=data_bundle)
-    #control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
-    #control_center.add_opt_algo(BFS_in_time, data_bundle={})
-    #for i in range(0, 11):
-    #    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False})
+    control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=True)
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "rand"})
 
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "rand"})
+    """
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_grid"})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_grid", "descending_order": True})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_target"})
@@ -72,7 +67,8 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_BFS"})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_BFS", "descending_order": True})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : ""})
-    control_center.add_opt_algo(BFS_in_time, data_bundle={})
+    control_center.add_opt_algo(BFS_in_time, data_bundle={})"""
+
     return control_center
 
 
@@ -213,6 +209,3 @@ if __name__ == "__main__":
         print(len(packages[p]))
         print(p,":", packages[p])"""
     print("Done!")
-    list_rnd = [6, 7, 8, 19, 26, 27, 28, 38, 39, 47, 48, 49, 55, 56, 57, 58, 64, 65, 66, 77, 78, 100, 118, 119, 120, 127, 128, 137, 138, 139, 140, 188, 189, 190, 199, 200, 201]
-    shuffle(list_rnd)
-    print(list_rnd)
