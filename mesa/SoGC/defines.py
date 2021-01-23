@@ -20,15 +20,15 @@ def direction_to_val(direction: str):
     }
     return directions.get(direction)
 
-X_OFFSET = 10
-Y_OFFSET = 10
+X_OFFSET = 20
+Y_OFFSET = 20
 
 BOUNDARIES_FACTOR = 3
 
 Categories = ["uniform", "images", "manual"]
 Category = Categories[0]
-Instance_name = "small_free_000_10x10_30_30"
-Sol_name = "small_free_000_10x10_30_30_Chill_rand_SUCCESS_MSPAN422_SUM435.json.json.json"
+Instance_name = "small_free_016_20x20_80_320"
+Sol_name = "small_free_016_20x20_80_320_Chill_per_30_SUCCESS_MSPAN8289_SUM10741.json.json"
 
 while Sol_name.find(".json.json") != -1:
     Sol_name = Sol_name[:(-1)*len(".json")]

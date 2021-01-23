@@ -26,6 +26,8 @@ class InitAlgo(abc.ABC):
         self.arrived_order = []
         self.time_arrived = [-1] * len(self.robots)
 
+        self.force_stop = False
+
     @abc.abstractmethod
     def step(self) -> int:
         """
@@ -54,7 +56,7 @@ class InitAlgo(abc.ABC):
         """
         self.run_timer.start()
         last_milestone = 0
-        while True:
+        while True and not self.force_stop:
             if self.max_sum != -1 and self.current_sum > self.max_sum:
                 self.solution.put_result(SolutionResult.EXCEEDED_MAX_SUM, self.current_turn, self.current_sum)
                 break
@@ -82,6 +84,11 @@ class InitAlgo(abc.ABC):
                 last_milestone = (((100 * self.grid.numOfRobotsArrived) // len(self.robots)) // 10) * 10
                 if self.print_info:
                     print(last_milestone,"% of robots arrived")
+
+        if self.force_stop:
+            self.solution.put_result(SolutionResult.STUCK, self.current_turn, self.current_sum)
+            print("Algo run was forced to stop")
+            return self.solution
 
         self.run_timer.end(self.print_info)
         self.solution.out["extra"]["arrival_order"] = self.arrived_order

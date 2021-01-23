@@ -39,11 +39,20 @@ class Chill(InitAlgo):
             "W": -3,
             "S": -3,
         })
-        self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside", 0)
         self.secondary_order = data_bundle.get("secondary_order", "")
         self.descending_order = data_bundle.get("descending_order", False)
+
         self.break_time = data_bundle.get("break_time", 100)
         self.calcs_per_high = data_bundle.get("calcs_per_high", 10)
+
+        self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside", 0)
+
+        self.dynamic_percent_to_leave_inside = data_bundle.get("dynamic_percent_to_leave_inside", False)
+        self.lower_percent_to_leave_inside = data_bundle.get("lower_percent_to_leave_inside", 0)
+        self.upper_percent_to_leave_inside = data_bundle.get("upper_percent_to_leave_inside", 100)
+        self.binary_search_iteration = data_bundle.get("binary_search_iteration", 10)
+
+
 
         # Init phases
         self.phase = 0
@@ -55,8 +64,6 @@ class Chill(InitAlgo):
 
         # Set Name
         # All Phases params
-        if self.percent_to_leave_inside > 0:
-            self.name += "_per_" + str(self.percent_to_leave_inside)
 
         if self.secondary_order != "":
             self.name += "_" + self.secondary_order
@@ -64,29 +71,89 @@ class Chill(InitAlgo):
         if self.descending_order:
             self.name += "_desc"
 
-        self.solution.out["algo_name"] = self.name
-
         # Set robots to groups
         self.q_by_robot_id = [self.q_reaching_out for i in range(len(self.robots))]
         self.inside_group = []
-        self.inside_group_set = set()
+        self.inside_group_set = set()       # the positions of the inside group for bfs
         self.out_of_boundaries_permutation = []
         self.reaching_out_permutation = []
-        self.in_way_to_target = []
         self.get_inside_algos = []
         self.get_inside_groups = self.get_inside_groups = [[] for i in range(self.grid.size)]
+        self.bfs_path = [[] for i in self.robots]
+
+        self.max_height = -1
         self.current_group = 0
         self.current_robot = 0
 
-        self.max_height = -1
+        self.set_groups()
+
+        if self.dynamic_percent_to_leave_inside:
+            self.percent_to_leave_inside = self.binary_search_for_best_percent_to_leave_inside()
+            print("percent to leave inside:", self.percent_to_leave_inside)
+            if self.percent_to_leave_inside == -1:
+                self.force_stop = True
+                return
+
         self.set_inside_group()
+        if not self.check_for_solution():
+            self.force_stop = True
+            return
+
+        if self.percent_to_leave_inside > 0:
+            self.name += "_per_" + str(self.percent_to_leave_inside)
+
+        self.solution.out["algo_name"] = self.name
+
+    def set_groups(self):
+        Generator.calc_sea_level_bfs_map(grid=self.grid,
+                                         boundaries=self.boundaries,
+                                         check_move_func=CheckMoveFunction.check_free_from_obs)
+
+        self.bfs_map_copy = self.grid.get_copy_bfs_map(False)
+
+        for robot in self.robots:
+            dist = self.bfs_map_copy[robot.target_pos]
+            assert dist > -1, str(robot) + "has no clear path to target"
+
+            # For later
+            self.get_inside_groups[dist].append(robot.robot_id)
+            if self.max_height < dist or self.max_height == -1:
+                self.max_height = dist
+
+        self.get_inside_groups = self.get_inside_groups[1:self.max_height+1]
+        self.get_inside_groups.reverse()
+
+    def set_inside_group(self):
+        num_of_robots_inside = (len(self.robots) * self.percent_to_leave_inside) // 100
+        self.inside_group_set.clear()
+        temp_robots = []
+        current_group = 0
+        current_robot = 0
+
+        for i in range(num_of_robots_inside):
+            robot_id = self.get_inside_groups[current_group][current_robot]
+            robot = self.robots[robot_id]
+            robot.extra_data = self.get_extra_data(robot, self.max_height - current_group)
+            assert robot.extra_data[0] > -1, str(robot) + "has no clear path to target"
+
+            temp_robots.append(robot)
+
+            current_robot += 1
+            if current_robot == len(self.get_inside_groups[current_group]):
+                current_robot = 0
+                current_group += 1
+
+        self.preprocess.generic_robots_sort(self.inside_group, "EXTRA", temp_robots)  # sort by highs
+        self.inside_group.reverse()
+        self.inside_group = self.inside_group[:num_of_robots_inside]
 
         for i in self.inside_group:
             robot = self.robots[i]
             robot.extra_data = 0
-            self.inside_group_set.add(robot.pos)  # For BFS MAP
+            self.inside_group_set.add(robot.pos)        # For BFS MAP
             self.q_by_robot_id[i] = self.q_stay_inside
 
+    def check_for_solution(self) -> bool:
         # Calc BFS map outside
         Generator.calc_bfs_map(grid=self.grid,
                                boundaries={
@@ -99,16 +166,17 @@ class Chill(InitAlgo):
                                source_container_params=self.grid.size,
                                check_move_func=CheckMoveFunction.check_free_from_obs)
 
-        self.bfs_map_copy = self.grid.get_copy_bfs_map()
+        self.bfs_map_copy = self.grid.get_copy_bfs_map(False)
         temp_robot_list = []
 
         for robot in self.robots:
             # Ignoring the robots that stay inside
-            if self.q_by_robot_id[robot.robot_id] in [self.q_stay_inside, self.q_arrived]:
+            if self.q_by_robot_id[robot.robot_id] == self.q_stay_inside:
                 continue
 
             # Check every robot is reachable
-            assert self.grid.get_cell_distance(robot.pos) > 0, str(robot) + " is unreachable"
+            if self.bfs_map_copy[robot.pos] == -1:
+                return False
 
             # Extra data = distance
             robot.extra_data = self.grid.get_cell_distance(robot.pos)
@@ -116,38 +184,25 @@ class Chill(InitAlgo):
 
         # Arranging by distance in increasing order
         self.preprocess.generic_robots_sort(self.reaching_out_permutation, "EXTRA", temp_robot_list)
+        return True
 
-        self.bfs_path = [[] for i in self.robots]
+    def binary_search_for_best_percent_to_leave_inside(self):
+        up = self.upper_percent_to_leave_inside
+        down = self.lower_percent_to_leave_inside
+        last_success = -1
+        for i in range(self.binary_search_iteration):
+            if up <= down:
+                return last_success
+            mid = (up + down) // 2
+            self.percent_to_leave_inside = mid
+            self.set_inside_group()
+            if self.check_for_solution():
+                last_success = mid
+                down = mid + 1
+            else:
+                up = mid - 1
 
-    def set_inside_group(self):
-        num_of_robots_inside = (len(self.robots) * self.percent_to_leave_inside) // 100
-
-        Generator.calc_sea_level_bfs_map(grid=self.grid,
-                                         boundaries=self.boundaries,
-                                         check_move_func=CheckMoveFunction.check_free_from_obs)
-
-        temp_robots = []
-
-        for robot in self.robots:
-            robot.extra_data = self.get_extra_data(robot)
-            assert robot.extra_data[0] > -1, str(robot) + "has no clear path to target"
-
-            # For later
-            self.get_inside_groups[robot.extra_data[0]].append(robot.robot_id)
-            if self.max_height < robot.extra_data[0] or self.max_height == -1:
-                self.max_height = robot.extra_data[0]
-
-
-            temp_robots.append(robot)
-
-
-
-        self.preprocess.generic_robots_sort(self.inside_group, "EXTRA", temp_robots)  # sort by highs
-        self.inside_group.reverse()
-        self.inside_group = self.inside_group[:num_of_robots_inside]
-
-        self.get_inside_groups = self.get_inside_groups[:self.max_height + 1]
-        self.get_inside_groups.reverse()
+        return last_success
 
     def step(self) -> int:
         moved = self.phases[self.phase]()
@@ -193,26 +248,82 @@ class Chill(InitAlgo):
         return moved
 
     def switch_phase_0_to_1(self):
-        pass
+        # Calc BFS map outside
+        Generator.calc_bfs_map(grid=self.grid,
+                               boundaries={
+                                   "N": self.grid.size,
+                                   "E": self.grid.size,
+                                   "W": 0,
+                                   "S": 0},
+                               source_container_func=self.create_boundaries_queue,
+                               source_container_params=self.grid.size,
+                               check_move_func=CheckMoveFunction.check_free_from_obs)
+
+        self.bfs_map_copy.clear()
+        self.bfs_map_copy = self.grid.get_copy_bfs_map(False)
 
     def step_phase_1(self) -> int:
+        def find_next_robots_to_move_by_order(occupied_target) -> Union[list, None]:
+            out = []
+            pos = occupied_target
+            while pos != None and self.bfs_map_copy[pos] > 0:
+                out.append(self.grid.get_robot_id_by_pos(pos))
+                next_directions = Generator.get_next_move_by_dist_and_obs_from_bfs_map_copy(self.bfs_map_copy, pos)
+
+                next_pos = None
+                for next_dir in next_directions:
+                    next_pos = sum_tuples(directions_to_coords[next_dir], pos)
+                    if CheckMoveFunction.cell_free_from_robots_and_obs(next_pos, self.grid):
+                        out.reverse()
+                        return out
+
+                pos = next_pos
+            return None
+
+        moved = 0
+        robots_to_move = None
         all_clear = True
         for i in self.inside_group:
             robot = self.robots[i]
-            self.bfs_path[i] = Generator.calc_a_star_path(self.grid,
-                                                          self.boundaries,
-                                                          source_pos=robot.pos,
-                                                          dest_pos=robot.target_pos,
-                                                          calc_configure_value_func=AStarHeuristics.manhattan_distance,
-                                                          check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
-            if self.bfs_path[i] is None:
+            if not CheckMoveFunction.cell_free_from_robots_and_obs(robot.target_pos, self.grid):
+                robots_to_move = find_next_robots_to_move_by_order(robot.target_pos)
                 all_clear = False
                 break
 
         if all_clear:
+            for i in self.inside_group:
+                robot = self.robots[i]
+                self.bfs_path[i] = Generator.calc_a_star_path(self.grid,
+                                                              self.boundaries,
+                                                              source_pos=robot.pos,
+                                                              dest_pos=robot.target_pos,
+                                                              calc_configure_value_func=AStarHeuristics.manhattan_distance,
+                                                              check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
+                if self.bfs_path[i] is None:
+                    all_clear = False
+                    break
+
+        if all_clear:
             return 0
 
-        moved = 0
+        if robots_to_move is not None:
+            for i in robots_to_move:
+                robot = self.robots[i]
+                if self.q_by_robot_id[i](robot):
+                    moved += 1
+        else:
+            robots_to_move = []
+
+        for i in self.inside_group:
+            if i in robots_to_move:
+                continue
+            robot = self.robots[i]
+            if self.q_by_robot_id[i] == self.q_stay_inside and self.bfs_map_copy[robot.target_pos] <= self.bfs_map_copy[robot.pos]:
+                moved += self.q_by_robot_id[i](self.robots[i])
+
+        if moved > 0:
+            return moved
+
         for i in self.inside_group:
             moved += self.q_by_robot_id[i](self.robots[i])
         return moved
@@ -236,8 +347,12 @@ class Chill(InitAlgo):
                                                                      calc_configure_value_func=AStarHeuristics.manhattan_distance,
                                                                      check_move_func=CheckMoveFunction.check_free_from_obs)
 
+
+                if self.bfs_path[robot_id] is None:
+                    Generator.print_bfs_map_copy_state(self.bfs_map_copy, self.grid.size, blocked, [robot.target_pos])
+
+                assert self.bfs_path[robot_id] is not None, "switch_phase_1_to_2: robot" + str(robot)
                 blocked.add(robot.target_pos)
-                assert self.bfs_path[i] is not None, "switch_phase_1_to_2: robot" + str(robot)
                 sum += len(self.bfs_path[robot_id])
 
             return sum
@@ -250,6 +365,8 @@ class Chill(InitAlgo):
                 temp.append(robot)
 
             self.preprocess.generic_robots_sort(group, "EXTRA", temp)  # sort by highs
+
+            return group
 
         take_a_break()
 
@@ -289,36 +406,35 @@ class Chill(InitAlgo):
 
             self.get_inside_algos.append(min_algo)
 
-        # To calculate BFS lists
-        blocked.clear()
+        # Sort the groups
         for group_id in range(len(self.get_inside_groups)):
             group = self.get_inside_groups[group_id]
             self.secondary_order = self.get_inside_algos[group_id][0]
             self.descending_order = self.get_inside_algos[group_id][1]
             sort_group_by_extra_data(group)
-            for robot_id in group:
-                robot = self.robots[robot_id]
-                self.bfs_path[robot_id] = Generator.calc_a_star_path(self.grid,
-                                                                     self.boundaries,
-                                                                     source_pos=robot.pos,
-                                                                     dest_pos=robot.target_pos,
-                                                                     blocked=blocked,
-                                                                     calc_configure_value_func=AStarHeuristics.manhattan_distance,
-                                                                     check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
 
-                blocked.add(robot.target_pos)
-                assert self.bfs_path[robot_id] is not None, "switch_phase_1_to_2: robot" + str(robot)
+        # Calculate first BFS list
+        robot_id = self.get_inside_groups[0][0]
+        robot = self.robots[robot_id]
+        self.bfs_path[robot_id] = Generator.calc_a_star_path(self.grid,
+                                                             self.boundaries,
+                                                             source_pos=robot.pos,
+                                                             dest_pos=robot.target_pos,
+                                                             calc_configure_value_func=AStarHeuristics.manhattan_distance,
+                                                             check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
+
+        assert self.bfs_path[robot_id] is not None, "switch_phase_1_to_2: robot" + str(robot)
 
     def step_phase_2(self) -> int:
-        if self.current_group == len(self.get_inside_groups):
-            return 0
-
         moved = 0
         moving_robot_id = self.get_inside_groups[self.current_group][self.current_robot]
         robot = self.robots[moving_robot_id]
 
         # Making sure BFS list isn't empty nor None
-        assert self.bfs_path[moving_robot_id] and self.bfs_path[moving_robot_id] is not None
+
+        # assert self.bfs_path[moving_robot_id] is not None
+        if self.bfs_path[moving_robot_id] is None:
+            return 0
 
         if InitAlgo.move_robot_to_dir(moving_robot_id, self.grid, self.bfs_path[moving_robot_id][0],
                                       self.current_turn, self.solution):
@@ -326,20 +442,42 @@ class Chill(InitAlgo):
             moved = 1
 
         if robot.robot_arrived():
-            self.current_robot += 1
-            if self.current_robot == len(self.get_inside_groups[self.current_group]):
-                self.current_robot = 0
-                self.current_group += 1
 
             self.q_by_robot_id[moving_robot_id] = self.q_arrived
             self.arrived_order.append(robot.robot_id)
             self.time_arrived[robot.robot_id] = self.current_turn + 1
+
+            self.current_robot += 1
+
+            if self.current_robot == len(self.get_inside_groups[self.current_group]):
+                self.current_robot = 0
+                self.current_group += 1
+
+            if self.current_group == len(self.get_inside_groups):
+                return moved
+
+            # Calc the next possible BFS
+            for i in range(self.current_robot, len(self.get_inside_groups[self.current_group])):
+                next_to_calc = self.get_inside_groups[self.current_group][i]
+                next_robot = self.robots[next_to_calc]
+                self.bfs_path[next_to_calc] = Generator.calc_a_star_path(self.grid,
+                                                                     self.boundaries,
+                                                                     source_pos=next_robot.pos,
+                                                                     dest_pos=next_robot.target_pos,
+                                                                     calc_configure_value_func=AStarHeuristics.manhattan_distance,
+                                                                     check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
+
+                if self.bfs_path[next_to_calc] is not None:
+                    self.get_inside_groups[self.current_group][i] = self.get_inside_groups[self.current_group][self.current_robot]
+                    self.get_inside_groups[self.current_group][self.current_robot] = next_to_calc
+
 
         return moved
 
     # states
     def q_reaching_out(self, robot: Robot) -> int:
         next_directions = Generator.get_next_move_by_dist_and_obs_from_bfs_map_copy(self.bfs_map_copy, robot.pos)
+
         for next_dir in next_directions:
             if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, next_dir, self.current_turn, self.solution):
                 robot.extra_data -= 1
@@ -431,7 +569,11 @@ class Chill(InitAlgo):
         if self.phase == 1:
             next_directions = Generator.get_next_move_by_dist_and_obs_from_bfs_map_copy(self.bfs_map_copy, robot.pos)
             for next_dir in next_directions:
-                return InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, next_dir, self.current_turn, self.solution)
+                if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, next_dir, self.current_turn, self.solution):
+                    if self.bfs_map_copy[robot.pos] == 0:
+                        self.q_by_robot_id[robot.robot_id] = self.q_outside_in_main_road
+                        robot.extra_data = next_dir
+                    return 1
         return 0
 
     def q_arrived(self, robot: Robot) -> int:
@@ -444,7 +586,7 @@ class Chill(InitAlgo):
         return 0
 
     # Helpers
-    def get_extra_data(self, robot: Robot) -> (int, int):
+    def get_extra_data(self, robot: Robot, extra_data: int = -1) -> (int, int):
         def get_dist_from_grid(robot: Robot) -> int:
             res = {
                 "W": abs(robot.pos[0]),
@@ -470,7 +612,10 @@ class Chill(InitAlgo):
                 check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs))
 
         # Set secondary order
-        extra_data = (self.grid.get_cell_distance(robot.target_pos), 0)
+        extra_data = (extra_data, 0)
+        if extra_data[0] == -1:
+            extra_data = (self.grid.get_cell_distance(robot.target_pos), 0)
+
         if self.secondary_order == "rand":
             extra_data = (extra_data[0], random())
         elif self.secondary_order == "dist_from_grid":

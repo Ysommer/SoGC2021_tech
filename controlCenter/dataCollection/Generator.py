@@ -295,7 +295,7 @@ class Generator:
             if -1 < next_dist < current_dist:
                 res.append(d)
 
-        assert len(res) > 0, "get_next_move_by_dist_and_obs: Failed to find next"
+        assert len(res) > 0, "get_next_move_by_dist_and_obs: Failed to find next from pos: " + str(pos)
         return res
 
     @staticmethod
@@ -602,3 +602,24 @@ class Generator:
             print("robot_id:", robot_id, "FAILED with close size: ", len(close))
             timer.end(True)
         return None
+
+    @staticmethod
+    def print_bfs_map_copy(map: dict, size):
+        for y in range(size - 1, -1, -1):
+            for x in range(size):
+                print(map[(x, y)], end="\t")
+            print(end="\n")
+
+    @staticmethod
+    def print_bfs_map_copy_state(map: dict, size: int, blocked: set, to_follow = None):
+        if to_follow is None:
+            to_follow = set()
+        for y in range(size - 1, -1, -1):
+            for x in range(size):
+                if (x, y) in to_follow:
+                    print("#", end="\t")
+                elif (x, y) in blocked:
+                    print("@", end="\t")
+                else:
+                    print(map[(x, y)], end="\t")
+            print(end="\n")

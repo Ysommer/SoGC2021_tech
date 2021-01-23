@@ -46,6 +46,9 @@ class Grid:
     def has_robot(self, pos):
         return pos in self.grid and self.get_cell(pos).has_robot()
 
+    def get_robot_id_by_pos(self, pos):
+        return self.get_cell(pos).get_robot()
+
     def has_robot_on_target(self, pos):
         return pos in self.grid and self.get_cell(pos).has_robot_on_target()
 
@@ -126,10 +129,10 @@ class Grid:
     def get_cell_distance(self, pos, get_old_configure=True):
         return self.get_cell_for_bfs(pos).get_distance(self.bfs_counter, get_old_configure)
 
-    def get_copy_bfs_map(self) -> dict:
+    def get_copy_bfs_map(self, get_old_configure=True) -> dict:
         out = {}
         for pos in self.bfs_grid:
-            out[pos] = self.get_cell_distance(pos)
+            out[pos] = self.get_cell_distance(pos, get_old_configure)
 
         return out
 

@@ -28,9 +28,9 @@ from algos.optimization_algos.BFS_in_time import *
 
 
 def main():
-    # instances_id = [i for i in range(81, 121)]
+    instances_id = [i for i in range(170, 180)]
 
-    instances_id = [161]
+    # instances_id = [177]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -57,7 +57,34 @@ def make_a_zip():
 
 def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=True)
-    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "rand"})
+    """
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
+                                                                       "dynamic_percent_to_leave_inside": True,
+                                                                       "calcs_per_high": 30})"""
+
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
+                                                                       "percent_to_leave_inside": 0,
+                                                                       "calcs_per_high": 30})
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
+                                                                       "percent_to_leave_inside": 10,
+                                                                       "calcs_per_high": 30})
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
+                                                                       "percent_to_leave_inside": 20,
+                                                                       "calcs_per_high": 30})
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
+                                                                       "percent_to_leave_inside": 30,
+                                                                       "calcs_per_high": 30})
+    """
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
+                                                                       "percent_to_leave_inside": 50,
+                                                                       "calcs_per_high": 10})
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
+                                                                       "percent_to_leave_inside": 75,
+                                                                       "calcs_per_high": 10})
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
+                                                                       "percent_to_leave_inside": 100,
+                                                                       "calcs_per_high": 10})
+    """
 
     """
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_grid"})
@@ -66,8 +93,8 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_target", "descending_order": True})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_BFS"})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_BFS", "descending_order": True})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : ""})
-    control_center.add_opt_algo(BFS_in_time, data_bundle={})"""
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : ""}) """
+    control_center.add_opt_algo(BFS_in_time, data_bundle={})
 
     return control_center
 
@@ -194,8 +221,10 @@ def generator_test():
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    main()
-    # compress_best_and_send()
+    # main()
+    compress_best_and_send()
+
+
 
     # analyze()
     # analyze_algo_based_on_makespan()
