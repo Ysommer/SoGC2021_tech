@@ -51,8 +51,7 @@ class Chill(InitAlgo):
         self.lower_percent_to_leave_inside = data_bundle.get("lower_percent_to_leave_inside", 0)
         self.upper_percent_to_leave_inside = data_bundle.get("upper_percent_to_leave_inside", 100)
         self.binary_search_iteration = data_bundle.get("binary_search_iteration", 10)
-
-
+        self.factor_on_binary_search_result = data_bundle.get("factor_on_binary_search_result", 1)
 
         # Init phases
         self.phase = 0
@@ -80,19 +79,23 @@ class Chill(InitAlgo):
         self.get_inside_algos = []
         self.get_inside_groups = self.get_inside_groups = [[] for i in range(self.grid.size)]
         self.bfs_path = [[] for i in self.robots]
+        self.bfs_map_copy = None
+        self.topo_map_copy = None
 
         self.max_height = -1
         self.current_group = 0
         self.current_robot = 0
 
+        self.set_maps()
         self.set_groups()
 
         if self.dynamic_percent_to_leave_inside:
             self.percent_to_leave_inside = self.binary_search_for_best_percent_to_leave_inside()
-            print("percent to leave inside:", self.percent_to_leave_inside)
             if self.percent_to_leave_inside == -1:
                 self.force_stop = True
                 return
+            self.percent_to_leave_inside = int(self.factor_on_binary_search_result * self.percent_to_leave_inside)
+            print("percent to leave inside:", self.percent_to_leave_inside)
 
         self.set_inside_group()
         if not self.check_for_solution():
@@ -104,15 +107,18 @@ class Chill(InitAlgo):
 
         self.solution.out["algo_name"] = self.name
 
-    def set_groups(self):
+        # Generator.print_bfs_map_copy(self.bfs_map_copy, self.grid.size)
+        # Generator.print_bfs_map_copy_state(self.topo_map_copy, self.grid.size, self.inside_group_set)
+
+    def set_maps(self):
         Generator.calc_sea_level_bfs_map(grid=self.grid,
                                          boundaries=self.boundaries,
                                          check_move_func=CheckMoveFunction.check_free_from_obs)
+        self.topo_map_copy = self.grid.get_copy_bfs_map(False)
 
-        self.bfs_map_copy = self.grid.get_copy_bfs_map(False)
-
+    def set_groups(self):
         for robot in self.robots:
-            dist = self.bfs_map_copy[robot.target_pos]
+            dist = self.topo_map_copy[robot.target_pos]
             assert dist > -1, str(robot) + "has no clear path to target"
 
             # For later
@@ -124,18 +130,24 @@ class Chill(InitAlgo):
         self.get_inside_groups.reverse()
 
     def set_inside_group(self):
-        num_of_robots_inside = (len(self.robots) * self.percent_to_leave_inside) // 100
+        # Clear
+        for i in range(len(self.robots)):
+            robot = self.robots[i]
+            self.q_by_robot_id[i] = self.q_reaching_out
+
         self.inside_group_set.clear()
+
+        # Calculate num of robots
+        num_of_robots_inside = (len(self.robots) * self.percent_to_leave_inside) // 100
         temp_robots = []
         current_group = 0
         current_robot = 0
 
+        # pick robots
         for i in range(num_of_robots_inside):
             robot_id = self.get_inside_groups[current_group][current_robot]
             robot = self.robots[robot_id]
-            robot.extra_data = self.get_extra_data(robot, self.max_height - current_group)
-            assert robot.extra_data[0] > -1, str(robot) + "has no clear path to target"
-
+            robot.extra_data = self.get_extra_data(robot)
             temp_robots.append(robot)
 
             current_robot += 1
@@ -145,7 +157,8 @@ class Chill(InitAlgo):
 
         self.preprocess.generic_robots_sort(self.inside_group, "EXTRA", temp_robots)  # sort by highs
         self.inside_group.reverse()
-        self.inside_group = self.inside_group[:num_of_robots_inside]
+
+        assert len(self.inside_group) == num_of_robots_inside
 
         for i in self.inside_group:
             robot = self.robots[i]
@@ -176,6 +189,8 @@ class Chill(InitAlgo):
 
             # Check every robot is reachable
             if self.bfs_map_copy[robot.pos] == -1:
+                # Generator.print_bfs_map_copy(self.bfs_map_copy, self.grid.size)
+                # Generator.print_bfs_map_copy_state(self.topo_map_copy, self.grid.size, self.inside_group_set, [robot.pos])
                 return False
 
             # Extra data = distance
@@ -318,7 +333,7 @@ class Chill(InitAlgo):
             if i in robots_to_move:
                 continue
             robot = self.robots[i]
-            if self.q_by_robot_id[i] == self.q_stay_inside and self.bfs_map_copy[robot.target_pos] <= self.bfs_map_copy[robot.pos]:
+            if self.q_by_robot_id[i] == self.q_stay_inside and self.topo_map_copy[robot.target_pos] <= self.topo_map_copy[robot.pos]:
                 moved += self.q_by_robot_id[i](self.robots[i])
 
         if moved > 0:
@@ -346,10 +361,6 @@ class Chill(InitAlgo):
                                                                      blocked=blocked,
                                                                      calc_configure_value_func=AStarHeuristics.manhattan_distance,
                                                                      check_move_func=CheckMoveFunction.check_free_from_obs)
-
-
-                if self.bfs_path[robot_id] is None:
-                    Generator.print_bfs_map_copy_state(self.bfs_map_copy, self.grid.size, blocked, [robot.target_pos])
 
                 assert self.bfs_path[robot_id] is not None, "switch_phase_1_to_2: robot" + str(robot)
                 blocked.add(robot.target_pos)
@@ -612,23 +623,29 @@ class Chill(InitAlgo):
                 check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs))
 
         # Set secondary order
-        extra_data = (extra_data, 0)
-        if extra_data[0] == -1:
-            extra_data = (self.grid.get_cell_distance(robot.target_pos), 0)
+        if extra_data == -1:
+            extra_data = self.topo_map_copy[robot.target_pos]
+
+
+        if robot.robot_id in self.inside_group:
+            extra_data = (extra_data, 0)
+        else:
+            extra_data = (extra_data, 1)
+
 
         if self.secondary_order == "rand":
-            extra_data = (extra_data[0], random())
+            extra_data = (extra_data[0], extra_data[1], random())
         elif self.secondary_order == "dist_from_grid":
-            extra_data = (extra_data[0], get_dist_from_grid(robot))
+            extra_data = (extra_data[0], extra_data[1], get_dist_from_grid(robot))
         elif self.secondary_order == "dist_from_target":
-            extra_data = (extra_data[0], get_dist_from_target(robot))
+            extra_data = (extra_data[0], extra_data[1], get_dist_from_target(robot))
         elif self.secondary_order == "dist_BFS":
-            extra_data = (extra_data[0], get_bfs_dist(robot))
+            extra_data = (extra_data[0], extra_data[1], get_bfs_dist(robot))
         else:
-            extra_data = (extra_data[0], 0)
+            extra_data = (extra_data[0], extra_data[1], 0)
 
         if not self.descending_order:
-            extra_data = (extra_data[0], (-1) * extra_data[1])
+            extra_data = (extra_data[0], extra_data[1], (-1) * extra_data[2])
 
         return extra_data
 

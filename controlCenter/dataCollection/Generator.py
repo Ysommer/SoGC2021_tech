@@ -607,7 +607,10 @@ class Generator:
     def print_bfs_map_copy(map: dict, size):
         for y in range(size - 1, -1, -1):
             for x in range(size):
-                print(map[(x, y)], end="\t")
+                height = str(map.get((x, y), -1)) + "  "
+                if len(height) == 3:
+                    height = " " + height
+                print(height, end="\t")
             print(end="\n")
 
     @staticmethod
@@ -616,10 +619,16 @@ class Generator:
             to_follow = set()
         for y in range(size - 1, -1, -1):
             for x in range(size):
+                height = str(map.get((x, y), -1))
+                if len(height) == 1 :
+                    height = " " + height
+
+                print(height, end=":")
                 if (x, y) in to_follow:
                     print("#", end="\t")
                 elif (x, y) in blocked:
                     print("@", end="\t")
                 else:
-                    print(map[(x, y)], end="\t")
+                    print("_", end="\t")
+
             print(end="\n")

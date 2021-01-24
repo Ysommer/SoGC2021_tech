@@ -90,7 +90,7 @@ class InitAlgo(abc.ABC):
             print("Algo run was forced to stop")
             return self.solution
 
-        self.run_timer.end(self.print_info)
+        self.run_timer.end(True)
         self.solution.out["extra"]["arrival_order"] = self.arrived_order
         self.solution.out["extra"]["time_arrived"] = self.time_arrived
 

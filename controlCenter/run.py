@@ -30,7 +30,7 @@ from algos.optimization_algos.BFS_in_time import *
 def main():
     instances_id = [i for i in range(170, 180)]
 
-    # instances_id = [177]
+    instances_id = [92]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -59,10 +59,6 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=True)
     """
     control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
-                                                                       "dynamic_percent_to_leave_inside": True,
-                                                                       "calcs_per_high": 30})"""
-
-    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
                                                                        "percent_to_leave_inside": 0,
                                                                        "calcs_per_high": 30})
     control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
@@ -71,20 +67,29 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
                                                                        "percent_to_leave_inside": 20,
                                                                        "calcs_per_high": 30})
+    control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "dist_from_target",
+                                                                       "percent_to_leave_inside": 15,
+                                                                       "calcs_per_high": 30})"""
+
     control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
-                                                                       "percent_to_leave_inside": 30,
+                                                                       "dynamic_percent_to_leave_inside": True,
                                                                        "calcs_per_high": 30})
-    """
+
     control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
-                                                                       "percent_to_leave_inside": 50,
-                                                                       "calcs_per_high": 10})
+                                                                       "dynamic_percent_to_leave_inside": True,
+                                                                       "factor_on_binary_search_result": 0.95,
+                                                                       "calcs_per_high": 30})
+
     control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
-                                                                       "percent_to_leave_inside": 75,
-                                                                       "calcs_per_high": 10})
+                                                                       "dynamic_percent_to_leave_inside": True,
+                                                                       "factor_on_binary_search_result": 0.9,
+                                                                       "calcs_per_high": 30})
+
+
     control_center.add_init_algo(Chill, print_info=False, data_bundle={"secondary_order": "",
-                                                                       "percent_to_leave_inside": 100,
-                                                                       "calcs_per_high": 10})
-    """
+                                                                       "dynamic_percent_to_leave_inside": True,
+                                                                       "factor_on_binary_search_result": 0.8,
+                                                                       "calcs_per_high": 30})
 
     """
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_grid"})
@@ -94,6 +99,7 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_BFS"})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_BFS", "descending_order": True})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : ""}) """
+
     control_center.add_opt_algo(BFS_in_time, data_bundle={})
 
     return control_center
@@ -221,8 +227,8 @@ def generator_test():
 
 if __name__ == "__main__":
     # clean_bad_solutions()
-    # main()
-    compress_best_and_send()
+    main()
+    # compress_best_and_send()
 
 
 
