@@ -473,7 +473,7 @@ class Generator:
                                     np[1])) for np in next_poses_timeless]
                 for next_pos_t, direction in next_poses:
                     if internal_check_move(next_pos_t, direction):
-                        next_g_val = sub_tuples(g_val, ((1, 0) if direction != 'X' else (0, 1)))
+                        next_g_val = sub_tuples(g_val, ((1, 0) if direction != 'X' else (0, -1)))
                         next_h_val = calc_h_value_func(pos=next_pos_t, source_pos=next_pos_t, dest_pos=dest_pos,
                                                        calc_h_value_params=calc_h_value_params)
                         next_f_val = -next_g_val[0] + next_h_val

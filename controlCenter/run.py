@@ -1,8 +1,10 @@
 import sys
+
 sys.path.append("/home/gilbe/workspace/SoGC2021_tech/Utils")
 sys.path.append("/home/gilbe/workspace/SoGC2021_tech")
 
 import functools
+
 print = functools.partial(print, flush=True)
 
 import traceback
@@ -25,11 +27,13 @@ from algos.init_algos.OutAndInByPercentage import *
 from algos.init_algos.BFS import *
 from algos.optimization_algos.BFS_in_time import *
 
+import numpy
+
 
 def main():
     # instances_id = [i for i in range(81, 121)]
 
-    instances_id = [162]
+    instances_id = [106]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -59,19 +63,30 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     data_bundle = None
     control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=False)
     # control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle=data_bundle)
-    #control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
-    #control_center.add_opt_algo(BFS_in_time, data_bundle={})
-    #for i in range(0, 11):
+    # control_center.add_init_algo(OutAndInByPercentage, print_info=print_info, data_bundle={"sync_insertion": False})
+    # control_center.add_opt_algo(BFS_in_time, data_bundle={})
+    # for i in range(0, 11):
     #    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False})
 
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "rand"})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_grid"})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_grid", "descending_order": True})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_target"})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_from_target", "descending_order": True})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_BFS"})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : "dist_BFS", "descending_order": True})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False, "secondary_order" : ""})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "rand"})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid"})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid",
+                                              "descending_order": True})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
+                                              "descending_order": True})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS"})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
+                                              "descending_order": True})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": ""})
     control_center.add_opt_algo(BFS_in_time, data_bundle={})
     return control_center
 
@@ -85,7 +100,7 @@ def ys_control_center_initiate(instance, out_path, max_makespan, max_sum):
     data_bundle = {"sync_insertion": False}
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
     control_center.add_init_algo(OutAndInByPercentage, name="_sea_level_", print_info=False, data_bundle=data_bundle)
-    control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0})
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": 11000})
     # for i in range(1):
     #   control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
     return control_center
@@ -104,7 +119,8 @@ def analyze(to_console=True, to_file=False):
         for i in data:
             print(i, file=out_file)
 
-def analyze_algo_based_on_makespan(path = "../Solutions/", to_console=True, to_file=False):
+
+def analyze_algo_based_on_makespan(path="../Solutions/", to_console=True, to_file=False):
     hist = {
         "OutAndInByPercentage_BIT": 0,
         "dist_from_grid_BIT": 0,
@@ -149,7 +165,7 @@ def analyze_algo_based_on_makespan(path = "../Solutions/", to_console=True, to_f
 
     if to_console:
         for algo in hist:
-            print(algo, ":", str(hist[algo]) + "/" + str(counter), "(" + str((100*hist[algo])//counter)+"%)")
+            print(algo, ":", str(hist[algo]) + "/" + str(counter), "(" + str((100 * hist[algo]) // counter) + "%)")
 
     if to_file:
         out_file_str = "analyzed_data.csv"
@@ -159,7 +175,6 @@ def analyze_algo_based_on_makespan(path = "../Solutions/", to_console=True, to_f
             print(i, file=out_file)
 
     return hist
-
 
 
 def load_solutions(paths: list):
@@ -196,6 +211,7 @@ def generator_test():
     mat = Generator.get_valid_directions_matrix((1, 1), obs, x_axis, 1)
     print(mat)
 
+
 if __name__ == "__main__":
     # clean_bad_solutions()
     main()
@@ -212,7 +228,5 @@ if __name__ == "__main__":
     for p in packages:
         print(len(packages[p]))
         print(p,":", packages[p])"""
+
     print("Done!")
-    list_rnd = [6, 7, 8, 19, 26, 27, 28, 38, 39, 47, 48, 49, 55, 56, 57, 58, 64, 65, 66, 77, 78, 100, 118, 119, 120, 127, 128, 137, 138, 139, 140, 188, 189, 190, 199, 200, 201]
-    shuffle(list_rnd)
-    print(list_rnd)

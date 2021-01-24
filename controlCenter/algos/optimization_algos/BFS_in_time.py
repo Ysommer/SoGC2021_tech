@@ -8,7 +8,7 @@ from solution.solution import Solution
 from dataCollection.Generator import *
 from defines import *
 import time
-from random import random
+import json
 
 """
 BIT run modes:
@@ -19,6 +19,7 @@ data_bundle options:
     "grid_limit" : makespan limit on solGrid. DEFAULT = 700
     "goal_raise" : jump in goal time for astar runs. DEFAULT = 32
     "noise" : noise for astar, added to steps for tiebreaker.  DEFAULT = 0 (no noise)
+    "get_limit" : bool- if True get grid limit from results_table.json
 """
 
 
@@ -45,7 +46,15 @@ class BFS_in_time(OptimizationAlgo):
                          "_BIT" + name,
                          print_info,
                          data_bundle)
-        self.max_grid_len = data_bundle.get("grid_limit", 700)
+        self.max_grid_len = data_bundle.get("grid_limit", 800)
+        if data_bundle.get("get_limit", True):
+            results_f = open("../../../results_table.json", "r")
+            results_json = json.load(results_f)
+            results_f.close()
+            inst_mins = results_json.get(instance_name, None)
+            if inst_mins is not None:
+                lim = (inst_mins["min_makespan"] + 40)
+                self.max_grid_len = lim + 8 - (lim % 8)
         if self.max_grid_len != -1:
             self.solution.out["steps"] = self.solution.out["steps"][:self.max_grid_len]
         self.sol_grid = SolGrid(self.robots, self.obs, self.solution, max_grid_len=self.max_grid_len, size=size)
