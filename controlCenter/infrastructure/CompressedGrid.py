@@ -1,13 +1,6 @@
 import random
 
 
-TIME_PER_CELL = 8
-TIME_PER_CELL_MASK = 0x7
-BITS_PER_TIME = 20
-MASK = 0xFFFFF              # 2^20
-TAIL_MASK = 0x7
-
-
 class CompressedGrid:
     def __init__(self):
         self.grid = dict()
@@ -103,7 +96,3 @@ def test1():
         if i % 2 == 0:
             expected = (None, None)
         assert got == expected, "i:" + str(i) + "   got:" + str(got) + "   expected:" + str(expected)
-
-
-test1()
-print("Done")
