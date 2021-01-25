@@ -53,7 +53,7 @@ class BFS_in_time(OptimizationAlgo):
             results_f.close()
             inst_mins = results_json.get(instance_name, None)
             if inst_mins is not None:
-                lim = (inst_mins["min_makespan"] + 40)
+                lim = (inst_mins["min_makespan"] + 35)
                 self.max_grid_len = lim + 8 - (lim % 8)
         if self.max_grid_len != -1:
             self.solution.out["steps"] = self.solution.out["steps"][:self.max_grid_len]
@@ -78,6 +78,9 @@ class BFS_in_time(OptimizationAlgo):
         self.solution.out["extra"]["improved"] = ""
         self.sum = solution.out["sum"]
         self.noise = data_bundle.get("noise", 0)
+        if self.noise > 0:
+            self.name += ("noise_"+str(self.noise)+"_")
+            self.solution.out["algo_name"] = self.name
 
     def calc_new_path(self, robot_id, offset_from_last_step: int = 1, offset_to_start_before_goal: int = 110,
                       calc_tries: int = 20, goal_time_raise: int = 10):
@@ -178,7 +181,7 @@ class BFS_in_time(OptimizationAlgo):
             dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
             counter += 1
         if new_path is None:
-            # assert time_arrived < self.sol_grid.max_grid_len or self.sol_grid.max_grid_len == -1,  "over makespan limit"
+            assert time_arrived < self.sol_grid.max_grid_len or self.sol_grid.max_grid_len == -1,  "over makespan limit"
             return None
         low = max(goal_time - 2 * goal_time_raise + 1, 1)
         high = start_time + len(new_path)
