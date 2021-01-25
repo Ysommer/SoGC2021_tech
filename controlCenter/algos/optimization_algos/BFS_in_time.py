@@ -48,7 +48,7 @@ class BFS_in_time(OptimizationAlgo):
                          data_bundle)
         self.max_grid_len = data_bundle.get("grid_limit", 800)
         if data_bundle.get("get_limit", True):
-            results_f = open("../../../results_table.json", "r")
+            results_f = open("../results_table.json", "r")
             results_json = json.load(results_f)
             results_f.close()
             inst_mins = results_json.get(instance_name, None)
@@ -178,6 +178,7 @@ class BFS_in_time(OptimizationAlgo):
             dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
             counter += 1
         if new_path is None:
+            # assert time_arrived < self.sol_grid.max_grid_len or self.sol_grid.max_grid_len == -1,  "over makespan limit"
             return None
         low = max(goal_time - 2 * goal_time_raise + 1, 1)
         high = start_time + len(new_path)

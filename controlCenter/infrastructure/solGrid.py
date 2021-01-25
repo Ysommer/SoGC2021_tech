@@ -4,6 +4,7 @@ from infrastructure.robot import *
 from defines import *
 from utils import sum_tuples
 from infrastructure.robot import *
+from infrastructure.CompressedGrid import *
 import sys
 
 
@@ -15,7 +16,7 @@ class SolGrid:
         self.dynamic = dynamic
         self.max_grid_len = max_grid_len
         self.validate = validate
-        self.grid = {} if dynamic else []
+        self.grid = CompressedGrid()
         self.__robot_pos = []  # robot_id -> robot_pos
         self.obs = set()
         self.size = size
@@ -40,10 +41,10 @@ class SolGrid:
 
     def __set_grid(self):
         limit = (self.max_grid_len != -1)
-        self.append_empty_stage(0)
+        # self.append_empty_stage(0)
         for i in range(len(self.__robot_pos)):
             # self.grid[0][self.__robot_pos[i]] = (i, 'X')
-            self.write_cell(0, self.__robot_pos[i], i, 'X')
+            self.grid.write_cell(0, self.__robot_pos[i], i, 'X')
 
         t = 1  # time
 
@@ -56,7 +57,7 @@ class SolGrid:
                     new_pos = sum_tuples(old_pos, directions_to_coords[direction])
                     # if self.validate:
                     # assert self.validate_move(t, robot_id, direction), "illegal move you stupid ass"
-                    self.write_cell(t, new_pos, robot_id, direction)  # update robot's pos in time t
+                    self.grid.write_cell(t, new_pos, robot_id, direction)  # update robot's pos in time t
                     self.__robot_pos[robot_id] = new_pos
                     if not limit and self.robots[robot_id].target_pos == new_pos:
                         self.time_arrived[robot_id] = t
@@ -70,7 +71,7 @@ class SolGrid:
                     else:
                         self.x_boundaries[new_pos[0]] = (new_pos[1], new_pos[1])
                 else:
-                    self.write_cell(t, self.__robot_pos[robot_id], robot_id, 'X')
+                    self.grid.write_cell(t, self.__robot_pos[robot_id], robot_id, 'X')
             t += 1
             if limit and t > self.max_grid_len:
                 break
@@ -79,6 +80,23 @@ class SolGrid:
             self.arrival_order = sorted(range(len(self.time_arrived)), key=lambda x: self.time_arrived[x])
 
         self.max_time = t - 1
+
+        '''
+        for t in range(30):
+            for x in range(25):
+                for y in range(25):
+                    print(self.grid.get_cell(t, (x, y)), sep="\t")
+                print()
+            print()
+            print()
+            print()
+
+
+        print()
+        '''
+
+
+
 
     """
     def __set_dynamic_grid(self):
@@ -104,13 +122,13 @@ class SolGrid:
         if pos in self.obs:
             return -1, None
         # content = self.grid[time].get(pos, return_if_empty)
-        content = self.get_cell(time, pos)
+        content = self.grid.get_cell(time, pos)
         return content
 
     # get cell content without obs check
     def get_cell_robot(self, time: int, pos: (int, int)):  # by default returns None if cell is empty
         # content = self.grid[time].get(pos, return_if_empty)
-        content = self.get_cell(time, pos)
+        content = self.grid.get_cell(time, pos)
         return content
 
     '''
@@ -128,7 +146,7 @@ class SolGrid:
                              sum_tuples(new_pos, directions_to_coords[direction]))))
         return legal
         
-    '''
+    
 
     def append_empty_stage(self, time):
         if self.dynamic:
@@ -136,7 +154,7 @@ class SolGrid:
             self.grid[time] = {}
         else:
             self.grid.append({})
-
+    '''
     def validate_solution(self, targets: list):
         for robot_id in range(len(self.__robot_pos)):
             if targets[robot_id] != self.__robot_pos[robot_id]:
@@ -203,10 +221,12 @@ class SolGrid:
         assert target not in self.obs
         if t < 0 or t > self.max_time:
             t = self.max_time
-        content = self.get_cell(t, target)
-        while content is None or content[0] in [-1, robot_id] and t >= 0:
+        content = self.grid.get_cell(t, target)
+        while content[0] is None or content[0] == robot_id:
             t -= 1
-            content =self.get_cell(t, target)
+            if t < 0:
+                break
+            content = self.grid.get_cell(t, target)
         return t
 
     def get_robot_location(self, robot_id: int, time: int):
@@ -218,7 +238,7 @@ class SolGrid:
         t = 0
         while t < time:
             step = self.solution.out["steps"][t]
-            d = step.get(robot_id, None)
+            d = step.get(str(robot_id), None)
             if d is not None:
                 pos = sum_tuples(pos, directions_to_coords[d])
             t += 1
@@ -257,25 +277,25 @@ class SolGrid:
             # if r_id == robot_id:
             # del self.grid[t][pos]
             # break
-            content = self.get_cell(t, old_pos)
+            content = self.grid.get_cell(t, old_pos)
             if content[0] is not None and content[0] == robot_id:
                 old_pos = old_pos
             else:
                 for d in directions_to_coords:
                     pos = sum_tuples(old_pos, directions_to_coords[d])
-                    content = self.get_cell(t, pos)
+                    content = self.grid.get_cell(t, pos)
                     if content[0] is not None and content[0] == robot_id:
                         old_pos = pos
                         break
-            del self.grid[t][old_pos]
-            self.clean_cell(t, old_pos)
+            # del self.grid[t][old_pos]
+            self.grid.clean_cell(t, old_pos)
             direction = "X"
             if len(path) + start_time >= t:
                 direction = path[t - start_time - 1]
                 robot_pos = robot_pos if direction == "X" else sum_tuples(robot_pos, directions_to_coords[direction])
             # assert robot_pos not in self.grid[t]
             # self.grid[t][robot_pos] = (robot_id, direction)
-            self.write_cell(t, robot_pos, robot_id, direction)
+            self.grid.write_cell(t, robot_pos, robot_id, direction)
             # if last and len(path) + start_time < t and self.grid[t] != self.grid[t - 1]:
             # max_t = t
             t += 1
@@ -301,7 +321,7 @@ class SolGrid:
         :param pos: (x, y, time)
         """
         t = pos[2]
-        r_id, direction = self.get_cell(t+1, pos[:2])
+        r_id, direction = self.grid.get_cell(t+1, pos[:2])
         return direction if r_id is not None and r_id != robot_id else None
 
     def get_arrival_order(self):
