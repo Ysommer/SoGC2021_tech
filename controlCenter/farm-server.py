@@ -27,12 +27,17 @@ servers_ips = {
     "10.10.43.45": 16
 }
 
-cmd = "ip route get 1 | awk '{print $(NF-2);exit}'"
-result = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+server_id = -1
+if len(sys.argv) > 1:
+    server_id = sys.argv[1]
 
-ip = result.stdout.readlines()[0].decode('UTF-8')[:-1]
-print("ip", ip)
-server_id = servers_ips[ip]
+if server_id == -1:
+    cmd = "ip route get 1 | awk '{print $(NF-2);exit}'"
+    result = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+
+    ip = result.stdout.readlines()[0].decode('UTF-8')[:-1]
+    print("ip", ip)
+    server_id = servers_ips[ip]
 
 types_to_farm = [WishListPackagesTypes.TINY, WishListPackagesTypes.SMALL, WishListPackagesTypes.MEDIUM, WishListPackagesTypes.MEDIUM_LARGE]
 

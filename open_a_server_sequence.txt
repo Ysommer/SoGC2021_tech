@@ -9,7 +9,13 @@ Enter Git password
 
 Run a server:
 
-cd SoGC2021_tech/controlCenter/
+cd SoGC2021_tech
+
+mkdir solutions
+mkdir not_empty
+echo not_empty > not_empty/not_empty.txt
+
+cd controlCenter
 
 
 Check if you have python3.7
