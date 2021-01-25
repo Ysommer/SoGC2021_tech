@@ -12,5 +12,5 @@ packageType = WishListPackagesTypes(int(sys.argv[1]))
 server_id = int(sys.argv[2])
 
 
-WishList.farm_instances(packageType, server_id, 11)
+WishList.farm_instances(packageType, server_id, 17)
 

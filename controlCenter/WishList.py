@@ -55,7 +55,7 @@ class PackagesFunctionsByType:
     @staticmethod
     def run_tiny(instance: Instance, initShells: List[InitShell]=None, optShells: List[InitShell]=None) -> (int, int):
         control_center = PackagesFunctionsByType.init_control_center(instance)
-
+        grid_limit = 200
         if initShells:
             for i in initShells:
                 control_center.add_init_algo(i)
@@ -85,7 +85,11 @@ class PackagesFunctionsByType:
             for i in optShells:
                 control_center.add_opt_algo(i)
         else:
-            control_center.add_opt_algo(BFS_in_time, data_bundle={})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 1, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 2, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 3, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 4, "grid_limit": grid_limit})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         """
@@ -99,7 +103,7 @@ class PackagesFunctionsByType:
     @staticmethod
     def run_small(instance: Instance, initShells: List[InitShell]=None, optShells: List[InitShell]=None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
-
+        grid_limit = 300
         if initShells:
             for i in initShells:
                 control_center.add_init_algo(i)
@@ -121,7 +125,7 @@ class PackagesFunctionsByType:
                                                       "descending_order": True})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
-            for i in range(0, 250):
+            for i in range(0, 500):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 
@@ -129,7 +133,11 @@ class PackagesFunctionsByType:
             for i in optShells:
                 control_center.add_opt_algo(i)
         else:
-            control_center.add_opt_algo(BFS_in_time, data_bundle={})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 1, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 2, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 3, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 4, "grid_limit": grid_limit})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         """
@@ -143,7 +151,7 @@ class PackagesFunctionsByType:
     @staticmethod
     def run_medium(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
-
+        grid_limit = 1000
         if initShells:
             for i in initShells:
                 control_center.add_init_algo(i)
@@ -153,19 +161,19 @@ class PackagesFunctionsByType:
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid",
                                                       "descending_order": True})
-            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+            """control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})"""
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
                                                       "descending_order": True})
-            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS"})
+            """control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS"})"""
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
                                                       "descending_order": True})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
-            for i in range(0, 25):
+            for i in range(0, 8):
                 control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 
@@ -173,7 +181,9 @@ class PackagesFunctionsByType:
             for i in optShells:
                 control_center.add_opt_algo(i)
         else:
-            control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 1250})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 1, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 2, "grid_limit": grid_limit})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         """
@@ -187,7 +197,7 @@ class PackagesFunctionsByType:
     @staticmethod
     def run_medium_large(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
-
+        grid_limit = 2000
         if initShells:
             for i in initShells:
                 control_center.add_init_algo(i)
@@ -201,13 +211,15 @@ class PackagesFunctionsByType:
                                          data_bundle={"sync_insertion": False, "secondary_order": ""})
             control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                          data_bundle={"sync_insertion": False, "secondary_order": "rand"})
-
+            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                         data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 
         if optShells:
             for i in optShells:
                 control_center.add_opt_algo(i)
         else:
-            control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 2000})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 1, "grid_limit": grid_limit})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         return (control_center.min_makespan, control_center.min_sum)
@@ -215,7 +227,7 @@ class PackagesFunctionsByType:
     @staticmethod
     def run_large(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
-
+        grid_limit = 5000
         if initShells:
             for i in initShells:
                 control_center.add_init_algo(i)
@@ -365,7 +377,7 @@ class WishList:
         pass
 
     @staticmethod
-    def farm_instances(package_type: WishListPackagesTypes, package_id: int, num_of_servers: int = 16):
+    def farm_instances(package_type: WishListPackagesTypes, package_id: int, num_of_servers: int = 17):
         package = InstancesPackage(package_type, package_id, num_of_servers)
         print("Start farming", str(len(package.instances_id)), package_type.name, "instances.")
         print(package.instances_id)
