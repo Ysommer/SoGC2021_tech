@@ -53,7 +53,7 @@ class BFS_in_time(OptimizationAlgo):
             results_f.close()
             inst_mins = results_json.get(instance_name, None)
             if inst_mins is not None:
-                lim = (inst_mins["min_makespan"] + 35)
+                lim = min((inst_mins["min_makespan"] + 35), self.max_grid_len)
                 self.max_grid_len = lim + 8 - (lim % 8)
         if self.max_grid_len != -1:
             self.solution.out["steps"] = self.solution.out["steps"][:self.max_grid_len]
