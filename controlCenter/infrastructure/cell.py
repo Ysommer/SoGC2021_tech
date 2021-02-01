@@ -9,7 +9,7 @@ class Cell:
         self.occupied = None                # -1 if obs [0, n] robot id, None if empty
         self.tail: (str, int) = ("", -1)    # (direction, turn_updated)
         self.extra_data = -1
-
+        self.last_step = -1
 
     def __eq__(self, other):
         assert isinstance(other, Cell)
@@ -60,6 +60,9 @@ class Cell:
         return EnterCellResult.SUCCESS
 
     def exit_cell(self, direction: str, current_turn: int):
+        if self.target_id not in [-1, self.occupied]:
+            self.last_step = current_turn
+
         self.occupied = None
         self.tail = (direction, current_turn)
 

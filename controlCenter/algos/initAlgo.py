@@ -93,9 +93,22 @@ class InitAlgo(abc.ABC):
         self.run_timer.end(True)
         self.solution.out["extra"]["arrival_order"] = self.arrived_order
         self.solution.out["extra"]["time_arrived"] = self.time_arrived
+        self.solution.out["extra"]["sum_per_robot"] = self.get_sum_per_robot()
+        self.solution.out["extra"]["last_step_on_target"] = self.get_last_step_by_target()
 
         return self.solution
 
+    def get_sum_per_robot(self):
+        out = []
+        for r in self.robots:
+            out.append(r.self_sum)
+        return out
+
+    def get_last_step_by_target(self):
+        out = []
+        for t in self.targets:
+            out.append(self.grid.get_cell((t[0], t[1])).last_step)
+        return out
 
     @staticmethod
     def move_robot_to_dir(robot_id: int, grid: Grid, direction: str, current_turn: int, solution: Solution) -> int:
