@@ -65,7 +65,7 @@ class IterSum(OptimizationAlgo):
         last_step_grid = {}
         sum_list = [0 for i in range(len(self.robots))]
         time_arrived = [0 for i in range(len(self.robots))]
-        boundaries = {"E": 0, "W": 10, "N": 10, "S": 10}
+        boundaries = {"E": 0, "W": 10, "N": 10, "S": 0}
         robot_pos = self.robots_pos
         t = 1
         for step in self.solution.out["steps"]:
@@ -82,6 +82,7 @@ class IterSum(OptimizationAlgo):
                 boundaries["W"] = max(boundaries["W"], new_pos[0])
                 boundaries["N"] = max(boundaries["N"], new_pos[1])
                 boundaries["S"] = min(boundaries["S"], new_pos[1])
+            t += 1
 
         arrival_order = sorted(range(len(self.time_arrived)), key=lambda x: self.time_arrived[x])
         last_step_on_target = [last_step_grid.get(tuple(self.targets[i]), -1) for i in range(len(self.robots))]
@@ -95,7 +96,7 @@ class IterSum(OptimizationAlgo):
         step = self.solution.out["steps"].get(self.time + self.offset, None)
         if step is None:
             return
-        for robot_id, direction in step:
+        for robot_id, direction in step.items():
             robot_id = int(robot_id)
             old_pos = self.robots_pos[robot_id]
             new_pos = sum_tuples(old_pos, directions_to_coords[direction])
@@ -105,7 +106,8 @@ class IterSum(OptimizationAlgo):
             self.sum_per_robot[robot_id] -= 1
 
             self.future_sum_per_robot[robot_id] += 1
-            self.future_last_step_grid[old_pos] = self.time - 1
+            if old_pos != tuple(self.targets[robot_id]):
+                self.future_last_step_grid[old_pos] = self.time - 1
             self.future_time_arrived[robot_id] = self.time
 
             if robot_id in self.to_improve:
@@ -137,7 +139,13 @@ class IterSum(OptimizationAlgo):
             astar_result = []  # (robot_id, blocking_targets)
             to_remove = []
             for robot_id in to_improve:
-                path, blocking_targets = astar()  # TODO
+                path, blocking_targets = Generator.calc_a_star_path_itersum(self.grid,
+                                                                            self.boundaries,
+                                                                            robot_id,
+                                                                            self.robots_pos[robot_id],
+                                                                            self.targets[robot_id],
+                                                                            self.sum_per_robot[robot_id] - 1,
+                                                                            self.target_dict)
                 if path is not None and len(path) < self.sum_per_robot[robot_id]:
                     can_improve[robot_id] = path
                     astar_result.append((robot_id, blocking_targets))

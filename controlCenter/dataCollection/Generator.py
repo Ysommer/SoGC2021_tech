@@ -634,11 +634,12 @@ class Generator:
                     print("_", end="\t")
 
             print(end="\n")
-    '''
+
     @staticmethod
     def calc_a_star_path_itersum(
             grid,
             boundaries,
+            robot_id,
             source_pos,
             dest_pos,
             sum_limit,
@@ -654,22 +655,27 @@ class Generator:
         close = {}
         parents = {source_pos: None}
 
-        g_val = 0
+        g_val = (0, 0)
         h_val = calc_configure_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
                                           calc_configure_value_params=calc_configure_value_params)
-        f_val = g_val + h_val
+        f_val = -g_val[0] + h_val
 
         h = [(f_val, g_val, source_pos)]
         open[source_pos] = (f_val, g_val)
         heapq.heapify(h)
 
-        def construct_path(parents: dict, pos_t: (int, int, int)) -> list:
+        def construct_path(parents: dict, pos: (int, int)) -> list:
             path = []
-            while parents[pos_t] is not None:
-                path.append(parents[pos_t])
-                pos_t = sub_tuples_with_time(pos_t, directions_to_coords_with_time[parents[pos_t]])
+            while parents[pos] is not None:
+                path.append(parents[pos])
+                pos = sub_tuples(pos, directions_to_coords[parents[pos]])
 
             return path[::-1]  # return reversed path
+
+        def check_move(robot_id, new_pos):
+            in_bounds = Generator.check_if_in_boundaries(new_pos, boundaries)
+            legal_move = in_bounds and grid.get(new_pos, robot_id) == robot_id
+            return legal_move
 
         while len(h) > 0:
             (f_val, g_val, pos) = heapq.heappop(h)
@@ -680,18 +686,34 @@ class Generator:
 
             if pos == dest_pos:
                 return construct_path(parents, pos)
+            if -g_val[0] == sum_limit:
+                continue
             preferred_direction_order = Generator.get_preferred_direction_order(pos)
             for direction in preferred_direction_order:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
-                if Generator.check_if_in_boundaries(next_pos, boundaries) \
-                        and check_move_func(next_pos, grid, check_move_params) \
-                        and grid.check_cell_for_a_star(next_pos, parent=direction, g_value=g_val + 1):
-                    next_g_val = g_val + 1
+                if check_move(robot_id, next_pos):
+                    on_target = -1 if target_to_robot_dict.get(next_pos, robot_id) is not robot_id else 0
+                    next_g_val = sum_tuples(g_val, (-1, on_target))
                     next_h_val = calc_configure_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
                                                            calc_configure_value_params=calc_configure_value_params)
-                    next_f_val = next_g_val + next_h_val
-                    heapq.heappush(h, (next_f_val, (-1) * next_g_val, next_pos))
+                    next_f_val = -next_g_val[0] + next_h_val
+                    heapq.heappush(h, (next_f_val, next_g_val, next_pos))
+                    if next_g_val > open[next_pos][1]:
+                        open[next_pos] = (next_f_val, next_g_val)
+                        heapq.heappush(h, (next_f_val, next_g_val, next_pos))
+                        parents[next_pos] = direction
+                    elif next_pos in close:
+                        if next_g_val > close[next_pos][1]:
+                            close.pop(next_pos)
+                            open[next_pos] = (next_f_val, next_g_val)
+                            heapq.heappush(h, (next_f_val, next_g_val, next_pos))
+                            parents[next_pos] = direction
+                    else:
+                        parents[next_pos] = direction
+                        open[next_pos] = (next_f_val, next_g_val)
+                        heapq.heappush(h, (next_f_val, next_g_val, next_pos))
+
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
         return None
-    '''
+
