@@ -9,10 +9,12 @@ class Robot:
         self.pos = pos
         self.target_pos = target_pos
         self.extra_data = extra_data
+        self.self_sum = 0
 
     def step(self, direction: str):
         assert(direction in directions_to_coords)
         self.pos = sum_tuples(directions_to_coords[direction], self.pos)
+        self.self_sum += 1
 
     def robot_arrived(self):
         return self.pos == self.target_pos
