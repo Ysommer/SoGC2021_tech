@@ -41,7 +41,7 @@ class Chill(InitAlgo):
 
         self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside", 0)
 
-        self.dynamic_percent_to_leave_inside = data_bundle.get("dynamic_percent_to_leave_inside", False)
+        self.dynamic_percent_to_leave_inside = data_bundle.get("dynamic_percent_to_leave_inside", True)
         self.lower_percent_to_leave_inside = data_bundle.get("lower_percent_to_leave_inside", 0)
         self.upper_percent_to_leave_inside = data_bundle.get("upper_percent_to_leave_inside", 100)
         self.binary_search_iteration = data_bundle.get("binary_search_iteration", 10)
