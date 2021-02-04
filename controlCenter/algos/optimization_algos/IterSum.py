@@ -32,19 +32,18 @@ class IterSum(OptimizationAlgo):
                          print_info,
                          data_bundle)
 
-        self.robots_pos =[self.robots[i].pos for i in range(len(self.robots))]
+        self.robots_pos = [self.robots[i].pos for i in range(len(self.robots))]
         self.grid = {self.robots_pos[i]: i for i in range(len(self.robots_pos))}
         for obs in obstacles:
             self.grid[tuple(obs)] = -1
 
-        self.last_step_grid = self.solution.out["extra"].get("last_step_grid", None)
-        self.sum_list = self.solution.out["extra"].get("sum_list", None)
+        self.last_step_on_target = self.solution.out["extra"].get("last_step_on_target", None)
+        self.sum_per_robot = self.solution.out["extra"].get("sum_per_robot", None)
         self.time_arrived = self.solution.out["extra"].get("time_arrived", None)
         self.arrival_order = solution.out["extra"].get("arrival_order", None)
-        if self.last_step_grid is None or self.sum_list is None or self.time_arrived or self.arrival_order is None:
-            self.last_step_grid, self.sum_list, self.time_arrived = self.calc_extra_stuff()
+        if self.last_step_on_target is None or self.sum_per_robot is None or self.time_arrived is None or self.arrival_order is None:
+            self.last_step_on_target, self.sum_per_robot, self.time_arrived, self.arrival_order = self.calc_extra_stuff()
 
-        self.target_last_step = [self.last_step_grid[self.robots[i].target_pos] for i in range(len(self.robots))]
         self.target_dict = {tuple(targets[i]): i for i in range(len(targets))}
 
         self.waiting_for_improvement = set(i for i in range(len(self.robots)))
@@ -55,6 +54,10 @@ class IterSum(OptimizationAlgo):
         self.time = 0
         self.offset = 0
         self.original_makespan = solution.out["makespan"]
+
+        self.future_sum_per_robot = [0 for i in range(len(self.robots))]
+        self.future_last_step_grid = {}
+        self.future_time_arrived = [0 for i in range(len(self.robots))]
 
     # calcs last_step_grid & sum_list & time_arrived & arrival_order
     def calc_extra_stuff(self) -> tuple:
@@ -74,7 +77,8 @@ class IterSum(OptimizationAlgo):
                 last_step_grid[old_pos] = t - 1
                 time_arrived[robot_id] = t
         arrival_order = sorted(range(len(self.time_arrived)), key=lambda x: self.time_arrived[x])
-        return last_step_grid, sum_list, time_arrived, arrival_order
+        last_step_on_target = [last_step_grid[self.targets[i]] for i in range(len(self.robots))]
+        return last_step_on_target, sum_list, time_arrived, arrival_order
 
     def step_grid(self):
         step = self.solution.out["steps"].get(self.time + self.offset, None)
@@ -87,13 +91,18 @@ class IterSum(OptimizationAlgo):
             self.grid.pop(old_pos)
             self.grid[new_pos] = robot_id
             self.robots_pos[robot_id] = new_pos
-            self.sum_list[robot_id] -= 1
+            self.sum_per_robot[robot_id] -= 1
+
+            self.future_sum_per_robot[robot_id] += 1
+            self.future_last_step_grid[old_pos] = self.time - 1
+            self.future_time_arrived[robot_id] = self.time
+
             if robot_id in self.to_improve:
-                if AStarHeuristics.manhattan_distance(new_pos, new_pos, (self.targets[robot_id])) <= self.sum_list[robot_id]:
+                if AStarHeuristics.manhattan_distance(new_pos, new_pos, (self.targets[robot_id])) <= self.sum_per_robot[robot_id]:
                     self.to_improve.remove(robot_id)
 
     def update_solution(self, robot_id, path):
-        t = self.time + self.offset + 1
+        t = self.time + self.offset
         to_insert = []
         for direction in path:
             to_insert.append({str(robot_id): direction})
@@ -101,6 +110,8 @@ class IterSum(OptimizationAlgo):
         self.offset += len(path)
         for i in range(self.time + self.offset + 1, self.time_arrived[robot_id] + 1):
             self.solution.out["steps"][i].pop(str(robot_id), None)
+        self.future_sum_per_robot[robot_id] = len(path)
+        self.future_time_arrived[robot_id] = t + len(path)
 
     def move_robot_to_target(self, robot_id):
         self.grid.pop(self.robots_pos[robot_id])
@@ -116,7 +127,7 @@ class IterSum(OptimizationAlgo):
             to_remove = []
             for robot_id in to_improve:
                 path, blocking_targets = astar()  # TODO
-                if path is not None and len(path) < self.sum_list[robot_id]:
+                if path is not None and len(path) < self.sum_per_robot[robot_id]:
                     can_improve[robot_id] = path
                     astar_result.append((robot_id, blocking_targets))
             astar_result.sort(reverse=True, key=lambda x: len(x[1]))
@@ -148,7 +159,7 @@ class IterSum(OptimizationAlgo):
                 self.arrival_order_index += 1
             # add robots who's target's last step == time-1
             for robot_id in self.waiting_for_improvement:
-                if self.target_last_step[robot_id] == self.time - 2:
+                if self.last_step_on_target[robot_id] == self.time - 1:
                     self.to_improve.append(robot_id)
             # improve robots - func returns list of (robot_id, path)
             improved = self.choose_and_improve()
@@ -158,3 +169,15 @@ class IterSum(OptimizationAlgo):
                 self.update_solution(robot_id, path)
             # update grid to next step
             self.step_grid()
+
+    def run(self):
+        self.work()
+        self.solution.clean_solution()
+        mysum = sum(x for x in self.future_sum_per_robot)
+        self.solution.put_result(SolutionResult.SUCCESS, len(self.solution.out["steps"]), mysum)
+        self.solution.out["extra"]["sum_per_robot"] = self.future_sum_per_robot
+        self.solution.out["extra"]["last_step_on_target"] = [self.future_last_step_grid[self.targets[i]] for i in range(len(self.robots))]
+        self.solution.out["extra"]["time_arrived"] = self.future_time_arrived
+        arrival_order = sorted(range(len(self.future_time_arrived)), key=lambda x: self.time_arrived[x])
+        self.solution.out["extra"]["arrival_order"] = arrival_order
+        return self.solution

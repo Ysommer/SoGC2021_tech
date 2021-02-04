@@ -13,16 +13,17 @@ from infrastructure.solGrid import SolGrid
 from utils import Timer
 
 
-
 class AStarHeuristics:
     @staticmethod
-    def manhattan_distance(pos: (int, int), source_pos: (int, int), dest_pos: (int, int), calc_configure_value_params=None) -> int:
-        manhattan_distance_val = abs(pos[0]-dest_pos[0]) + abs(pos[1]-dest_pos[1])
+    def manhattan_distance(pos: (int, int), source_pos: (int, int), dest_pos: (int, int),
+                           calc_configure_value_params=None) -> int:
+        manhattan_distance_val = abs(pos[0] - dest_pos[0]) + abs(pos[1] - dest_pos[1])
         return manhattan_distance_val
 
     @staticmethod
-    def manhattan_distance_with_time(pos: (int, int, int), source_pos: (int, int, int), dest_pos: (int, int, int), calc_h_value_params=None) -> int:
-        manhattan_distance_val = abs(pos[0]-dest_pos[0]) + abs(pos[1]-dest_pos[1]) + abs(pos[2] - dest_pos[2])
+    def manhattan_distance_with_time(pos: (int, int, int), source_pos: (int, int, int), dest_pos: (int, int, int),
+                                     calc_h_value_params=None) -> int:
+        manhattan_distance_val = abs(pos[0] - dest_pos[0]) + abs(pos[1] - dest_pos[1]) + abs(pos[2] - dest_pos[2])
         return manhattan_distance_val
 
 
@@ -63,6 +64,7 @@ class Generator:
     """
         A class with a generic functions
     """
+
     @staticmethod
     def check_if_in_boundaries(pos, boundaries):
         return boundaries["N"] >= pos[1] >= boundaries["S"] and \
@@ -71,9 +73,9 @@ class Generator:
     @staticmethod
     def get_valid_directions_matrix(source_pos, obstacles: set, x_axis_min_max: dict, margin: int = 3):
         def check_boundaries(pos):
-            for x in range((-1)*margin, margin+1):
-                if pos[0]+x in x_axis_min_max:
-                    if x_axis_min_max[pos[0]+x][0] - margin <= pos[1] <= x_axis_min_max[pos[0]+x][1] + margin:
+            for x in range((-1) * margin, margin + 1):
+                if pos[0] + x in x_axis_min_max:
+                    if x_axis_min_max[pos[0] + x][0] - margin <= pos[1] <= x_axis_min_max[pos[0] + x][1] + margin:
                         return True
             """
             for y in range((-1) * margin, margin):
@@ -83,7 +85,6 @@ class Generator:
                         return True"""
 
             return False
-
 
         matrix = dict()
 
@@ -193,7 +194,7 @@ class Generator:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if Generator.check_if_in_boundaries(next_pos, boundaries) \
                         and check_move_func(next_pos, grid, check_move_params) \
-                        and grid.check_cell_for_bfs(next_pos, parent=direction, dist= grid.get_cell_distance(pos) + 1):
+                        and grid.check_cell_for_bfs(next_pos, parent=direction, dist=grid.get_cell_distance(pos) + 1):
                     q.put(next_pos)
 
     @staticmethod
@@ -241,7 +242,6 @@ class Generator:
                         # Target
                         if grid.check_cell_for_bfs(next_pos, parent=direction, dist=grid.get_cell_distance(pos) + 1):
                             deq.append(next_pos)
-
 
     @staticmethod
     def get_next_move_by_dist_and_obs(
@@ -322,7 +322,7 @@ class Generator:
         g_val = 0
         h_val = calc_configure_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
                                           calc_configure_value_params=calc_configure_value_params)
-        f_val = g_val+h_val
+        f_val = g_val + h_val
 
         h = [(f_val, g_val, source_pos)]
         heapq.heapify(h)
@@ -344,7 +344,7 @@ class Generator:
                     next_h_val = calc_configure_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
                                                            calc_configure_value_params=calc_configure_value_params)
                     next_f_val = next_g_val + next_h_val
-                    heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos))
+                    heapq.heappush(h, (next_f_val, (-1) * next_g_val, next_pos))
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
         return None
@@ -363,7 +363,7 @@ class Generator:
             calc_h_value_params=None,
             check_move_func=None,
             check_move_params=None,
-            preferred_direction_order=None): #list of moves
+            preferred_direction_order=None):  # list of moves
 
         debug_info = False
         if debug_info:
@@ -380,7 +380,7 @@ class Generator:
         g_val = (0, 0)
         h_val = calc_h_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
                                   calc_h_value_params=calc_h_value_params)
-        f_val = -g_val[0]+h_val
+        f_val = -g_val[0] + h_val
 
         h = [(f_val, g_val, source_pos)]
         open[source_pos] = (f_val, g_val)
@@ -397,7 +397,8 @@ class Generator:
         def internal_check_move(next_pos: (int, int, int), direction: str) -> bool:
             can_make_it = dest_pos[2] - next_pos[2] >= \
                           AStarHeuristics.manhattan_distance((next_pos[:2]), (next_pos[:2]), (dest_pos[:2]))
-            legal_move = can_make_it and (direction == 'X' or check_move_func(robot_id, next_pos, direction, check_move_params))
+            legal_move = can_make_it and (
+                        direction == 'X' or check_move_func(robot_id, next_pos, direction, check_move_params))
             return legal_move
 
         if noise > 0:
@@ -423,11 +424,12 @@ class Generator:
                                    pushed_out_direction)]
                 else:
                     next_poses_timeless = valid_direction_matrix[pos[:2]]
-                    next_poses = [((np[0] + (pos[2]+1,),
-                                   np[1])) for np in next_poses_timeless]
+                    next_poses = [((np[0] + (pos[2] + 1,),
+                                    np[1])) for np in next_poses_timeless]
                 for next_pos_t, direction in next_poses:
                     if internal_check_move(next_pos_t, direction):
-                        next_g_val = sub_tuples(g_val, ((1, 0) if direction != 'X' else (0, 12 + noise*randint(0, 1))))
+                        next_g_val = sub_tuples(g_val,
+                                                ((1, 0) if direction != 'X' else (0, 12 + noise * randint(0, 1))))
                         next_h_val = calc_h_value_func(pos=next_pos_t, source_pos=next_pos_t, dest_pos=dest_pos,
                                                        calc_h_value_params=calc_h_value_params)
                         next_f_val = -next_g_val[0] + next_h_val
@@ -469,7 +471,7 @@ class Generator:
                                    pushed_out_direction)]
                 else:
                     next_poses_timeless = valid_direction_matrix[pos[:2]]
-                    next_poses = [((np[0] + (pos[2]+1,),
+                    next_poses = [((np[0] + (pos[2] + 1,),
                                     np[1])) for np in next_poses_timeless]
                 for next_pos_t, direction in next_poses:
                     if internal_check_move(next_pos_t, direction):
@@ -493,7 +495,6 @@ class Generator:
                             open[next_pos_t] = (next_f_val, next_g_val)
                             heapq.heappush(h, (next_f_val, next_g_val, next_pos_t))
 
-
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
         if debug_info:
             print("robot_id:", robot_id, "FAILED with close size: ", len(close))
@@ -513,7 +514,7 @@ class Generator:
             calc_h_value_params=None,
             check_move_func=None,
             check_move_params=None,
-            preferred_direction_order=None): #list of moves
+            preferred_direction_order=None):  # list of moves
 
         debug_info = False
         if debug_info:
@@ -530,7 +531,7 @@ class Generator:
         g_val = 0
         h_val = calc_h_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
                                   calc_h_value_params=calc_h_value_params)
-        f_val = g_val+h_val
+        f_val = g_val + h_val
 
         h = [(f_val, g_val, source_pos)]
         open[source_pos] = (f_val, g_val)
@@ -547,12 +548,13 @@ class Generator:
         def internal_check_move(next_pos: (int, int, int), direction: str) -> bool:
             can_make_it = dest_pos[2] - next_pos[2] >= \
                           AStarHeuristics.manhattan_distance((next_pos[:2]), (next_pos[:2]), (dest_pos[:2]))
-            legal_move = can_make_it and (direction == 'X' or check_move_func(robot_id, next_pos, direction, check_move_params))
+            legal_move = can_make_it and (
+                        direction == 'X' or check_move_func(robot_id, next_pos, direction, check_move_params))
             return legal_move
 
         while len(h) > 0:
             (f_val, g_val, pos) = heapq.heappop(h)
-            g_val = (-1)*g_val
+            g_val = (-1) * g_val
             if pos not in open or open[pos] != (f_val, g_val):
                 continue
             open.pop(pos)
@@ -573,7 +575,7 @@ class Generator:
                                pushed_out_direction)]
             else:
                 next_poses_timeless = valid_direction_matrix[pos[:2]]
-                next_poses = [((np[0] + (pos[2]+1,),
+                next_poses = [((np[0] + (pos[2] + 1,),
                                 np[1])) for np in next_poses_timeless]
             for next_pos_t, direction in next_poses:
                 if internal_check_move(next_pos_t, direction):
@@ -584,18 +586,18 @@ class Generator:
                     if next_pos_t in open:
                         if next_g_val < open[next_pos_t][1]:
                             open[next_pos_t] = (next_f_val, next_g_val)
-                            heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos_t))
+                            heapq.heappush(h, (next_f_val, (-1) * next_g_val, next_pos_t))
                             parents[next_pos_t] = direction
                     elif next_pos_t in close:
                         if next_g_val < close[next_pos_t][1]:
                             close.pop(next_pos_t)
                             open[next_pos_t] = (next_f_val, next_g_val)
-                            heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos_t))
+                            heapq.heappush(h, (next_f_val, (-1) * next_g_val, next_pos_t))
                             parents[next_pos_t] = direction
                     else:
                         parents[next_pos_t] = direction
                         open[next_pos_t] = (next_f_val, next_g_val)
-                        heapq.heappush(h, (next_f_val, (-1)*next_g_val, next_pos_t))
+                        heapq.heappush(h, (next_f_val, (-1) * next_g_val, next_pos_t))
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
         if debug_info:
@@ -614,13 +616,13 @@ class Generator:
             print(end="\n")
 
     @staticmethod
-    def print_bfs_map_copy_state(map: dict, size: int, blocked: set, to_follow = None):
+    def print_bfs_map_copy_state(map: dict, size: int, blocked: set, to_follow=None):
         if to_follow is None:
             to_follow = set()
         for y in range(size - 1, -1, -1):
             for x in range(size):
                 height = str(map.get((x, y), -1))
-                if len(height) == 1 :
+                if len(height) == 1:
                     height = " " + height
 
                 print(height, end=":")
@@ -632,3 +634,63 @@ class Generator:
                     print("_", end="\t")
 
             print(end="\n")
+
+    @staticmethod
+    def calc_a_star_path_itersum(
+            grid,
+            boundaries,
+            source_pos,
+            dest_pos,
+            sum_limit,
+            target_to_robot_dict,
+            blocked: set = None,
+            calc_configure_value_func=AStarHeuristics.manhattan_distance,
+            calc_configure_value_params=None):
+
+        if blocked is None:
+            blocked = set()
+
+        open = {}
+        close = {}
+        parents = {source_pos: None}
+
+        g_val = 0
+        h_val = calc_configure_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
+                                          calc_configure_value_params=calc_configure_value_params)
+        f_val = g_val + h_val
+
+        h = [(f_val, g_val, source_pos)]
+        open[source_pos] = (f_val, g_val)
+        heapq.heapify(h)
+
+        def construct_path(parents: dict, pos_t: (int, int, int)) -> list:
+            path = []
+            while parents[pos_t] is not None:
+                path.append(parents[pos_t])
+                pos_t = sub_tuples_with_time(pos_t, directions_to_coords_with_time[parents[pos_t]])
+
+            return path[::-1]  # return reversed path
+
+        while len(h) > 0:
+            (f_val, g_val, pos) = heapq.heappop(h)
+            if pos not in open or open[pos] != (f_val, g_val):
+                continue
+            open.pop(pos)
+            close[pos] = (f_val, g_val)
+
+            if pos == dest_pos:
+                return construct_path(parents, pos)
+            preferred_direction_order = Generator.get_preferred_direction_order(pos)
+            for direction in preferred_direction_order:
+                next_pos = sum_tuples(pos, directions_to_coords[direction])
+                if Generator.check_if_in_boundaries(next_pos, boundaries) \
+                        and check_move_func(next_pos, grid, check_move_params) \
+                        and grid.check_cell_for_a_star(next_pos, parent=direction, g_value=g_val + 1):
+                    next_g_val = g_val + 1
+                    next_h_val = calc_configure_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
+                                                           calc_configure_value_params=calc_configure_value_params)
+                    next_f_val = next_g_val + next_h_val
+                    heapq.heappush(h, (next_f_val, (-1) * next_g_val, next_pos))
+
+        # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
+        return None
