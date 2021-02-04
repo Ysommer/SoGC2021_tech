@@ -441,7 +441,6 @@ class Chill(InitAlgo):
         moved = 0
         moving_robot_id = self.get_inside_groups[self.current_group][self.current_robot]
         robot = self.robots[moving_robot_id]
-        print(moving_robot_id)
         # Making sure BFS list isn't empty nor None
 
         # assert self.bfs_path[moving_robot_id] is not None

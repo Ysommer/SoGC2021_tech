@@ -324,11 +324,11 @@ class Generator:
                                           calc_configure_value_params=calc_configure_value_params)
         f_val = g_val + h_val
 
-        h = [(f_val, g_val, source_pos)]
+        h = [(f_val, 0, g_val, source_pos)]
         heapq.heapify(h)
 
         while len(h) > 0:
-            (f_val, g_val, pos) = heapq.heappop(h)
+            (f_val, t_val, g_val, pos) = heapq.heappop(h)
             g_val *= (-1)
             if not grid.check_if_cell_is_open(pos, g_val):
                 continue
@@ -344,7 +344,10 @@ class Generator:
                     next_h_val = calc_configure_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
                                                            calc_configure_value_params=calc_configure_value_params)
                     next_f_val = next_g_val + next_h_val
-                    heapq.heappush(h, (next_f_val, (-1) * next_g_val, next_pos))
+                    next_t_val = t_val
+                    if grid.get_cell(next_pos).target_id != -1:
+                        next_t_val += 1
+                    heapq.heappush(h, (next_f_val, next_t_val, (-1) * next_g_val, next_pos))
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
         return None

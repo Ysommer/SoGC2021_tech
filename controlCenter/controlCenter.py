@@ -68,10 +68,17 @@ class ControlCenter:
         except:
             pass
 
-    def run_all(self, print_only_success=False, stop_on_success=False, validate=False):
+    def run_all(self, print_only_success=False, stop_on_success=False, validate=False, opt_iters=1):
         self.run_all_init_algos(print_only_success, stop_on_success, validate)
-        self.run_all_opt_algos(print_only_success, stop_on_success, validate)
-
+        if (opt_iters == 1):
+            self.run_all_opt_algos(print_only_success, stop_on_success, validate)
+        else:
+            for i in range(opt_iters):
+                prev_solutions = self.solutions.copy()
+                self.run_all_opt_algos(print_only_success, stop_on_success, validate)
+                self.solutions = list(set(self.solutions) - set(prev_solutions))
+                if len(self.solutions) == 0:
+                    break
         return  # self.analyze()
 
     def run_all_init_algos(self, print_only_success=False, stop_on_success=False, validate=False):
