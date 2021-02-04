@@ -664,13 +664,17 @@ class Generator:
         open[source_pos] = (f_val, g_val)
         heapq.heapify(h)
 
-        def construct_path(parents: dict, pos: (int, int)) -> list:
+        def construct_path(parents: dict, pos: (int, int)) -> tuple:
             path = []
+            targets_blocking = []
             while parents[pos] is not None:
                 path.append(parents[pos])
                 pos = sub_tuples(pos, directions_to_coords[parents[pos]])
+                target_stepped_on = target_to_robot_dict.get(pos, None)
+                if target_stepped_on is not None and target_stepped_on != robot_id:
+                    targets_blocking.append(target_stepped_on)
 
-            return path[::-1]  # return reversed path
+            return path[::-1], targets_blocking  # return reversed path
 
         def check_move(robot_id, new_pos):
             in_bounds = Generator.check_if_in_boundaries(new_pos, boundaries)
@@ -698,10 +702,11 @@ class Generator:
                                                            calc_configure_value_params=calc_configure_value_params)
                     next_f_val = -next_g_val[0] + next_h_val
                     heapq.heappush(h, (next_f_val, next_g_val, next_pos))
-                    if next_g_val > open[next_pos][1]:
-                        open[next_pos] = (next_f_val, next_g_val)
-                        heapq.heappush(h, (next_f_val, next_g_val, next_pos))
-                        parents[next_pos] = direction
+                    if next_pos in open:
+                        if next_g_val > open[next_pos][1]:
+                            open[next_pos] = (next_f_val, next_g_val)
+                            heapq.heappush(h, (next_f_val, next_g_val, next_pos))
+                            parents[next_pos] = direction
                     elif next_pos in close:
                         if next_g_val > close[next_pos][1]:
                             close.pop(next_pos)
@@ -715,5 +720,5 @@ class Generator:
 
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
-        return None
+        return None, None
 
