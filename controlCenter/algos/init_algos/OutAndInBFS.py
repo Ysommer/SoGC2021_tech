@@ -43,12 +43,6 @@ class OutAndInBFS(InitAlgo):
 
         self.start_fill_from = (0, 0)
         self.reverse_fill = True
-        self.boundaries = {
-            "N": self.grid.size + 2,
-            "E": self.grid.size + 2,
-            "W": -3,
-            "S": -3,
-        }
 
         if data_bundle is not None:
             if "start_fill_from" in data_bundle:
