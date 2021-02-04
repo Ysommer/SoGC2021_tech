@@ -127,6 +127,14 @@ class IterSum(OptimizationAlgo):
             self.solution.out["steps"][i].pop(str(robot_id), None)
         self.future_sum_per_robot[robot_id] += len(path)
         self.future_time_arrived[robot_id] = t + len(path)
+        pos = self.targets[robot_id]
+        t += len(path) - 1
+        for d in path[::-1]:
+            pos = sub_tuples(pos, directions_to_coords[d])
+            self.future_last_step_grid[pos] = t
+            t -= 1
+
+
 
     def move_robot_to_target(self, robot_id):
         self.grid.pop(self.robots_pos[robot_id])
