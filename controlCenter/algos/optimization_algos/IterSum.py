@@ -41,8 +41,9 @@ class IterSum(OptimizationAlgo):
         self.sum_per_robot = self.solution.out["extra"].get("sum_per_robot", None)
         self.time_arrived = self.solution.out["extra"].get("time_arrived", None)
         self.arrival_order = solution.out["extra"].get("arrival_order", None)
+        self.boundaries = solution.out["extra"].get("boundaries", None)
         if self.last_step_on_target is None or self.sum_per_robot is None or self.time_arrived is None or self.arrival_order is None:
-            self.last_step_on_target, self.sum_per_robot, self.time_arrived, self.arrival_order = self.calc_extra_stuff()
+            self.last_step_on_target, self.sum_per_robot, self.time_arrived, self.arrival_order, self.boundaries = self.calc_extra_stuff()
 
         self.target_dict = {tuple(targets[i]): i for i in range(len(targets))}
 
@@ -64,21 +65,31 @@ class IterSum(OptimizationAlgo):
         last_step_grid = {}
         sum_list = [0 for i in range(len(self.robots))]
         time_arrived = [0 for i in range(len(self.robots))]
-        arrival_order = []
+        boundaries = {"E": 0, "W": 10, "N": 10, "S": 10}
         robot_pos = self.robots_pos
         t = 1
         for step in self.solution.out["steps"]:
-            for robot_id, d in step:
+            for robot_id, d in step.items():
                 robot_id = int(robot_id)
                 old_pos = robot_pos[robot_id]
                 new_pos = sum_tuples(old_pos, directions_to_coords[d])
                 robot_pos[robot_id] = new_pos
                 sum_list[robot_id] += 1
-                last_step_grid[old_pos] = t - 1
+                if old_pos != tuple(self.targets[robot_id]):
+                    last_step_grid[old_pos] = t - 1
                 time_arrived[robot_id] = t
+                boundaries["E"] = min(boundaries["E"], new_pos[0])
+                boundaries["W"] = max(boundaries["W"], new_pos[0])
+                boundaries["N"] = max(boundaries["N"], new_pos[1])
+                boundaries["S"] = min(boundaries["S"], new_pos[1])
+
         arrival_order = sorted(range(len(self.time_arrived)), key=lambda x: self.time_arrived[x])
-        last_step_on_target = [last_step_grid[self.targets[i]] for i in range(len(self.robots))]
-        return last_step_on_target, sum_list, time_arrived, arrival_order
+        last_step_on_target = [last_step_grid.get(tuple(self.targets[i]), -1) for i in range(len(self.robots))]
+        boundaries["E"] -= 1
+        boundaries["W"] += 1
+        boundaries["N"] += 1
+        boundaries["S"] -= 1
+        return last_step_on_target, sum_list, time_arrived, arrival_order, boundaries
 
     def step_grid(self):
         step = self.solution.out["steps"].get(self.time + self.offset, None)
@@ -159,7 +170,7 @@ class IterSum(OptimizationAlgo):
                 self.arrival_order_index += 1
             # add robots who's target's last step == time-1
             for robot_id in self.waiting_for_improvement:
-                if self.last_step_on_target[robot_id] == self.time - 1:
+                if self.last_step_on_target[robot_id] <= self.time - 1:
                     self.to_improve.append(robot_id)
             # improve robots - func returns list of (robot_id, path)
             improved = self.choose_and_improve()
