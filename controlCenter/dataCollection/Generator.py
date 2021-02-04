@@ -634,7 +634,7 @@ class Generator:
                     print("_", end="\t")
 
             print(end="\n")
-
+    '''
     @staticmethod
     def calc_a_star_path_itersum(
             grid,
@@ -694,3 +694,4 @@ class Generator:
 
         # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
         return None
+    '''
