@@ -32,7 +32,7 @@ class WishListPackagesTypes(Enum):
 
 class PackagesFunctionsByType:
     @staticmethod
-    def get_function(package_type: WishListPackagesTypes):
+    def get_function(package_type: WishListPackagesTypes, focus_on_sum=False):
         functions = {
             WishListPackagesTypes.TINY.name: PackagesFunctionsByType.run_tiny,
             WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small,
@@ -41,10 +41,15 @@ class PackagesFunctionsByType:
             WishListPackagesTypes.LARGE.name: PackagesFunctionsByType.run_large,
             WishListPackagesTypes.HUGE.name: PackagesFunctionsByType.run_huge
         }
+        functions_s = {
+            WishListPackagesTypes.TINY.name: PackagesFunctionsByType.run_tiny_s,
+            WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small_s
+        }
 
-        if package_type.name in functions:
-            return functions[package_type.name]
-        return functions[WishListPackagesTypes.MEDIUM_LARGE.name]
+        if focus_on_sum:
+            return functions_s.get(package_type.name, functions_s[WishListPackagesTypes.TINY.name])
+
+        return functions[package_type.name]
 
     @staticmethod
     def init_control_center(instance: Instance) -> ControlCenter:
@@ -105,6 +110,41 @@ class PackagesFunctionsByType:
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
+    def run_tiny_s(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.95})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.9})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.85})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.8})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.75})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.7})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.65})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.6})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.55})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.5})
+
+        control_center.add_opt_algo(IterSum)
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=10)
+
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
     def run_small(instance: Instance, initShells: List[InitShell]=None, optShells: List[InitShell]=None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
         grid_limit = 300
@@ -150,6 +190,31 @@ class PackagesFunctionsByType:
             control_center.run_all_opt_algos()
             control_center.solutions = control_center.solutions[len_before:]
         """
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
+    def run_small_s(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.9})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.8})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.7})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.6})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.5})
+
+        control_center.add_opt_algo(IterSum)
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=7)
+
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
@@ -296,10 +361,10 @@ class InstancesPackage:
         for id in self.instances_id:
             self.instances.append(all_instances[id])
 
-    def run(self, initShells: List[InitShell]=None, optShells: List[InitShell]=None):
+    def run(self, initShells: List[InitShell]=None, optShells: List[InitShell]=None, focus_on_sum = False):
         for instance in self.instances:
             try:
-                self.results.append(PackagesFunctionsByType.get_function(self.package_type)(instance, initShells, optShells))
+                self.results.append(PackagesFunctionsByType.get_function(self.package_type, focus_on_sum)(instance, initShells, optShells))
             except Exception as e:
                 print(e)
                 traceback.print_exc()
@@ -388,6 +453,19 @@ class WishList:
 
         try:
             package.run()
+            package.print_results()
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+
+    @staticmethod
+    def farm_instances_s(package_type: WishListPackagesTypes, package_id: int, num_of_servers: int = 17):
+        package = InstancesPackage(package_type, package_id, num_of_servers)
+        print("Start farming", str(len(package.instances_id)), package_type.name, "instances (SUM).")
+        print(package.instances_id)
+
+        try:
+            package.run(focus_on_sum=True)
             package.print_results()
         except Exception as e:
             print(e)
