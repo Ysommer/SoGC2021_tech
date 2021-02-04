@@ -32,7 +32,7 @@ class WishListPackagesTypes(Enum):
 
 class PackagesFunctionsByType:
     @staticmethod
-    def get_function(package_type: WishListPackagesTypes, focus_on_sum = False):
+    def get_function(package_type: WishListPackagesTypes, focus_on_sum=False):
         functions = {
             WishListPackagesTypes.TINY.name: PackagesFunctionsByType.run_tiny,
             WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small,
@@ -46,11 +46,10 @@ class PackagesFunctionsByType:
             WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small_s
         }
 
-        if package_type.name in functions:
-            if focus_on_sum:
-                return functions_s[package_type.name]
-            return functions[package_type.name]
-        return functions_s[WishListPackagesTypes.TINY.name]
+        if focus_on_sum:
+            return functions_s.get(package_type.name, functions_s[WishListPackagesTypes.TINY.name])
+
+        return functions[package_type.name]
 
     @staticmethod
     def init_control_center(instance: Instance) -> ControlCenter:
@@ -466,7 +465,7 @@ class WishList:
         print(package.instances_id)
 
         try:
-            package.run()
+            package.run(focus_on_sum=True)
             package.print_results()
         except Exception as e:
             print(e)
