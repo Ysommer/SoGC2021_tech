@@ -33,12 +33,6 @@ class Chill(InitAlgo):
         if data_bundle is None:
             data_bundle = {}
 
-        self.boundaries = data_bundle.get("boundaries", {
-            "N": self.grid.size + 2,
-            "E": self.grid.size + 2,
-            "W": -3,
-            "S": -3,
-        })
         self.secondary_order = data_bundle.get("secondary_order", "")
         self.descending_order = data_bundle.get("descending_order", False)
 
@@ -319,7 +313,11 @@ class Chill(InitAlgo):
                     break
 
         if all_clear:
-            return 0
+            for i in range(len(self.robots)):
+                if self.q_by_robot_id[i] in [self.q_outside_in_side_road, self.q_outside_in_place_right, self.q_outside_in_place_left, self.q_outside_in_main_road]:
+                    moved += self.q_by_robot_id[i](self.robots[i])
+
+            return moved
 
         if robots_to_move is not None:
             for i in robots_to_move:
@@ -339,8 +337,10 @@ class Chill(InitAlgo):
         if moved > 0:
             return moved
 
-        for i in self.inside_group:
-            moved += self.q_by_robot_id[i](self.robots[i])
+        for i in range(len(self.robots)):
+            if self.q_by_robot_id[i] in [self.q_outside_in_side_road, self.q_outside_in_place_right,
+                                         self.q_outside_in_place_left, self.q_outside_in_main_road]:
+                moved += self.q_by_robot_id[i](self.robots[i])
         return moved
 
     def switch_phase_1_to_2(self):
@@ -354,6 +354,7 @@ class Chill(InitAlgo):
             sum = 0
             for robot_id in group:
                 robot = self.robots[robot_id]
+                blocked.remove(robot.pos)
                 self.bfs_path[robot_id] = Generator.calc_a_star_path(self.grid,
                                                                      self.boundaries,
                                                                      source_pos=robot.pos,
@@ -362,7 +363,8 @@ class Chill(InitAlgo):
                                                                      calc_configure_value_func=AStarHeuristics.manhattan_distance,
                                                                      check_move_func=CheckMoveFunction.check_free_from_obs)
 
-                assert self.bfs_path[robot_id] is not None, "switch_phase_1_to_2: robot" + str(robot)
+                if self.bfs_path[robot_id] is None:
+                    return -1
                 blocked.add(robot.target_pos)
                 sum += len(self.bfs_path[robot_id])
 
@@ -395,14 +397,18 @@ class Chill(InitAlgo):
         for group_id in range(len(self.get_inside_groups)):
             group = self.get_inside_groups[group_id]
             min_sum = -1
-            min_algo = algo_preference[0]
+            min_order = []
+
             for i in range(self.calcs_per_high):
-                # Clean blocked from current group
+                # Clean blocked from current group's targets
                 for robot_id in group:
                     try:
                         blocked.remove(self.robots[robot_id].target_pos)
                     except:
-                        break
+                        pass
+                # add blocked from current group
+                for robot_id in group:
+                    blocked.add(self.robots[robot_id].pos)
 
                 temp_algo = algo_preference[min(i, len(algo_preference) - 1)]
                 self.secondary_order = temp_algo[0]
@@ -410,19 +416,14 @@ class Chill(InitAlgo):
 
                 sort_group_by_extra_data(group)
                 temp_sum = get_group_sum(group, blocked)
+                if temp_sum == -1:
+                    continue
 
                 if temp_sum < min_sum or min_sum == -1:
                     min_sum = temp_sum
-                    min_algo = temp_algo
+                    min_order = group.copy()
 
-            self.get_inside_algos.append(min_algo)
-
-        # Sort the groups
-        for group_id in range(len(self.get_inside_groups)):
-            group = self.get_inside_groups[group_id]
-            self.secondary_order = self.get_inside_algos[group_id][0]
-            self.descending_order = self.get_inside_algos[group_id][1]
-            sort_group_by_extra_data(group)
+            self.get_inside_groups[group_id] = min_order
 
         # Calculate first BFS list
         robot_id = self.get_inside_groups[0][0]
@@ -440,11 +441,13 @@ class Chill(InitAlgo):
         moved = 0
         moving_robot_id = self.get_inside_groups[self.current_group][self.current_robot]
         robot = self.robots[moving_robot_id]
-
+        print(moving_robot_id)
         # Making sure BFS list isn't empty nor None
 
         # assert self.bfs_path[moving_robot_id] is not None
         if self.bfs_path[moving_robot_id] is None:
+            Generator.print_bfs_map_copy_state(self.bfs_map_copy, self.grid.size, set())
+            print(str(robot))
             return 0
 
         if InitAlgo.move_robot_to_dir(moving_robot_id, self.grid, self.bfs_path[moving_robot_id][0],
@@ -481,7 +484,6 @@ class Chill(InitAlgo):
                 if self.bfs_path[next_to_calc] is not None:
                     self.get_inside_groups[self.current_group][i] = self.get_inside_groups[self.current_group][self.current_robot]
                     self.get_inside_groups[self.current_group][self.current_robot] = next_to_calc
-
 
         return moved
 

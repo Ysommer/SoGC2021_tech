@@ -26,6 +26,13 @@ class InitAlgo(abc.ABC):
         self.arrived_order = []
         self.time_arrived = [-1] * len(self.robots)
 
+        self.boundaries = {
+            "N": self.grid.size + 2,
+            "E": self.grid.size + 2,
+            "W": -3,
+            "S": -3,
+        }
+
         self.force_stop = False
 
     @abc.abstractmethod
@@ -93,6 +100,7 @@ class InitAlgo(abc.ABC):
         self.run_timer.end(True)
         self.solution.out["extra"]["arrival_order"] = self.arrived_order
         self.solution.out["extra"]["time_arrived"] = self.time_arrived
+        self.solution.out["extra"]["boundaries"] = self.boundaries
         self.solution.out["extra"]["sum_per_robot"] = self.get_sum_per_robot()
         self.solution.out["extra"]["last_step_on_target"] = self.get_last_step_by_target()
 

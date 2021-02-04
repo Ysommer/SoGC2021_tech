@@ -619,8 +619,8 @@ class Generator:
     def print_bfs_map_copy_state(map: dict, size: int, blocked: set, to_follow=None):
         if to_follow is None:
             to_follow = set()
-        for y in range(size - 1, -1, -1):
-            for x in range(size):
+        for y in range(size, -2, -1):
+            for x in range(-1, size+1):
                 height = str(map.get((x, y), -1))
                 if len(height) == 1:
                     height = " " + height
