@@ -36,7 +36,7 @@ class Chill(InitAlgo):
         self.secondary_order = data_bundle.get("secondary_order", "")
         self.descending_order = data_bundle.get("descending_order", False)
 
-        self.break_time = data_bundle.get("break_time", 100)
+        self.break_time = data_bundle.get("break_time", 0)
         self.calcs_per_high = data_bundle.get("calcs_per_high", 10)
 
         self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside", 0)
