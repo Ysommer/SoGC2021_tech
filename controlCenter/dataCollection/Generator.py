@@ -658,7 +658,7 @@ class Generator:
         g_val = (0, 0)
         h_val = calc_configure_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
                                           calc_configure_value_params=calc_configure_value_params)
-        f_val = -g_val[0] + h_val
+        f_val = -g_val[1] + h_val
 
         h = [(f_val, g_val, source_pos)]
         open[source_pos] = (f_val, g_val)
@@ -690,17 +690,17 @@ class Generator:
 
             if pos == dest_pos:
                 return construct_path(parents, pos)
-            if -g_val[0] == sum_limit:
+            if -g_val[1] == sum_limit:
                 continue
             preferred_direction_order = Generator.get_preferred_direction_order(pos)
             for direction in preferred_direction_order:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if check_move(robot_id, next_pos):
                     on_target = -1 if target_to_robot_dict.get(next_pos, robot_id) is not robot_id else 0
-                    next_g_val = sum_tuples(g_val, (-1, on_target))
+                    next_g_val = sum_tuples(g_val, (on_target, -1))
                     next_h_val = calc_configure_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
                                                            calc_configure_value_params=calc_configure_value_params)
-                    next_f_val = -next_g_val[0] + next_h_val
+                    next_f_val = -next_g_val[1] + next_h_val
                     heapq.heappush(h, (next_f_val, next_g_val, next_pos))
                     if next_pos in open:
                         if next_g_val > open[next_pos][1]:

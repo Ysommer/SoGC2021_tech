@@ -123,7 +123,7 @@ class IterSum(OptimizationAlgo):
             to_insert.append({str(robot_id): direction})
         self.solution.out["steps"][t:t] = to_insert
         self.offset += len(path)
-        for i in range(t + len(path), self.time_arrived[robot_id] + self.offset + 1):
+        for i in range(t + len(path), min(self.time_arrived[robot_id] + self.offset + 1, len(self.solution.out["steps"]))):
             self.solution.out["steps"][i].pop(str(robot_id), None)
         self.future_sum_per_robot[robot_id] += len(path)
         self.future_time_arrived[robot_id] = t + len(path)
