@@ -47,5 +47,9 @@ except:
     pass
 
 for packageType in types_to_farm:
-    WishList.farm_instances_s(packageType, server_id, 17)
+    cmd = "python3.7 run-server-sum.py " + str(
+        packageType.value) + " " + str(
+        server_id) + " > ../out_files/sum_" + packageType.name + ".txt 2> ../out_files/sum_" + packageType.name + "_err.txt &"
+    print("cmd", cmd)
+    os.system(cmd)
 
