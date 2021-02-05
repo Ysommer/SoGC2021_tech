@@ -36,8 +36,8 @@ class IterSum(OptimizationAlgo):
             data_bundle = {}
         self.max_jump = data_bundle.get("max_jump", 1)
 
-        if self.solution.out["algo_name"].find("IterSum_IterSum") != -1:
-            self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_IterSum")]
+        if self.solution.out["algo_name"].find("IterSum__IterSum") != -1:
+            self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("__IterSum")]
 
         self.robots_pos = [self.robots[i].pos for i in range(len(self.robots))]
         self.grid = {self.robots_pos[i]: i for i in range(len(self.robots_pos))}

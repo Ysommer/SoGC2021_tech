@@ -188,8 +188,8 @@ class ControlCenter:
                 self.print_last_solution([sol_res])
                 return False
 
-        if solution.out["makespan"] <= sol_res.out["makespan"] and solution.out["sum"] <= sol_res.out["sum"]:
-            return False
+        # if solution.out["makespan"] <= sol_res.out["makespan"] and solution.out["sum"] <= sol_res.out["sum"]:
+          #  return False
 
         if auto_makespan and self.min_makespan < sol_res.out["makespan"]:
             return False
