@@ -28,7 +28,7 @@ class IterSum(OptimizationAlgo):
                          obstacles,
                          size,
                          preprocess,
-                         "IterSum" + name,
+                         "_IterSum" + name,
                          print_info,
                          data_bundle)
 
@@ -198,7 +198,7 @@ class IterSum(OptimizationAlgo):
             while len(self.waiting_for_improvement) > 0 and self.last_step_on_target[self.waiting_for_improvement[-1]] <= self.time-1:
                 self.to_improve.add(self.waiting_for_improvement.pop())
             # remove robots who arrived before current time
-            while self.time_arrived[self.arrival_order[self.arrival_order_index]] <= self.time:
+            while self.arrival_order_index < len(self.arrival_order) and self.time_arrived[self.arrival_order[self.arrival_order_index]] <= self.time:
                 self.to_improve.discard(self.arrival_order[self.arrival_order_index])
                 self.arrival_order_index += 1
             # improve robots - func returns list of (robot_id, path)
