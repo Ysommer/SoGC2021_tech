@@ -578,7 +578,6 @@ class WishList:
             ("dist_from_grid", True),
             ("rand", False)
         ]
-        algo_preference = algo_preference[first_algo:]
         grid_limits = {
             WishListPackagesTypes.TINY.name: 750,
             WishListPackagesTypes.SMALL.name: 1000,
@@ -598,7 +597,7 @@ class WishList:
         assert grid_limit != -1, "grid limit is -1"
 
         control_center = PackagesFunctionsByType.init_control_center(instance)
-        for j in range(number_of_inits_per_processor):
+        for j in range(first_algo, number_of_inits_per_processor + first_algo):
             if j%2:
                 control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1 - 0.05*j})
             else:
