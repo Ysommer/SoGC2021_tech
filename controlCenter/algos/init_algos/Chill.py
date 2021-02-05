@@ -36,12 +36,12 @@ class Chill(InitAlgo):
         self.secondary_order = data_bundle.get("secondary_order", "")
         self.descending_order = data_bundle.get("descending_order", False)
 
-        self.break_time = data_bundle.get("break_time", 100)
+        self.break_time = data_bundle.get("break_time", 0)
         self.calcs_per_high = data_bundle.get("calcs_per_high", 10)
 
         self.percent_to_leave_inside = data_bundle.get("percent_to_leave_inside", 0)
 
-        self.dynamic_percent_to_leave_inside = data_bundle.get("dynamic_percent_to_leave_inside", False)
+        self.dynamic_percent_to_leave_inside = data_bundle.get("dynamic_percent_to_leave_inside", True)
         self.lower_percent_to_leave_inside = data_bundle.get("lower_percent_to_leave_inside", 0)
         self.upper_percent_to_leave_inside = data_bundle.get("upper_percent_to_leave_inside", 100)
         self.binary_search_iteration = data_bundle.get("binary_search_iteration", 10)
@@ -70,8 +70,7 @@ class Chill(InitAlgo):
         self.inside_group_set = set()       # the positions of the inside group for bfs
         self.out_of_boundaries_permutation = []
         self.reaching_out_permutation = []
-        self.get_inside_algos = []
-        self.get_inside_groups = self.get_inside_groups = [[] for i in range(self.grid.size)]
+        self.get_inside_groups = [[] for i in range(self.grid.size)]
         self.bfs_path = [[] for i in self.robots]
         self.bfs_map_copy = None
         self.topo_map_copy = None
@@ -126,8 +125,8 @@ class Chill(InitAlgo):
     def set_inside_group(self):
         # Clear
         for i in range(len(self.robots)):
-            robot = self.robots[i]
             self.q_by_robot_id[i] = self.q_reaching_out
+            self.robots[i].extra_data = -1
 
         self.inside_group_set.clear()
 
@@ -240,13 +239,13 @@ class Chill(InitAlgo):
             moved += self.q_by_robot_id[i](self.robots[i])
             # Is this check necessary?
             if self.q_by_robot_id[i] == self.q_stuck:
-                return 0
+                assert 0, "robot " + str(self.robots[i]) + " is stuck"
 
         temp_permutation = []  # To delete the robots that went outside fast
         for i in self.reaching_out_permutation:
             moved += self.q_by_robot_id[i](self.robots[i])
             if self.q_by_robot_id[i] == self.q_stuck:
-                return 0
+                assert 0, "robot " + str(self.robots[i]) + " is stuck"
             if self.q_by_robot_id[i] == self.q_outside_in_main_road:
                 self.out_of_boundaries_permutation.append(i)
             else:
@@ -257,6 +256,8 @@ class Chill(InitAlgo):
         return moved
 
     def switch_phase_0_to_1(self):
+        assert len(self.reaching_out_permutation) == 0, "Not all robots got out"
+
         # Calc BFS map outside
         Generator.calc_bfs_map(grid=self.grid,
                                boundaries={
@@ -272,10 +273,10 @@ class Chill(InitAlgo):
         self.bfs_map_copy = self.grid.get_copy_bfs_map(False)
 
     def step_phase_1(self) -> int:
-        def find_next_robots_to_move_by_order(occupied_target) -> Union[list, None]:
+        def find_next_robots_to_move_by_order(occupied_target) -> Union[list, str]:
             out = []
             pos = occupied_target
-            while pos != None and self.bfs_map_copy[pos] > 0:
+            while self.bfs_map_copy.get(pos, -1) > 0:
                 out.append(self.grid.get_robot_id_by_pos(pos))
                 next_directions = Generator.get_next_move_by_dist_and_obs_from_bfs_map_copy(self.bfs_map_copy, pos)
 
@@ -287,60 +288,102 @@ class Chill(InitAlgo):
                         return out
 
                 pos = next_pos
-            return None
 
-        moved = 0
+            if self.bfs_map_copy.get(pos, -1) <= 0:
+                return self.robots[self.grid.get_robot_id_by_pos(pos)].extra_data
+
+            assert 0, "find_next_robots_to_move_by_order"
+
+        def move_robots_to_move(robots_to_move) -> int:
+            moved = 0
+            if robots_to_move in ["N", "E", "W", "S"]:
+                for i in range(len(self.robots)):
+                    robot = self.robots[i]
+                    if robot.extra_data == robots_to_move:
+                        if self.q_by_robot_id[i](robot):
+                            moved += 1
+                return moved
+
+            for i in robots_to_move:
+                robot = self.robots[i]
+                if self.q_by_robot_id[i](robot):
+                    moved += 1
+
+            return moved
+
         robots_to_move = None
         all_clear = True
-        for i in self.inside_group:
-            robot = self.robots[i]
-            if not CheckMoveFunction.cell_free_from_robots_and_obs(robot.target_pos, self.grid):
-                robots_to_move = find_next_robots_to_move_by_order(robot.target_pos)
-                all_clear = False
-                break
 
+        # First Check: all inside group's robot that are higher then their targets can move
         if all_clear:
             for i in self.inside_group:
                 robot = self.robots[i]
-                self.bfs_path[i] = Generator.calc_a_star_path(self.grid,
+                if self.q_by_robot_id[i] == self.q_stay_inside and self.topo_map_copy[robot.target_pos] <= \
+                        self.topo_map_copy[robot.pos]:
+                    robots_to_move = find_next_robots_to_move_by_order(robot.pos)
+                    all_clear = False
+                    break
+
+        # Second Check: all inside group's target are free
+        if all_clear:
+            for i in self.inside_group:
+                robot = self.robots[i]
+                if not CheckMoveFunction.cell_free_from_robots_and_obs(robot.target_pos, self.grid) and (not robot.robot_arrived()):
+                    robots_to_move = find_next_robots_to_move_by_order(robot.target_pos)
+                    all_clear = False
+                    break
+
+        # Third Check: all inside group's robots have a path to target
+        if all_clear:
+            for i in self.inside_group:
+                robot = self.robots[i]
+                self.bfs_path[i] = Generator.check_a_star_path_with_height(self.grid,
+                                                              self.topo_map_copy,
                                                               self.boundaries,
                                                               source_pos=robot.pos,
                                                               dest_pos=robot.target_pos,
                                                               calc_configure_value_func=AStarHeuristics.manhattan_distance,
                                                               check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
                 if self.bfs_path[i] is None:
+                    blocked = set()
+                    for i in self.out_of_boundaries_permutation:
+                        blocked.add(self.robots[i].pos)
+                    temp_path = Generator.check_a_star_path_with_height(self.grid,
+                                                              self.topo_map_copy,
+                                                              self.boundaries,
+                                                              source_pos=robot.pos,
+                                                              dest_pos=robot.target_pos,
+                                                              blocked=blocked,
+                                                              calc_configure_value_func=AStarHeuristics.manhattan_distance,
+                                                              check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs)
+
+                    assert temp_path is not None, "temp path is None"
+                    pos = robot.pos
+                    for d in temp_path:
+                        pos = sum_tuples(pos, directions_to_coords[d])
+                        if self.grid.has_robot(pos):
+                            robots_to_move = find_next_robots_to_move_by_order(pos)
+                            break
+
+                    assert robots_to_move is not None, "robots_to_move is None"
                     all_clear = False
                     break
 
+        # phase 1 done
         if all_clear:
-            for i in range(len(self.robots)):
-                if self.q_by_robot_id[i] in [self.q_outside_in_side_road, self.q_outside_in_place_right, self.q_outside_in_place_left, self.q_outside_in_main_road]:
-                    moved += self.q_by_robot_id[i](self.robots[i])
+            return 0
 
-            return moved
-
-        if robots_to_move is not None:
-            for i in robots_to_move:
-                robot = self.robots[i]
-                if self.q_by_robot_id[i](robot):
-                    moved += 1
-        else:
-            robots_to_move = []
-
-        for i in self.inside_group:
-            if i in robots_to_move:
-                continue
-            robot = self.robots[i]
-            if self.q_by_robot_id[i] == self.q_stay_inside and self.topo_map_copy[robot.target_pos] <= self.topo_map_copy[robot.pos]:
-                moved += self.q_by_robot_id[i](self.robots[i])
-
+        moved = move_robots_to_move(robots_to_move)
         if moved > 0:
             return moved
 
+        #assert 0
+        # If there are robots to move, but they can't be moved, move all the robots outside the grid.
         for i in range(len(self.robots)):
             if self.q_by_robot_id[i] in [self.q_outside_in_side_road, self.q_outside_in_place_right,
                                          self.q_outside_in_place_left, self.q_outside_in_main_road]:
                 moved += self.q_by_robot_id[i](self.robots[i])
+
         return moved
 
     def switch_phase_1_to_2(self):
@@ -355,7 +398,8 @@ class Chill(InitAlgo):
             for robot_id in group:
                 robot = self.robots[robot_id]
                 blocked.remove(robot.pos)
-                self.bfs_path[robot_id] = Generator.calc_a_star_path(self.grid,
+                self.bfs_path[robot_id] = Generator.check_a_star_path_with_height(self.grid,
+                                                                     self.topo_map_copy,
                                                                      self.boundaries,
                                                                      source_pos=robot.pos,
                                                                      dest_pos=robot.target_pos,
@@ -364,6 +408,8 @@ class Chill(InitAlgo):
                                                                      check_move_func=CheckMoveFunction.check_free_from_obs)
 
                 if self.bfs_path[robot_id] is None:
+                    print("self.bfs_path[robot_id] is None", str(robot))
+                    self.force_stop = True
                     return -1
                 blocked.add(robot.target_pos)
                 sum += len(self.bfs_path[robot_id])
@@ -393,6 +439,9 @@ class Chill(InitAlgo):
         ]
 
         blocked = set()
+
+        for r in self.robots:
+            blocked.add(r.pos)
 
         for group_id in range(len(self.get_inside_groups)):
             group = self.get_inside_groups[group_id]
@@ -441,19 +490,21 @@ class Chill(InitAlgo):
         moved = 0
         moving_robot_id = self.get_inside_groups[self.current_group][self.current_robot]
         robot = self.robots[moving_robot_id]
-        print(moving_robot_id)
         # Making sure BFS list isn't empty nor None
 
         # assert self.bfs_path[moving_robot_id] is not None
         if self.bfs_path[moving_robot_id] is None:
             Generator.print_bfs_map_copy_state(self.bfs_map_copy, self.grid.size, set())
-            print(str(robot))
+            print("step_phase_2", str(robot))
             return 0
 
         if InitAlgo.move_robot_to_dir(moving_robot_id, self.grid, self.bfs_path[moving_robot_id][0],
                                       self.current_turn, self.solution):
             self.bfs_path[moving_robot_id].popleft()
             moved = 1
+        else:
+            print("step_phase_2", str(robot), "dir:", self.bfs_path[moving_robot_id][0])
+            return 0
 
         if robot.robot_arrived():
 
@@ -481,7 +532,9 @@ class Chill(InitAlgo):
                                                                      calc_configure_value_func=AStarHeuristics.manhattan_distance,
                                                                      check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
 
-                if self.bfs_path[next_to_calc] is not None:
+                if self.bfs_path[next_to_calc] is None:
+                    print("step_phase_2 Calc the next possible BFS: ", str(next_robot))
+                    return 0
                     self.get_inside_groups[self.current_group][i] = self.get_inside_groups[self.current_group][self.current_robot]
                     self.get_inside_groups[self.current_group][self.current_robot] = next_to_calc
 
@@ -627,7 +680,6 @@ class Chill(InitAlgo):
         # Set secondary order
         if extra_data == -1:
             extra_data = self.topo_map_copy[robot.target_pos]
-
 
         if robot.robot_id in self.inside_group:
             extra_data = (extra_data, 0)
