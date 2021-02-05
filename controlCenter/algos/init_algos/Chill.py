@@ -85,6 +85,7 @@ class Chill(InitAlgo):
         if self.dynamic_percent_to_leave_inside:
             self.percent_to_leave_inside = self.binary_search_for_best_percent_to_leave_inside()
             if self.percent_to_leave_inside == -1:
+                print("percent_to_leave_inside == -1")
                 self.force_stop = True
                 return
             self.percent_to_leave_inside = int(self.factor_on_binary_search_result * self.percent_to_leave_inside)
@@ -92,6 +93,7 @@ class Chill(InitAlgo):
 
         self.set_inside_group()
         if not self.check_for_solution():
+            print("No solution")
             self.force_stop = True
             return
 
@@ -337,17 +339,26 @@ class Chill(InitAlgo):
         if all_clear:
             for i in self.inside_group:
                 robot = self.robots[i]
+                blocked = set()
+                for temp_robot in self.robots:
+                    if self.topo_map_copy[robot.target_pos] >= self.topo_map_copy[temp_robot.target_pos]:
+                        blocked.add(temp_robot.pos)
+                # Try to find any path without step on any robot with a target height lower then itself
                 self.bfs_path[i] = Generator.check_a_star_path_with_height(self.grid,
                                                               self.topo_map_copy,
                                                               self.boundaries,
                                                               source_pos=robot.pos,
                                                               dest_pos=robot.target_pos,
+                                                              blocked=blocked,
                                                               calc_configure_value_func=AStarHeuristics.manhattan_distance,
-                                                              check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
+                                                              check_move_func=CheckMoveFunction.cell_free_from_robots_on_target_and_obs)
+
+                # Try to find any path without step on any robot that already in place
                 if self.bfs_path[i] is None:
-                    blocked = set()
-                    for i in self.out_of_boundaries_permutation:
-                        blocked.add(self.robots[i].pos)
+                    blocked.clear()
+                    for temp_robot in self.robots:
+                        if self.q_by_robot_id[temp_robot.robot_id] in [self.q_outside_in_place_left, self.q_outside_in_place_right]:
+                            blocked.add(temp_robot.pos)
                     temp_path = Generator.check_a_star_path_with_height(self.grid,
                                                               self.topo_map_copy,
                                                               self.boundaries,
@@ -377,12 +388,12 @@ class Chill(InitAlgo):
         if moved > 0:
             return moved
 
-        #assert 0
-        # If there are robots to move, but they can't be moved, move all the robots outside the grid.
+        assert 0
+        """# If there are robots to move, but they can't be moved, move all the robots outside the grid.
         for i in range(len(self.robots)):
             if self.q_by_robot_id[i] in [self.q_outside_in_side_road, self.q_outside_in_place_right,
                                          self.q_outside_in_place_left, self.q_outside_in_main_road]:
-                moved += self.q_by_robot_id[i](self.robots[i])
+                moved += self.q_by_robot_id[i](self.robots[i])"""
 
         return moved
 
@@ -521,22 +532,18 @@ class Chill(InitAlgo):
             if self.current_group == len(self.get_inside_groups):
                 return moved
 
-            # Calc the next possible BFS
-            for i in range(self.current_robot, len(self.get_inside_groups[self.current_group])):
-                next_to_calc = self.get_inside_groups[self.current_group][i]
-                next_robot = self.robots[next_to_calc]
-                self.bfs_path[next_to_calc] = Generator.calc_a_star_path(self.grid,
+            next_to_calc = self.get_inside_groups[self.current_group][self.current_robot]
+            next_robot = self.robots[next_to_calc]
+            self.bfs_path[next_to_calc] = Generator.calc_a_star_path(self.grid,
                                                                      self.boundaries,
                                                                      source_pos=next_robot.pos,
                                                                      dest_pos=next_robot.target_pos,
                                                                      calc_configure_value_func=AStarHeuristics.manhattan_distance,
                                                                      check_move_func=CheckMoveFunction.cell_free_from_robots_and_obs)
 
-                if self.bfs_path[next_to_calc] is None:
-                    print("step_phase_2 Calc the next possible BFS: ", str(next_robot))
-                    return 0
-                    self.get_inside_groups[self.current_group][i] = self.get_inside_groups[self.current_group][self.current_robot]
-                    self.get_inside_groups[self.current_group][self.current_robot] = next_to_calc
+            if self.bfs_path[next_to_calc] is None:
+                print("step_phase_2 Calc the next possible BFS: ", str(next_robot))
+                return 0
 
         return moved
 
