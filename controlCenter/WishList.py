@@ -43,7 +43,11 @@ class PackagesFunctionsByType:
         }
         functions_s = {
             WishListPackagesTypes.TINY.name: PackagesFunctionsByType.run_tiny_s,
-            WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small_s
+            WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small_s,
+            WishListPackagesTypes.MEDIUM.name: PackagesFunctionsByType.run_medium_s,
+            WishListPackagesTypes.MEDIUM_LARGE.name: PackagesFunctionsByType.run_medium_large_s,
+            WishListPackagesTypes.LARGE.name: PackagesFunctionsByType.run_large_s,
+            WishListPackagesTypes.HUGE.name: PackagesFunctionsByType.run_huge_s
         }
 
         if focus_on_sum:
@@ -115,32 +119,13 @@ class PackagesFunctionsByType:
         control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                      data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
 
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.95})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.9})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.85})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.8})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.75})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.7})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.65})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.6})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.55})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.5})
+        for i in range(30):
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.03*i})
 
-        control_center.add_opt_algo(IterSum)
+        control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 1})
 
-        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=10)
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=3)
 
         return (control_center.min_makespan, control_center.min_sum)
 
@@ -198,22 +183,13 @@ class PackagesFunctionsByType:
         control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                      data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
 
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.9})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.8})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.7})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.6})
-        control_center.add_init_algo(Chill, print_info=False,
-                                         data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 0.5})
+        for i in range(10):
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i})
 
-        control_center.add_opt_algo(IterSum)
+        control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 16})
 
-        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=7)
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=3)
 
         return (control_center.min_makespan, control_center.min_sum)
 
@@ -264,6 +240,22 @@ class PackagesFunctionsByType:
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
+    def run_medium_s(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+
+        for i in range(10):
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i})
+
+        control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 64})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=2)
+
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
     def run_medium_large(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
         grid_limit = 2000
@@ -294,6 +286,22 @@ class PackagesFunctionsByType:
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
+    def run_medium_large_s(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+
+        for i in range(10):
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i})
+
+        control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 128})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=2)
+
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
     def run_large(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
         grid_limit = 5000
@@ -314,6 +322,22 @@ class PackagesFunctionsByType:
             control_center.add_opt_algo(BFS_in_time, data_bundle={"grid_limit": 5000})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
+    def run_large_s(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+
+        for i in range(7):
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.07*i})
+
+        control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 256})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=1)
+
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
@@ -339,6 +363,23 @@ class PackagesFunctionsByType:
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
+    def run_huge_s(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+
+        for i in range(5):
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 20, "factor_on_binary_search_result": 1 - 0.09*i})
+
+        control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 512})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=1)
+
+        return (control_center.min_makespan, control_center.min_sum)
+
 
 
 class InstancesPackage:

@@ -353,6 +353,64 @@ class Generator:
         return None
 
     @staticmethod
+    def check_a_star_path_with_height(
+            grid: Grid,
+            topo_map: dict,
+            boundaries,
+            source_pos,
+            dest_pos,
+            blocked: set = None,
+            calc_configure_value_func=AStarHeuristics.manhattan_distance,
+            calc_configure_value_params=None,
+            check_move_func=CheckMoveFunction.check_free_from_obs,
+            check_move_params=None) -> deque:
+        assert topo_map[dest_pos] > topo_map.get(source_pos, -1), "dest:" + str(topo_map[dest_pos]) + " source:" + str(topo_map[source_pos])
+
+        if blocked is None:
+            blocked = set()
+
+        q = queue.Queue()
+        q.put(source_pos)
+        grid.start_bfs(q, is_a_star=True)
+
+        for pos in blocked:
+            grid.check_cell_for_a_star(pos, parent="", g_value=0)
+
+        g_val = 0
+        h_val = calc_configure_value_func(pos=source_pos, source_pos=source_pos, dest_pos=dest_pos,
+                                          calc_configure_value_params=calc_configure_value_params)
+        f_val = g_val + h_val
+
+        h = [(f_val, 0, g_val, source_pos)]
+        heapq.heapify(h)
+
+        while len(h) > 0:
+            (f_val, t_val, g_val, pos) = heapq.heappop(h)
+            g_val *= (-1)
+            if not grid.check_if_cell_is_open(pos, g_val):
+                continue
+            if pos == dest_pos:
+                return Generator.construct_path(grid, pos)
+            preferred_direction_order = Generator.get_preferred_direction_order(pos)
+            for direction in preferred_direction_order:
+                next_pos = sum_tuples(pos, directions_to_coords[direction])
+                if Generator.check_if_in_boundaries(next_pos, boundaries) \
+                        and check_move_func(next_pos, grid, check_move_params) \
+                        and grid.check_cell_for_a_star(next_pos, parent=direction, g_value=g_val + 1)\
+                        and (dest_pos == next_pos or topo_map[dest_pos] > topo_map.get(next_pos, -1)):
+                    next_g_val = g_val + 1
+                    next_h_val = calc_configure_value_func(pos=next_pos, source_pos=source_pos, dest_pos=dest_pos,
+                                                           calc_configure_value_params=calc_configure_value_params)
+                    next_f_val = next_g_val + next_h_val
+                    next_t_val = t_val
+                    if grid.get_cell(next_pos).target_id != -1:
+                        next_t_val += 1
+                    heapq.heappush(h, (next_f_val, next_t_val, (-1) * next_g_val, next_pos))
+
+        # print("calc_a_star_path: Couldn't find a from", str(source_pos), "to", str(dest_pos))
+        return None
+
+    @staticmethod
     def calc_a_star_path_in_time(
             grid: SolGrid,
             valid_direction_matrix,
