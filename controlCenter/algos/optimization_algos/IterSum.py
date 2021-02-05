@@ -45,7 +45,7 @@ class IterSum(OptimizationAlgo):
         while self.solution.out["algo_name"].find("IterSum_IterSum") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_IterSum_")]
 
-        while self.solution.out["algo_name"].find("IterSum_IterSum_") != -1:
+        while self.solution.out["algo_name"].find("IterSum_") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_IterSum_")]
 
         if self.solution.out["extra"].get("IterSum_runs", None) is not None:
