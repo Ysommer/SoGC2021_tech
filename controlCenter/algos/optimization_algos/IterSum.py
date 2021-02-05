@@ -6,9 +6,8 @@ from algos.optimizationAlgo import OptimizationAlgo
 from solution.solution import Solution
 from dataCollection.Generator import *
 from defines import *
+import time as ttt
 from copy import copy
-import time
-import json
 
 
 class IterSum(OptimizationAlgo):
@@ -33,10 +32,19 @@ class IterSum(OptimizationAlgo):
                          print_info,
                          data_bundle)
 
+        if data_bundle is None:
+            data_bundle = {}
+        self.max_jump = data_bundle.get("max_jump", 1)
+
+        if self.solution.out["algo_name"].find("IterSum_IterSum") != -1:
+            self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_IterSum")]
+
         self.robots_pos = [self.robots[i].pos for i in range(len(self.robots))]
         self.grid = {self.robots_pos[i]: i for i in range(len(self.robots_pos))}
+        self.blocked_grid = {}
         for obs in obstacles:
             self.grid[tuple(obs)] = -1
+            self.blocked_grid[tuple(obs)] = -1
 
         self.last_step_on_target = self.solution.out["extra"].get("last_step_on_target", None)
         self.sum_per_robot = self.solution.out["extra"].get("sum_per_robot", None)
@@ -49,8 +57,8 @@ class IterSum(OptimizationAlgo):
 
         self.target_dict = {tuple(targets[i]): i for i in range(len(targets))}
 
-        self.waiting_for_improvement = set(i for i in range(len(self.robots)))
-        self.to_improve = []
+        self.waiting_for_improvement = sorted([i for i in range(len(self.robots))], key=lambda x: self.last_step_on_target[x], reverse=True)
+        self.to_improve = set()
         self.improved = []
         self.arrival_order_index = 0
 
@@ -96,6 +104,7 @@ class IterSum(OptimizationAlgo):
 
     def step_grid(self):
         t = self.time + self.offset
+        robot_reached_target = False
         step = self.solution.out["steps"][t]
         for robot_id, direction in step.items():
             robot_id = int(robot_id)
@@ -112,9 +121,11 @@ class IterSum(OptimizationAlgo):
                 self.future_last_step_grid[old_pos] = t
             self.future_time_arrived[robot_id] = t + 1
 
-            if robot_id in self.to_improve:
-                if AStarHeuristics.manhattan_distance(new_pos, new_pos, (self.targets[robot_id])) >= self.sum_per_robot[robot_id]:
-                    self.to_improve.remove(robot_id)
+            if new_pos == self.targets[robot_id] and self.time - 1 <= self.time_arrived[robot_id] <= self.time + 1:
+                self.blocked_grid[self.targets[robot_id]] = robot_id
+                robot_reached_target = True
+
+        return robot_reached_target
 
     def update_solution(self, robot_id, path):
         t = self.time + self.offset
@@ -134,15 +145,13 @@ class IterSum(OptimizationAlgo):
             self.future_last_step_grid[pos] = t
             t -= 1
 
-
-
     def move_robot_to_target(self, robot_id):
         self.grid.pop(self.robots_pos[robot_id])
         self.grid[tuple(self.targets[robot_id])] = robot_id
         self.robots_pos[robot_id] = self.targets[robot_id]
 
     def choose_and_improve(self) -> dict:
-        to_improve = self.to_improve.copy()
+        to_improve = list(self.to_improve.copy())
         improved = {}  # robot_id: path
         while len(to_improve) > 0:
             can_improve = {}  # robot_id: path
@@ -182,29 +191,59 @@ class IterSum(OptimizationAlgo):
         return improved
 
     def work(self):
+        time_jump = 1
+        last_print_index = -1
         while self.time < self.original_makespan:
-            # remove robots who arrived at current time
-            while self.time_arrived[self.arrival_order[self.arrival_order_index]] == self.time:
-                if self.arrival_order[self.arrival_order_index] in self.to_improve:
-                    self.to_improve.remove(self.arrival_order[self.arrival_order_index])
+            # add robots who's target's last step passed
+            while len(self.waiting_for_improvement) > 0 and self.last_step_on_target[self.waiting_for_improvement[-1]] <= self.time-1:
+                self.to_improve.add(self.waiting_for_improvement.pop())
+            # remove robots who arrived before current time
+            while self.time_arrived[self.arrival_order[self.arrival_order_index]] <= self.time:
+                self.to_improve.discard(self.arrival_order[self.arrival_order_index])
                 self.arrival_order_index += 1
-            # add robots who's target's last step == time-1
-            to_remove = []
-            for robot_id in self.waiting_for_improvement:
-                if self.last_step_on_target[robot_id] <= self.time - 1:
-                    self.to_improve.append(robot_id)
-                    to_remove.append(robot_id)
-            for robot_id in to_remove:
-                self.waiting_for_improvement.remove(robot_id)
             # improve robots - func returns list of (robot_id, path)
             improved = self.choose_and_improve()
+            # if len(improved) > 0:
+            #    print("num_improved:", len(improved), "out of", len(self.to_improve), "time is", self.time)
             for robot_id, path in improved.items():
                 self.to_improve.remove(robot_id)
                 self.improved.append(robot_id)
                 self.update_solution(robot_id, path)
+            if len(improved) == 0 and time_jump < 32 and self.time > 10:
+                time_jump *= 2
+            else:
+                time_jump = max(1, time_jump//4)
+
+            if self.time // 1000 > last_print_index:
+                last_print_index += 1
+                percent = int((self.time / self.original_makespan) * 100)
+                print(self.time, "makespan done,", self.original_makespan - self.time, "remaining (", percent, "% )", ttt.strftime("%d/%m/%Y-%H:%M:%S"))
+
             # update grid to next step
-            self.step_grid()
-            self.time += 1
+            if self.time + time_jump >= self.original_makespan:
+                break
+
+            clean = False
+            for i in range(time_jump):
+                if self.step_grid():
+                    clean = True
+                self.time += 1
+            if clean and self.time > 50:
+                to_remove = []
+                for r in self.to_improve:
+                    if Generator.calc_a_star_path_itersum(self.grid,
+                                                          self.boundaries,
+                                                          r,
+                                                          self.robots_pos[r],
+                                                          self.targets[r],
+                                                          self.sum_per_robot[r]-1,
+                                                          self.target_dict)[0] is None:
+                        to_remove.append(r)
+                for r in to_remove:
+                    self.to_improve.remove(r)
+
+        print("all done! ( 100 % )", ttt.strftime("%d/%m/%Y-%H:%M:%S"))
+
 
     def run(self):
         self.work()
