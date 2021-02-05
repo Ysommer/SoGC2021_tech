@@ -36,6 +36,7 @@ class IterSum(OptimizationAlgo):
             data_bundle = {}
         self.max_jump = data_bundle.get("max_jump", 1)
 
+        '''
         while self.solution.out["algo_name"].find("IterSum__IterSum") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_IterSum_")]
 
@@ -44,6 +45,7 @@ class IterSum(OptimizationAlgo):
 
         while self.solution.out["algo_name"].find("IterSum_IterSum") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_IterSum_")]
+        '''
 
         while self.solution.out["algo_name"].find("IterSum_") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_IterSum_")]
