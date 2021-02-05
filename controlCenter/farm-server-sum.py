@@ -32,14 +32,30 @@ if len(sys.argv) > 1:
     server_id = sys.argv[1]
 
 if server_id == -1:
-    cmd = "ip route get 1 | awk '{print $(NF-2);exit}'"
-    result = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    try:
+        cmd = "ip route get 1 | awk '{print $(NF-2);exit}'"
+        result = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
-    ip = result.stdout.readlines()[0].decode('UTF-8')[:-1]
-    print("ip", ip)
-    server_id = servers_ips[ip]
+        ip = result.stdout.readlines()[0].decode('UTF-8')[:-1]
+        print("ip", ip)
+        server_id = servers_ips[ip]
+    except:
+        try:
+            cmd = "ip route get 1 | awk '{print $(NF-1);exit}'"
+            result = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
-types_to_farm = [WishListPackagesTypes.TINY, WishListPackagesTypes.SMALL]
+            ip = result.stdout.readlines()[0].decode('UTF-8')[:-1]
+            print("ip", ip)
+            server_id = servers_ips[ip]
+        except:
+            cmd = "ip route get 1 | awk '{print $(NF);exit}'"
+            result = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+
+            ip = result.stdout.readlines()[0].decode('UTF-8')[:-1]
+            print("ip", ip)
+            server_id = servers_ips[ip]
+
+types_to_farm = [WishListPackagesTypes.TINY, WishListPackagesTypes.SMALL, WishListPackagesTypes.MEDIUM, WishListPackagesTypes.MEDIUM_LARGE, WishListPackagesTypes.HUGE]
 
 try:
     os.mkdir("../out_files/")

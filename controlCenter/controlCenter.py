@@ -68,17 +68,23 @@ class ControlCenter:
         except:
             pass
 
-    def run_all(self, print_only_success=False, stop_on_success=False, validate=False, opt_iters=1):
+    def run_all(self, print_only_success=False, stop_on_success=False, validate=False, opt_iters=1, pick_best_sum=-1):
         self.run_all_init_algos(print_only_success, stop_on_success, validate)
         if (opt_iters == 1):
             self.run_all_opt_algos(print_only_success, stop_on_success, validate)
         else:
             for i in range(opt_iters):
+                if len(self.solutions) > pick_best_sum != -1:
+                    self.solutions.sort(key=lambda sol: sol.out["sum"])
+                    self.solutions = self.solutions[:pick_best_sum]
+
                 prev_solutions = self.solutions.copy()
                 self.run_all_opt_algos(print_only_success, stop_on_success, validate)
                 self.solutions = list(set(self.solutions) - set(prev_solutions))
                 if len(self.solutions) == 0:
                     break
+
+
         return  # self.analyze()
 
     def run_all_init_algos(self, print_only_success=False, stop_on_success=False, validate=False):
