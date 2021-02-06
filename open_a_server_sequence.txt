@@ -20,6 +20,7 @@ jobs
 ps -o pid,user,%mem,command ax | sort -b -k3 -r | grep python3.7
 cat /proc/meminfo | grep Active
 
+cat ../out_files/*_mixed.txt
 cat ../out_files/sum_*.txt
 cat ../out_files/SUM_*.txt
 
