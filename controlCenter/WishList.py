@@ -569,9 +569,14 @@ class WishList:
         for i in range(number_of_processors):
             control_center = PackagesFunctionsByType.init_control_center(instance)
             for j in range(number_of_inits_per_processor):
-                algo_index = min(i*number_of_inits_per_processor + j, len(algo_preference) - 1 )
-                control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False,
+                if j <= 1:
+                    control_center.add_init_algo(Chill, print_info=False,
+                                                 data_bundle={"calcs_per_high": 20,
+                                                              "factor_on_binary_search_result": 1 - 0.09 * j})
+                else:
+                    algo_index = min(i*number_of_inits_per_processor + (j-2), len(algo_preference) - 1 )
+                    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                             data_bundle={"sync_insertion": False,
                                                       "secondary_order": algo_preference[algo_index][0],
                                                       "descending_order": algo_preference[algo_index][1]})
 
