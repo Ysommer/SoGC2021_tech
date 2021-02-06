@@ -7,6 +7,8 @@ git pull
 
 python3.7 farm-server-sum.py &
 
+LARGE : [48, 49, 55, 56, 57, 58, 64, 65, 66, 77, 78, 100, 118, 119, 120, 127, 128, 137, 138, 139, 140, 188, 189, 190, 199, 200, 201]
+
 Sum:
 python3.7 farm-instance-s.py 38 15 0 100 > ../out_files/SUM_Large_1.txt 2> ../out_files/SUM_Large_1.txt &
 python3.7 farm-instance-s.py 39 15 0 100 > ../out_files/SUM_Large_2.txt 2> ../out_files/SUM_Large_2.txt &
