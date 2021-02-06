@@ -41,6 +41,12 @@ class PackagesFunctionsByType:
             WishListPackagesTypes.LARGE.name: PackagesFunctionsByType.run_large,
             WishListPackagesTypes.HUGE.name: PackagesFunctionsByType.run_huge
         }
+        functions_m = {
+            WishListPackagesTypes.TINY.name: PackagesFunctionsByType.run_tiny_mixed,
+            WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small_mixed,
+            WishListPackagesTypes.MEDIUM.name: PackagesFunctionsByType.run_medium_mixed,
+            WishListPackagesTypes.MEDIUM_LARGE.name: PackagesFunctionsByType.run_medium_large_mixed
+        }
         functions_s = {
             WishListPackagesTypes.TINY.name: PackagesFunctionsByType.run_tiny_s,
             WishListPackagesTypes.SMALL.name: PackagesFunctionsByType.run_small_s,
@@ -53,7 +59,7 @@ class PackagesFunctionsByType:
         if focus_on_sum:
             return functions_s.get(package_type.name, functions_s[WishListPackagesTypes.TINY.name])
 
-        return functions[package_type.name]
+        return functions_m[package_type.name]
 
     @staticmethod
     def init_control_center(instance: Instance) -> ControlCenter:
@@ -140,6 +146,59 @@ class PackagesFunctionsByType:
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
+    def run_tiny_mixed(instance: Instance, initShells: List[InitShell]=None, optShells: List[InitShell]=None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        grid_limit = 200
+
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": ""})
+
+        for i in range(5):
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.05 * i,
+                                                      "empty_spots_to_move_in_pillar": 1,
+                                                      "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.05 * i,
+                                                      "empty_spots_to_move_in_pillar": 2,
+                                                      "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.05 * i,
+                                                      "empty_spots_to_move_in_pillar": 1,
+                                                      "empty_spots_to_jump_pillar": 3})
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.05 * i,
+                                                      "empty_spots_to_move_in_pillar": 2,
+                                                      "empty_spots_to_jump_pillar": 3})
+
+
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 2, "grid_limit": grid_limit})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
+
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
     def run_small(instance: Instance, initShells: List[InitShell]=None, optShells: List[InitShell]=None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
         grid_limit = 300
@@ -211,6 +270,54 @@ class PackagesFunctionsByType:
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
+    def run_small_mixed(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        grid_limit = 300
+
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": ""})
+
+        for i in range(4):
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.09 * i,
+                                                      "empty_spots_to_move_in_pillar": 1,
+                                                      "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.09 * i,
+                                                      "empty_spots_to_move_in_pillar": 2,
+                                                      "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.09 * i,
+                                                      "empty_spots_to_move_in_pillar": 2,
+                                                      "empty_spots_to_jump_pillar": 3})
+
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 2, "grid_limit": grid_limit})
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 4, "grid_limit": grid_limit})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
+
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
     def run_medium(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
         grid_limit = 1000
@@ -277,31 +384,65 @@ class PackagesFunctionsByType:
         return (control_center.min_makespan, control_center.min_sum)
 
     @staticmethod
+    def run_medium_mixed(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (
+    int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        grid_limit = 1000
+
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": ""})
+
+        for i in range(2):
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.09 * i,
+                                                      "empty_spots_to_move_in_pillar": 1,
+                                                      "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.09 * i,
+                                                      "empty_spots_to_move_in_pillar": 2,
+                                                      "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 30,
+                                                      "factor_on_binary_search_result": 1 - 0.09 * i,
+                                                      "empty_spots_to_move_in_pillar": 2,
+                                                      "empty_spots_to_jump_pillar": 3})
+
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
+
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
     def run_medium_large(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None):
         control_center = PackagesFunctionsByType.init_control_center(instance)
         grid_limit = 2000
-        if initShells:
-            for i in initShells:
-                control_center.add_init_algo(i)
-        else:
-            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid"})
-            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
-                                                      "descending_order": True})
-            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False, "secondary_order": ""})
-            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False, "secondary_order": "rand"})
-            control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False, "secondary_order": "rand"})
 
-        if optShells:
-            for i in optShells:
-                control_center.add_opt_algo(i)
-        else:
-            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
-            control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 1, "grid_limit": grid_limit})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": ""})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "rand"})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "rand"})
+
+
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 1, "grid_limit": grid_limit})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
         return (control_center.min_makespan, control_center.min_sum)
@@ -319,6 +460,34 @@ class PackagesFunctionsByType:
         control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 128})
 
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=2)
+
+        return (control_center.min_makespan, control_center.min_sum)
+
+    @staticmethod
+    def run_medium_large_mixed(instance: Instance, initShells: List[InitShell] = None, optShells: List[InitShell] = None) -> (int, int):
+        control_center = PackagesFunctionsByType.init_control_center(instance)
+        grid_limit = 2000
+
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
+                                                  "descending_order": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                     data_bundle={"sync_insertion": False, "secondary_order": ""})
+
+        control_center.add_init_algo(Chill, print_info=False,
+                                     data_bundle={"calcs_per_high": 30,
+                                                  "factor_on_binary_search_result": 1,
+                                                  "empty_spots_to_move_in_pillar": 1,
+                                                  "empty_spots_to_jump_pillar": 2})
+        control_center.add_init_algo(Chill, print_info=False,
+                                     data_bundle={"calcs_per_high": 30,
+                                                  "factor_on_binary_search_result": 0.85,
+                                                  "empty_spots_to_move_in_pillar": 2,
+                                                  "empty_spots_to_jump_pillar": 2})
+
+        control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0, "grid_limit": grid_limit})
+
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False)
 
         return (control_center.min_makespan, control_center.min_sum)
 
