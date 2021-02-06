@@ -715,7 +715,6 @@ class WishList:
             ("dist_from_grid", True),
             ("rand", False)
         ]
-        algo_preference = algo_preference[first_algo:]
         grid_limits = {
             WishListPackagesTypes.TINY.name: 750,
             WishListPackagesTypes.SMALL.name: 1000,
@@ -737,7 +736,7 @@ class WishList:
         print("grid_limit", grid_limit)
         for i in range(number_of_processors):
             control_center = PackagesFunctionsByType.init_control_center(instance)
-            for j in range(number_of_inits_per_processor):
+            for j in range(first_algo, number_of_inits_per_processor + first_algo):
                 if j <= 1:
                     control_center.add_init_algo(Chill, print_info=False,
                                                  data_bundle={"calcs_per_high": 20,
