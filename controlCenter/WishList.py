@@ -119,9 +119,19 @@ class PackagesFunctionsByType:
         control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                      data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
 
-        for i in range(30):
+        for i in range(25):
             control_center.add_init_algo(Chill, print_info=False,
-                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.03*i})
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.03*i,
+                                                          "empty_spots_to_move_in_pillar": 1, "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.03*i,
+                                                          "empty_spots_to_move_in_pillar": 2, "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.03*i,
+                                                          "empty_spots_to_move_in_pillar": 1, "empty_spots_to_jump_pillar": 3})
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.03*i,
+                                                          "empty_spots_to_move_in_pillar": 2, "empty_spots_to_jump_pillar": 3})
 
         control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 1})
 
@@ -185,7 +195,14 @@ class PackagesFunctionsByType:
 
         for i in range(10):
             control_center.add_init_algo(Chill, print_info=False,
-                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i})
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i,
+                                                          "empty_spots_to_move_in_pillar": 1, "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i,
+                                                          "empty_spots_to_move_in_pillar": 2, "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i,
+                                                          "empty_spots_to_move_in_pillar": 1, "empty_spots_to_jump_pillar": 3})
 
         control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 16})
 
@@ -247,7 +264,11 @@ class PackagesFunctionsByType:
 
         for i in range(10):
             control_center.add_init_algo(Chill, print_info=False,
-                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i})
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i,
+                                                          "empty_spots_to_move_in_pillar": 1, "empty_spots_to_jump_pillar": 2})
+            control_center.add_init_algo(Chill, print_info=False,
+                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i,
+                                                          "empty_spots_to_move_in_pillar": 2, "empty_spots_to_jump_pillar": 2})
 
         control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 64})
 
@@ -330,7 +351,7 @@ class PackagesFunctionsByType:
         control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                      data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
 
-        for i in range(7):
+        for i in range(5):
             control_center.add_init_algo(Chill, print_info=False,
                                              data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.07*i})
 
@@ -379,7 +400,6 @@ class PackagesFunctionsByType:
         control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=1)
 
         return (control_center.min_makespan, control_center.min_sum)
-
 
 
 class InstancesPackage:

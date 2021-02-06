@@ -67,6 +67,12 @@ class Chill(InitAlgo):
         if self.descending_order:
             self.name += "_desc"
 
+        if self.empty_spots_to_move_in_pillar != 1:
+            self.name += "_ESTMP"+str(self.empty_spots_to_move_in_pillar)
+
+        if self.empty_spots_to_jump_pillar != 2:
+            self.name += "_ESTJP"+str(self.empty_spots_to_jump_pillar)
+
         # Set robots to groups
         self.q_by_robot_id = [self.q_reaching_out for i in range(len(self.robots))]
         self.inside_group = []

@@ -89,6 +89,8 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                  data_bundle={"sync_insertion": False, "secondary_order": ""})"""
     control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1}, print_info=False)
+    control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1, "empty_spots_to_move_in_pillar": 2}, print_info=False)
+    control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1, "empty_spots_to_jump_pillar": 3}, print_info=False)
     control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 0.8}, print_info=False)
     control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 0.5}, print_info=False)
 
