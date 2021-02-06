@@ -221,8 +221,8 @@ def generator_test():
 
 
 if __name__ == "__main__":
-    clean_bad_solutions()
-    main()
+    #clean_bad_solutions()
+    #main()
     # compress_best_and_send()
 
     # analyze()

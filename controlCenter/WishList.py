@@ -590,45 +590,14 @@ class WishList:
     @staticmethod
     def farm_instance_s(instance_id: int, number_of_inits_per_processor: int = 1, first_algo: int = 0, opt_iters = 3) -> bool:
         instance = load_all_instances()[instance_id]
-        algo_preference = [
-            ("dist_from_target", True),
-            ("", False),
-            ("dist_from_grid", False),
-            ("dist_BFS", True),
-            ("dist_from_grid", True),
-            ("rand", False)
-        ]
-        grid_limits = {
-            WishListPackagesTypes.TINY.name: 750,
-            WishListPackagesTypes.SMALL.name: 1000,
-            WishListPackagesTypes.MEDIUM.name: 1500,
-            WishListPackagesTypes.MEDIUM_LARGE.name: 4000,
-            WishListPackagesTypes.LARGE.name: 7500,
-            WishListPackagesTypes.HUGE.name: 11000
-        }
-        grid_limit = -1
-
         packages = InstancesPackage.get_instances_packages()
-        for p in packages:
-            if instance_id in packages[p]:
-                grid_limit = grid_limits[p]
-                break
-
-        assert grid_limit != -1, "grid limit is -1"
-
         control_center = PackagesFunctionsByType.init_control_center(instance)
         for j in range(first_algo, number_of_inits_per_processor + first_algo):
-            if j%2:
-                control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1 - 0.05*j})
-            else:
-                algo_index = min(j//2, len(algo_preference) - 1)
-                control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                         data_bundle={"sync_insertion": False,
-                                                      "secondary_order": algo_preference[algo_index][0],
-                                                      "descending_order": algo_preference[algo_index][1]})
+            control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1 - 0.05*j})
 
-        control_center.add_opt_algo(IterSum, data_bundle={"grid_limit": grid_limit})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False})
+        control_center.add_opt_algo(IterSum)
 
-        control_center.run_all(opt_iters=opt_iters)
-
+        control_center.run_all(opt_iters=opt_iters, pick_best_sum = 2 )
         return True
