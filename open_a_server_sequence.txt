@@ -135,7 +135,7 @@ python3.7 farm-instance.py 3 1 10 5 > ../out_files/ML_3.txt 2> ../out_files/ML_3
 
 Large:
 
-python3.7 farm-instance.py 53 1 4 5 > ../out_files/Large_53.txt 2> ../out_files/Large_53_err.txt &
+python3.7 farm-instance.py 58 1 3 0 > ../out_files/Large_58.txt 2> ../out_files/Large_58_err.txt &
 python3.7 farm-instance.py 190 1 3 5 > ../out_files/Large_190.txt 2> ../out_files/Large_190_err.txt &
 
 Huge:
