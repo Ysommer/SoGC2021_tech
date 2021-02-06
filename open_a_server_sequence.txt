@@ -1,3 +1,26 @@
+Farm sum:
+ps -o pid,user,%mem,command ax | sort -b -k3 -r | grep python3.7
+cat /proc/meminfo | grep Active
+
+cd workspace/SoGC2021_tech/controlCenter/
+git pull
+
+python3.7 farm-server-sum.py &
+
+Sum:
+python3.7 farm-instance-s.py 38 15 0 100 > ../out_files/SUM_Large_1.txt 2> ../out_files/SUM_Large_1.txt &
+python3.7 farm-instance-s.py 39 15 0 100 > ../out_files/SUM_Large_2.txt 2> ../out_files/SUM_Large_2.txt &
+python3.7 farm-instance-s.py 47 15 0 100 > ../out_files/SUM_Large_3.txt 2> ../out_files/SUM_Large_3.txt &
+
+disown -a
+jobs
+ps -o pid,user,%mem,command ax | sort -b -k3 -r | grep python3.7
+cat /proc/meminfo | grep Active
+
+cat ../out_files/sum_*.txt
+cat ../out_files/SUM_*.txt
+
+
 Open a server:
 
 mkdir workspace
