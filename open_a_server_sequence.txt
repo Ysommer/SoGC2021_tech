@@ -6,6 +6,7 @@ cd workspace/SoGC2021_tech/controlCenter/
 git pull
 
 python3.7 farm-server-sum.py &
+python3.7 farm-server.py &
 
 LARGE : [48, 49, 55, 56, 57, 58, 64, 65, 66, 77, 78, 100, 118, 119, 120, 127, 128, 137, 138, 139, 140, 188, 189, 190, 199, 200, 201]
 
