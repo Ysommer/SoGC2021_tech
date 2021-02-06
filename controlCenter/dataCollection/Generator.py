@@ -204,6 +204,8 @@ class Generator:
             blocked: set = None,
             check_move_func=CheckMoveFunction.check_free_from_obs,
             check_move_params=None):
+        
+        topo_map = dict()
 
         if blocked is None:
             blocked = set()
@@ -214,6 +216,10 @@ class Generator:
         temp_q = queue.Queue()
         # N & S
         for i in range(0, grid.size):
+            topo_map[(i, -1)] = 0
+            topo_map[(i, grid.size)] = 0
+            topo_map[(-1, i)] = 0
+            topo_map[(grid.size, i)] = 0
             deq.append((i, -1))
             temp_q.put((i, -1))
             deq.append((i, grid.size))
@@ -234,14 +240,19 @@ class Generator:
                 next_pos = sum_tuples(pos, directions_to_coords[direction])
                 if Generator.check_if_in_boundaries(next_pos, boundaries) \
                         and check_move_func(next_pos, grid, check_move_params):
-                    if grid.is_completely_clean_cell(next_pos):
+                    if not grid.is_target(next_pos):
                         # No target
                         if grid.check_cell_for_bfs(next_pos, parent=direction, dist=grid.get_cell_distance(pos)):
+                            topo_map[next_pos] = min(topo_map[pos], topo_map.get(next_pos, topo_map[pos]))
+                            assert grid.get_cell_distance(pos) == grid.get_cell_distance(next_pos)
                             deq.appendleft(next_pos)
                     else:
                         # Target
                         if grid.check_cell_for_bfs(next_pos, parent=direction, dist=grid.get_cell_distance(pos) + 1):
+                            topo_map[next_pos] = min(topo_map[pos] + 1, topo_map.get(next_pos, topo_map[pos] + 1))
+                            assert grid.get_cell_distance(pos) + 1 == grid.get_cell_distance(next_pos)
                             deq.append(next_pos)
+        return topo_map
 
     @staticmethod
     def get_next_move_by_dist_and_obs(
