@@ -73,7 +73,7 @@ class Grid:
 
         return self.grid[pos].is_empty()
 
-    def move_robot(self, robot_id: int, direction: str, current_turn: int) -> EnterCellResult:
+    def move_robot(self, robot_id: int, direction: str, current_turn: int, advance=True) -> EnterCellResult:
         robot = self.robots[robot_id]
         old_pos = robot.pos
         old_cell = self.get_cell(old_pos)
@@ -81,8 +81,9 @@ class Grid:
 
         desired_cell = self.get_cell(desired_pos)
 
-        enter_result = desired_cell.enter_cell(robot_id, direction, current_turn)
-        if enter_result != EnterCellResult.SUCCESS:
+        enter_result = desired_cell.enter_cell(robot_id, direction, current_turn, advance)
+
+        if enter_result != EnterCellResult.SUCCESS or not advance:
             return enter_result
 
         old_cell.exit_cell(direction, current_turn)

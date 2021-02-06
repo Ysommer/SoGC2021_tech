@@ -125,7 +125,6 @@ class Chill(InitAlgo):
 
         self.get_inside_groups = self.get_inside_groups[1:self.max_height+1]
         self.get_inside_groups.reverse()
-        self.test_get_inside_groups()
 
     def test_get_inside_groups(self):
         try:
@@ -146,7 +145,6 @@ class Chill(InitAlgo):
             Generator.print_bfs_map_copy_state(self.topo_map_copy, self.grid.size, blocked, targets)
             print("get_inside_groups error")
             assert 0
-
 
     def set_inside_group(self):
         # Clear
@@ -612,11 +610,11 @@ class Chill(InitAlgo):
         d = robot.extra_data
         left_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])
         left_main_pos = self.get_main_road_pos(d, left_pos)
-        left_cell_clear = not self.grid.has_robot(left_pos)
+        left_cell_clear = self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "L"), self.current_turn, False) == EnterCellResult.SUCCESS
         left_empty_cells = 0
         right_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])
         right_main_pos = self.get_main_road_pos(d, right_pos)
-        right_cell_clear = not self.grid.has_robot(right_pos)
+        right_cell_clear = self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "R"), self.current_turn, False) == EnterCellResult.SUCCESS
         right_empty_cells = 0
 
         temp_pos = left_pos
@@ -668,17 +666,19 @@ class Chill(InitAlgo):
         d = robot.extra_data
         main_pos = self.get_main_road_pos(d, robot.pos)
         temp_pos = robot.pos
-        while temp_pos != main_pos:
-            temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
-            if not self.grid.has_robot(temp_pos):
-                return 0
+
+        if not self.grid.has_robot(sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])):
+            while temp_pos != main_pos:
+                temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+                if not self.grid.has_robot(temp_pos):
+                    return 0
 
         # Have to move
         # Check move to left pillar
         top_robot = not self.grid.has_robot(sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "U")]))
 
         left_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])
-        left_cell_clear = not self.grid.has_robot(left_pos)
+        left_cell_clear = self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "L"), self.current_turn, False) == EnterCellResult.SUCCESS
         free_slots_counter_in_left = 0
         move_left = False
 
@@ -695,7 +695,7 @@ class Chill(InitAlgo):
                         move_left = True
 
         jump_pillar = False
-        next_pillar_clear = True
+        next_pillar_clear = top_robot
         free_slots_counter_in_next_pillar = 0
 
         right_side_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])
@@ -757,17 +757,19 @@ class Chill(InitAlgo):
         d = robot.extra_data
         main_pos = self.get_main_road_pos(d, robot.pos)
         temp_pos = robot.pos
-        while temp_pos != main_pos:
-            temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
-            if not self.grid.has_robot(temp_pos):
-                return 0
+
+        if not self.grid.has_robot(sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])):
+            while temp_pos != main_pos:
+                temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+                if not self.grid.has_robot(temp_pos):
+                    return 0
 
         # Have to move
         # Check move to right pillar
         top_robot = not self.grid.has_robot(sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "U")]))
 
         right_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])
-        right_cell_clear = not self.grid.has_robot(right_pos)
+        right_cell_clear = self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "R"), self.current_turn, False) == EnterCellResult.SUCCESS
         free_slots_counter_in_right = 0
         move_right = False
 
@@ -785,7 +787,7 @@ class Chill(InitAlgo):
                         break
 
         jump_pillar = False
-        next_pillar_clear = True
+        next_pillar_clear = top_robot
         free_slots_counter_in_next_pillar = 0
 
         left_side_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])
