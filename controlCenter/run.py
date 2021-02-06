@@ -34,7 +34,7 @@ import numpy
 
 def main():
     instances_id = [i for i in range(141, 180)]
-    #instances_id = [149]
+    instances_id = [9]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -221,8 +221,8 @@ def generator_test():
 
 
 if __name__ == "__main__":
-    #clean_bad_solutions()
-    #main()
+    clean_bad_solutions()
+    main()
     # compress_best_and_send()
 
     # analyze()

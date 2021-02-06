@@ -701,7 +701,7 @@ class Chill(InitAlgo):
                         move_left = True
 
         jump_pillar = False
-        next_pillar_clear = top_robot
+        next_pillar_clear = top_robot and self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "R"), self.current_turn, False) == EnterCellResult.SUCCESS
         free_slots_counter_in_next_pillar = 0
 
         right_side_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])
@@ -793,7 +793,7 @@ class Chill(InitAlgo):
                         break
 
         jump_pillar = False
-        next_pillar_clear = top_robot
+        next_pillar_clear = top_robot and self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "L"), self.current_turn, False) == EnterCellResult.SUCCESS
         free_slots_counter_in_next_pillar = 0
 
         left_side_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])
