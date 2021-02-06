@@ -40,6 +40,12 @@ class Grid:
         cell = self.get_cell(pos)
         return cell.is_empty() and cell.target_id == -1
 
+    def is_target(self, pos):
+        if pos not in self.grid:
+            return False
+        cell = self.get_cell(pos)
+        return cell.target_id != -1
+
     def is_obs(self, pos) -> bool:
         return pos in self.obstacles
 

@@ -34,7 +34,7 @@ import numpy
 
 def main():
     instances_id = [i for i in range(141, 180)]
-    instances_id = [144]
+    #instances_id = [149]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -88,9 +88,9 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
                                               "descending_order": True})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                  data_bundle={"sync_insertion": False, "secondary_order": ""})"""
-    #control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1}, print_info=False)
+    control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1}, print_info=False)
     control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 0.8}, print_info=False)
-    #control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 0.5}, print_info=False)
+    control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 0.5}, print_info=False)
 
 
     #control_center.add_opt_algo(IterSum)
