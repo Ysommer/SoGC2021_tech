@@ -34,7 +34,7 @@ import numpy
 
 def main():
     instances_id = [i for i in range(141, 180)]
-    instances_id = [9]
+    instances_id = [20]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -68,16 +68,21 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     # control_center.add_opt_algo(BFS_in_time, data_bundle={})
     # for i in range(0, 11):
     #    control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": False})
-    """
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                 data_bundle={"sync_insertion": False, "secondary_order": "rand"})
+
+    control_center.add_init_algo(OutAndInByPercentage, print_info=True,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target", "descending_order": True, "empty_spots_to_move_in_pillar": 2})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=True,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target", "descending_order": True, "empty_spots_to_move_in_pillar": 3})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=True,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target", "descending_order": True, "empty_spots_to_move_in_pillar": 2, "empty_spots_to_jump_pillar": 3})
+    """control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+                                 data_bundle={"sync_insertion": False, "secondary_order": "rand", "empty_spots_to_move_in_pillar": 2})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                  data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid"})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                  data_bundle={"sync_insertion": False, "secondary_order": "dist_from_grid",
                                               "descending_order": True})
-    control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                 data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
+
     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                  data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target",
                                               "descending_order": True})
@@ -87,14 +92,16 @@ def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
                                  data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
                                               "descending_order": True})
     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
-                                 data_bundle={"sync_insertion": False, "secondary_order": ""})"""
+                                 data_bundle={"sync_insertion": False, "secondary_order": ""})
     control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1}, print_info=False)
     control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1, "empty_spots_to_move_in_pillar": 2}, print_info=False)
     control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1, "empty_spots_to_jump_pillar": 3}, print_info=False)
     control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 0.8}, print_info=False)
-    control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 0.5}, print_info=False)
+    control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 0.5}, print_info=False)"""
 
-
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0})
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 2})
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 4})
     #control_center.add_opt_algo(IterSum)
     return control_center
 

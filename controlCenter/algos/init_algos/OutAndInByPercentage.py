@@ -51,6 +51,9 @@ class OutAndInByPercentage(InitAlgo):
         self.secondary_order = data_bundle.get("secondary_order", "")
         self.descending_order = data_bundle.get("descending_order", False)
 
+        self.empty_spots_to_move_in_pillar = data_bundle.get("empty_spots_to_move_in_pillar", 1)
+        self.empty_spots_to_jump_pillar = data_bundle.get("empty_spots_to_jump_pillar", 2)
+
         # Init phases
         self.phase = 0
         self.phases = [
@@ -75,6 +78,12 @@ class OutAndInByPercentage(InitAlgo):
 
         if self.descending_order:
             self.name += "_desc"
+
+        if self.empty_spots_to_move_in_pillar != 1:
+            self.name += "_ESTMP"+str(self.empty_spots_to_move_in_pillar)
+
+        if self.empty_spots_to_jump_pillar != 2:
+            self.name += "_ESTJP"+str(self.empty_spots_to_jump_pillar)
 
         self.bfs_list = [None] * len(self.robots)
         self.q_by_robot_id = [self.q_reaching_out for i in range(len(self.robots))]
@@ -454,13 +463,57 @@ class OutAndInByPercentage(InitAlgo):
         return 0
 
     def q_outside_in_side_road(self, robot: Robot) -> int:
-        if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(robot.extra_data, "L"), self.current_turn, self.solution):
-            self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_right
-            return 1
-        if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(robot.extra_data, "R"), self.current_turn, self.solution):
-            self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_left
-            return 1
-        if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(robot.extra_data, "U"), self.current_turn, self.solution):
+        col = self.get_col_by_direction(robot.extra_data, robot.pos)
+        row = self.get_row_by_direction(robot.extra_data, robot.pos)
+        assert col % 3 == 0
+        moved = 0
+        d = robot.extra_data
+        left_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])
+        left_main_pos = self.get_main_road_pos(d, left_pos)
+        left_cell_clear = self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "L"), self.current_turn, False) == EnterCellResult.SUCCESS
+        left_empty_cells = 0
+        right_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])
+        right_main_pos = self.get_main_road_pos(d, right_pos)
+        right_cell_clear = self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "R"), self.current_turn, False) == EnterCellResult.SUCCESS
+        right_empty_cells = 0
+
+        temp_pos = left_pos
+        while temp_pos != left_main_pos:
+            temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+            if not self.grid.has_robot(temp_pos):
+                left_empty_cells += 1
+
+        temp_pos = right_pos
+        while temp_pos != right_main_pos:
+            temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+            if not self.grid.has_robot(temp_pos):
+                right_empty_cells += 1
+
+        left_cell_clear = left_cell_clear and left_empty_cells > 0
+        right_cell_clear = right_cell_clear and right_empty_cells > 0
+
+        if left_cell_clear and right_cell_clear:
+            left_cell_clear = left_cell_clear > right_cell_clear
+            right_cell_clear = not left_cell_clear
+
+        if left_cell_clear:
+            if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(robot.extra_data, "L"),
+                                          self.current_turn, self.solution):
+                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_right
+                return 1
+            else:
+                assert 0
+
+        if right_cell_clear:
+            if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(robot.extra_data, "R"),
+                                          self.current_turn, self.solution):
+                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_left
+                return 1
+            else:
+                assert 0
+
+        if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(robot.extra_data, "U"),
+                                      self.current_turn, self.solution):
             self.stretch_boundaries(robot)
             return 1
         return 0
@@ -471,20 +524,89 @@ class OutAndInByPercentage(InitAlgo):
         assert col % 3 == 2
         moved = 0
         d = robot.extra_data
-        if self.grid.has_robot(self.get_main_road_pos(d, robot.pos)) and self.grid.has_robot(sum_tuples(robot.pos,directions_to_coords[self.get_relative_side(d, "D")])):
-            # Need to move, to make space:
-            # Try to move to the left
-            if row == self.boundaries[d] \
-                    and not self.grid.has_robot(sum_tuples(robot.pos, sum_tuples(
-                            directions_to_coords[self.get_relative_side(d, "L")], directions_to_coords[self.get_relative_side(d, "D")]))) \
-                    and InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "L"), self.current_turn, self.solution):
-                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_left
-                moved = 1
-            # Moving up
-            else:
-                moved += InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "U"), self.current_turn, self.solution)
+        main_pos = self.get_main_road_pos(d, robot.pos)
+        temp_pos = robot.pos
 
-        self.stretch_boundaries(robot)
+        if not self.grid.has_robot(sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])):
+            while temp_pos != main_pos:
+                temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+                if not self.grid.has_robot(temp_pos):
+                    return 0
+
+        # Have to move
+        # Check move to left pillar
+        top_robot = not self.grid.has_robot(sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "U")]))
+
+        left_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])
+        left_cell_clear = self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "L"), self.current_turn, False) == EnterCellResult.SUCCESS
+        free_slots_counter_in_left = 0
+        move_left = False
+
+        if top_robot and left_cell_clear:
+            # Check if left pillar need to rise
+            temp_pos = left_pos
+            left_main_pos = self.get_main_road_pos(d, left_pos)
+
+            while temp_pos != left_main_pos:
+                temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+                if not self.grid.has_robot(temp_pos):
+                    free_slots_counter_in_left += 1
+                    if free_slots_counter_in_left == self.empty_spots_to_move_in_pillar:
+                        move_left = True
+
+        jump_pillar = False
+        next_pillar_clear = top_robot and self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "R"), self.current_turn, False) == EnterCellResult.SUCCESS
+        free_slots_counter_in_next_pillar = 0
+
+        right_side_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])
+        right_down_side_pos = sum_tuples(right_side_pos, directions_to_coords[self.get_relative_side(d, "D")])
+        right_right_next_pillar_pos = sum_tuples(right_side_pos, directions_to_coords[self.get_relative_side(d, "R")])
+        right_right_down_next_pillar_pos = sum_tuples(right_right_next_pillar_pos, directions_to_coords[self.get_relative_side(d, "D")])
+        next_pillar_clear = next_pillar_clear and not self.grid.has_robot(right_side_pos)
+        next_pillar_clear = next_pillar_clear and not self.grid.has_robot(right_down_side_pos)
+        next_pillar_clear = next_pillar_clear and not self.grid.has_robot(right_right_next_pillar_pos)
+        next_pillar_clear = next_pillar_clear and not self.grid.has_robot(right_right_down_next_pillar_pos)
+
+        if next_pillar_clear:
+            # Check if left pillar need to rise
+            temp_pos = right_right_down_next_pillar_pos
+            right_next_pillar_main_pos = self.get_main_road_pos(d, right_right_down_next_pillar_pos)
+
+            while temp_pos != right_next_pillar_main_pos:
+                temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+                if not self.grid.has_robot(temp_pos):
+                    free_slots_counter_in_next_pillar += 1
+                    if free_slots_counter_in_next_pillar == self.empty_spots_to_jump_pillar:
+                        jump_pillar = True
+
+            jump_pillar = jump_pillar and free_slots_counter_in_next_pillar > 0 # To make sure not last pillar
+
+
+        if jump_pillar and move_left:
+            jump_pillar = free_slots_counter_in_next_pillar - self.empty_spots_to_jump_pillar > free_slots_counter_in_left - self.empty_spots_to_move_in_pillar
+            move_left = not jump_pillar
+
+        if move_left:
+            if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "L"),
+                                               self.current_turn, self.solution):
+                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_left
+                return 1
+            else:
+                assert 0
+
+        if jump_pillar:
+            if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "R"),
+                                               self.current_turn, self.solution):
+                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_side_road
+                return 1
+            else:
+                assert 0
+
+        if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "U"),
+                                           self.current_turn, self.solution):
+            moved = 1
+            self.stretch_boundaries(robot)
+
         return moved
 
     def q_outside_in_place_left(self, robot: Robot) -> int:
@@ -493,19 +615,90 @@ class OutAndInByPercentage(InitAlgo):
         assert col % 3 == 1
         moved = 0
         d = robot.extra_data
-        if self.grid.has_robot(self.get_main_road_pos(d, robot.pos)) and self.grid.has_robot(sum_tuples(robot.pos,directions_to_coords[self.get_relative_side(d, "D")])):
-            # Need to move, to make space:
-            # Try to move to the Right
-            if row == self.boundaries[d] \
-                    and not self.grid.has_robot(sum_tuples(robot.pos, sum_tuples(
-                            directions_to_coords[self.get_relative_side(d, "R")], directions_to_coords[self.get_relative_side(d, "D")]))) \
-                    and InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "R"), self.current_turn, self.solution):
-                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_right
-                moved = 1
-            else:
-                moved += InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "U"), self.current_turn, self.solution)
+        main_pos = self.get_main_road_pos(d, robot.pos)
+        temp_pos = robot.pos
 
-        self.stretch_boundaries(robot)
+        if not self.grid.has_robot(sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])):
+            while temp_pos != main_pos:
+                temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+                if not self.grid.has_robot(temp_pos):
+                    return 0
+
+        # Have to move
+        # Check move to right pillar
+        top_robot = not self.grid.has_robot(sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "U")]))
+
+        right_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "R")])
+        right_cell_clear = self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "R"), self.current_turn, False) == EnterCellResult.SUCCESS
+        free_slots_counter_in_right = 0
+        move_right = False
+
+        if top_robot and right_cell_clear:
+            # Check if left pillar need to rise
+            temp_pos = right_pos
+            right_main_pos = self.get_main_road_pos(d, right_pos)
+
+            while temp_pos != right_main_pos:
+                temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+                if not self.grid.has_robot(temp_pos):
+                    free_slots_counter_in_right += 1
+                    if free_slots_counter_in_right == self.empty_spots_to_move_in_pillar:
+                        move_right = True
+                        break
+
+        jump_pillar = False
+        next_pillar_clear = top_robot and self.grid.move_robot(robot.robot_id, self.get_relative_side(d, "L"), self.current_turn, False) == EnterCellResult.SUCCESS
+        free_slots_counter_in_next_pillar = 0
+
+        left_side_pos = sum_tuples(robot.pos, directions_to_coords[self.get_relative_side(d, "L")])
+        left_down_side_pos = sum_tuples(left_side_pos, directions_to_coords[self.get_relative_side(d, "D")])
+        left_left_next_pillar_pos = sum_tuples(left_side_pos, directions_to_coords[self.get_relative_side(d, "L")])
+        left_left_down_next_pillar_pos = sum_tuples(left_left_next_pillar_pos, directions_to_coords[self.get_relative_side(d, "D")])
+
+        next_pillar_clear = next_pillar_clear and not self.grid.has_robot(left_side_pos)
+        next_pillar_clear = next_pillar_clear and not self.grid.has_robot(left_down_side_pos)
+        next_pillar_clear = next_pillar_clear and not self.grid.has_robot(left_left_next_pillar_pos)
+        next_pillar_clear = next_pillar_clear and not self.grid.has_robot(left_left_down_next_pillar_pos)
+
+        if next_pillar_clear:
+            # Check if left pillar need to rise
+            temp_pos = left_left_down_next_pillar_pos
+            left_next_pillar_main_pos = self.get_main_road_pos(d, left_left_down_next_pillar_pos)
+
+            while temp_pos != left_next_pillar_main_pos:
+                temp_pos = sum_tuples(temp_pos, directions_to_coords[self.get_relative_side(d, "D")])
+                if not self.grid.has_robot(temp_pos):
+                    free_slots_counter_in_next_pillar += 1
+                    if free_slots_counter_in_next_pillar == self.empty_spots_to_jump_pillar:
+                        jump_pillar = True
+
+            jump_pillar = jump_pillar and free_slots_counter_in_next_pillar > 0  # To make sure not last pillar
+
+        if jump_pillar and move_right:
+            jump_pillar = free_slots_counter_in_next_pillar - self.empty_spots_to_jump_pillar > free_slots_counter_in_right - self.empty_spots_to_move_in_pillar
+            move_right = not jump_pillar
+
+        if move_right:
+            if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "R"),
+                                          self.current_turn, self.solution):
+                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_place_right
+                return 1
+            else:
+                assert 0
+
+        if jump_pillar:
+            if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "L"),
+                                          self.current_turn, self.solution):
+                self.q_by_robot_id[robot.robot_id] = self.q_outside_in_side_road
+                return 1
+            else:
+                assert 0
+
+        if InitAlgo.move_robot_to_dir(robot.robot_id, self.grid, self.get_relative_side(d, "U"),
+                                      self.current_turn, self.solution):
+            moved = 1
+            self.stretch_boundaries(robot)
+
         return moved
 
     def q_stay_inside(self, robot: Robot) -> int:
