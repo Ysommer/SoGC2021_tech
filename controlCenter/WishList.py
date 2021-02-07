@@ -734,15 +734,21 @@ class WishList:
         assert grid_limit != -1, "grid limit is -1"
 
         print("grid_limit", grid_limit)
+        chill_offset = 4
         for i in range(number_of_processors):
             control_center = PackagesFunctionsByType.init_control_center(instance)
             for j in range(first_algo, number_of_inits_per_processor + first_algo):
-                if j <= 1:
-                    control_center.add_init_algo(Chill, print_info=False,
-                                                 data_bundle={"calcs_per_high": 20,
-                                                              "factor_on_binary_search_result": 1 - 0.09 * j})
+                if j < chill_offset:
+                    if j % 0 :
+                        control_center.add_init_algo(Chill, print_info=False,
+                                                     data_bundle={"calcs_per_high": 20,
+                                                                  "factor_on_binary_search_result": 0.80, "empty_spots_to_move_in_pillar": 3 + j//2})
+                    else:
+                        control_center.add_init_algo(Chill, print_info=False,
+                                                     data_bundle={"calcs_per_high": 20,
+                                                                  "factor_on_binary_search_result": 0.85, "empty_spots_to_move_in_pillar": 3 + j//2})
                 else:
-                    algo_index = min(i*number_of_inits_per_processor + (j-2), len(algo_preference) - 1 )
+                    algo_index = min(i*number_of_inits_per_processor + (j-chill_offset), len(algo_preference) - 1 )
                     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False,
                                                       "secondary_order": algo_preference[algo_index][0],
