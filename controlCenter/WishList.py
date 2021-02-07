@@ -778,16 +778,16 @@ class WishList:
         return True
 
     @staticmethod
-    def farm_instance_s(instance_id: int, number_of_inits_per_processor: int = 1, first_algo: int = 0, opt_iters = 3) -> bool:
+    def farm_instance_s(instance_id: int, number_of_inits_per_processor: int = 1, first_algo: int = 0, opt_iters=3) -> bool:
         instance = load_all_instances()[instance_id]
         packages = InstancesPackage.get_instances_packages()
         control_center = PackagesFunctionsByType.init_control_center(instance)
         for j in range(first_algo, number_of_inits_per_processor + first_algo):
-            control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1 - 0.05*j})
+            control_center.add_init_algo(Chill, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1 - 0.08*j})
 
         control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                  data_bundle={"sync_insertion": False})
         control_center.add_opt_algo(IterSum)
 
-        control_center.run_all(opt_iters=opt_iters, pick_best_sum = 2 )
+        control_center.run_all(opt_iters=opt_iters, pick_best_sum=1)
         return True
