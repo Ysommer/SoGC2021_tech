@@ -55,7 +55,7 @@ if server_id == -1:
             print("ip", ip)
             server_id = servers_ips[ip]
 
-types_to_farm = [WishListPackagesTypes.TINY, WishListPackagesTypes.SMALL, WishListPackagesTypes.MEDIUM, WishListPackagesTypes.MEDIUM_LARGE, WishListPackagesTypes.HUGE]
+types_to_farm = [WishListPackagesTypes.MEDIUM_LARGE, WishListPackagesTypes.HUGE]
 
 try:
     os.mkdir("../out_files/")

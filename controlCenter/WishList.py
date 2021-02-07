@@ -453,13 +453,13 @@ class PackagesFunctionsByType:
         control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                      data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
 
-        for i in range(10):
+        for i in range(4):
             control_center.add_init_algo(Chill, print_info=False,
-                                             data_bundle={"calcs_per_high": 30, "factor_on_binary_search_result": 1 - 0.05*i})
+                                             data_bundle={"calcs_per_high": 13, "factor_on_binary_search_result": 1 - 0.08*i})
 
         control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 128})
 
-        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=2)
+        control_center.run_all(print_only_success=True, stop_on_success=False, validate=False, opt_iters=100, pick_best_sum=1)
 
         return (control_center.min_makespan, control_center.min_sum)
 
@@ -560,9 +560,12 @@ class PackagesFunctionsByType:
         control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                      data_bundle={"sync_insertion": False, "secondary_order": "dist_from_target"})
 
-        for i in range(5):
-            control_center.add_init_algo(Chill, print_info=False,
-                                             data_bundle={"calcs_per_high": 20, "factor_on_binary_search_result": 1 - 0.09*i})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 10, "factor_on_binary_search_result": 1})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 10, "factor_on_binary_search_result": 0.9})
+        control_center.add_init_algo(Chill, print_info=False,
+                                         data_bundle={"calcs_per_high": 10, "factor_on_binary_search_result": 0.8})
 
         control_center.add_opt_algo(IterSum, data_bundle={"max_jump": 512})
 
@@ -735,11 +738,12 @@ class WishList:
 
         print("grid_limit", grid_limit)
         chill_offset = 4
+        dist_from_target_offset = 4
         for i in range(number_of_processors):
             control_center = PackagesFunctionsByType.init_control_center(instance)
             for j in range(first_algo, number_of_inits_per_processor + first_algo):
                 if j < chill_offset:
-                    if j % 0 :
+                    if j % 0:
                         control_center.add_init_algo(Chill, print_info=False,
                                                      data_bundle={"calcs_per_high": 20,
                                                                   "factor_on_binary_search_result": 0.80, "empty_spots_to_move_in_pillar": 3 + j//2})
@@ -747,8 +751,15 @@ class WishList:
                         control_center.add_init_algo(Chill, print_info=False,
                                                      data_bundle={"calcs_per_high": 20,
                                                                   "factor_on_binary_search_result": 0.85, "empty_spots_to_move_in_pillar": 3 + j//2})
+                elif chill_offset <= j < dist_from_target_offset + chill_offset:
+                    control_center.add_init_algo(OutAndInByPercentage, print_info=True,
+                                                 data_bundle={"sync_insertion": False,
+                                                              "secondary_order": "dist_from_target",
+                                                              "descending_order": True,
+                                                              "empty_spots_to_move_in_pillar": 1 + (j-chill_offset),
+                                                              "empty_spots_to_jump_pillar": 2 + (j-chill_offset)//3})
                 else:
-                    algo_index = min(i*number_of_inits_per_processor + (j-chill_offset), len(algo_preference) - 1 )
+                    algo_index = min(i*number_of_inits_per_processor + (j-(chill_offset+dist_from_target_offset)), len(algo_preference) - 1 )
                     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                              data_bundle={"sync_insertion": False,
                                                       "secondary_order": algo_preference[algo_index][0],
