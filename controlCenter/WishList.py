@@ -743,7 +743,7 @@ class WishList:
             control_center = PackagesFunctionsByType.init_control_center(instance)
             for j in range(first_algo, number_of_inits_per_processor + first_algo):
                 if j < chill_offset:
-                    if j % 0:
+                    if j % 2:
                         control_center.add_init_algo(Chill, print_info=False,
                                                      data_bundle={"calcs_per_high": 20,
                                                                   "factor_on_binary_search_result": 0.80, "empty_spots_to_move_in_pillar": 3 + j//2})
