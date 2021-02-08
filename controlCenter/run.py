@@ -33,8 +33,8 @@ import numpy
 
 
 def main():
-    instances_id = [i for i in range(141, 180)]
-    instances_id = [12]
+    # instances_id = [i for i in range(141, 180)]
+    instances_id = [82]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -47,8 +47,8 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
-            control_center.run_all(print_only_success=False, stop_on_success=False, validate=False)
+            control_center = ys_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center.run_all(print_only_success=False, stop_on_success=False, validate=False, opt_iters=1)
         except Exception as e:
             print(e)
             traceback.print_exc()
@@ -117,7 +117,7 @@ def ys_control_center_initiate(instance, out_path, max_makespan, max_sum):
     data_bundle = {"sync_insertion": False}
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
     control_center.add_init_algo(OutAndInByPercentage, name="_sea_level_", print_info=False, data_bundle=data_bundle)
-    control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 2})
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"no_bs": False, "source_min": None})
     # for i in range(1):
     #   control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
     return control_center
