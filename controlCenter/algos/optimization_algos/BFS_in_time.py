@@ -46,7 +46,10 @@ class BFS_in_time(OptimizationAlgo):
                          "_BIT" + name,
                          print_info,
                          data_bundle)
-        self.max_grid_len = data_bundle.get("grid_limit", 800)
+        self.max_grid_len = data_bundle.get("grid_limit", 1000)
+        self.no_bs = data_bundle.get("no_bs", False)
+        self.source_min = data_bundle.get("source_min", None)
+
         if data_bundle.get("get_limit", True):
             results_f = open("../results_table.json", "r")
             results_json = json.load(results_f)
@@ -136,7 +139,24 @@ class BFS_in_time(OptimizationAlgo):
 
         # first try 1 and 2 steps from last step on target
         counter = 0
-        if not skip_last_plus_one:
+        new_path = None
+        if self.source_min is None or start_time >= self.source_min:
+            if not skip_last_plus_one:
+                new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
+                                                              self.valid_directions_matrix,
+                                                              source_pos_t,
+                                                              dest_pos_t,
+                                                              robot_id,
+                                                              self.noise,
+                                                              last_step_on_loc)
+                if new_path is not None:
+                    self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
+                    self.update_solution(robot_id, new_path, start_time, time_arrived)
+                    # print("robot_id:", robot_id, "last goal:", goal_time)
+                    return new_path
+                counter += 1
+            goal_time = min(last_step_on_loc + 2, time_arrived)
+            dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
             new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
                                                           self.valid_directions_matrix,
                                                           source_pos_t,
@@ -150,23 +170,15 @@ class BFS_in_time(OptimizationAlgo):
                 # print("robot_id:", robot_id, "last goal:", goal_time)
                 return new_path
             counter += 1
-        goal_time = min(last_step_on_loc + 2, time_arrived)
-        dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
-        new_path = Generator.calc_a_star_path_in_time(self.sol_grid,
-                                                      self.valid_directions_matrix,
-                                                      source_pos_t,
-                                                      dest_pos_t,
-                                                      robot_id,
-                                                      self.noise,
-                                                      last_step_on_loc)
-        if new_path is not None:
-            self.sol_grid.update_robot_path(robot_id, source_pos, new_path, start_time, time_arrived)
-            self.update_solution(robot_id, new_path, start_time, time_arrived)
-            # print("robot_id:", robot_id, "last goal:", goal_time)
-            return new_path
-        counter += 1
-        goal_time = min(goal_time + goal_time_raise, time_arrived)
-        dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
+            goal_time = min(goal_time + goal_time_raise, time_arrived)
+            dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
+        else:
+            start_time = self.source_min
+            goal_time = start_time + goal_time_raise + 1
+            source_pos = self.sol_grid.get_robot_location(robot_id, start_time)
+            source_pos_t = (source_pos[0], source_pos[1], start_time)
+            dest_pos = self.targets[robot_id]
+            dest_pos_t = (dest_pos[0], dest_pos[1], goal_time)
 
         # find first successful astar run
         while new_path is None and counter < calc_tries and goal_time < time_arrived:
@@ -183,6 +195,8 @@ class BFS_in_time(OptimizationAlgo):
         if new_path is None:
             assert time_arrived < self.sol_grid.max_grid_len or self.sol_grid.max_grid_len == -1,  "over makespan limit"
             return None
+        if self.no_bs:
+            return new_path
         low = max(goal_time - 2 * goal_time_raise + 1, 1)
         high = start_time + len(new_path)
         mid = goal_time - goal_time_raise  # not needed
