@@ -310,7 +310,7 @@ class OutAndInByPercentage(InitAlgo):
         i = robot.robot_id
 
         try:
-            min_offset = max(self.grid.get_cell(robot.target_pos).extra_data) - len(self.bfs_list[i]) + 1
+            min_offset = max(max(self.grid.get_cell(robot.target_pos).extra_data) - len(self.bfs_list[i]) + 1, 0)
         except:
             min_offset = 0
 
@@ -507,7 +507,7 @@ class OutAndInByPercentage(InitAlgo):
             if self.q_getting_inside(robot):
                 moved += 1
             else:
-                print(robot)
+                print("step_phase_1_simultaneously_v2\n", robot)
                 return 0
 
         self.phase_1_turns += 1

@@ -34,7 +34,7 @@ import numpy
 
 def main():
     # instances_id = [i for i in range(141, 180)]
-    instances_id = [58]
+    instances_id = [3]
     instances = load_all_instances()
 
     for id in instances_id:
