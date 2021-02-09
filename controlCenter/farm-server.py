@@ -64,7 +64,7 @@ except:
 
 for packageType in types_to_farm:
     cmd = "python3.7 run-server.py " + str(
-        packageType.value) + " " + str(server_id) + " > ../out_files/" + packageType.name + "_mixed.txt 2> ../out_files/" + packageType.name + "_mixed_err.txt &"
+        packageType.value) + " " + str(server_id) + " > ../out_files/" + packageType.name + "_last.txt 2> ../out_files/" + packageType.name + "_last_err.txt &"
     print("cmd", cmd)
     os.system(cmd)
 

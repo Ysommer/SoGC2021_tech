@@ -231,7 +231,7 @@ def generator_test():
 
 if __name__ == "__main__":
     clean_bad_solutions()
-    main()
+    #main()
     # compress_best_and_send()
 
     # analyze()
@@ -240,10 +240,10 @@ if __name__ == "__main__":
 
     # WishList.farm_instances(WishListPackagesTypes.TINY, 0)
 
-    """packages = InstancesPackage.get_instances_packages()
+    packages = InstancesPackage.get_instances_packages()
 
     for p in packages:
         print(len(packages[p]))
-        print(p,":", packages[p])"""
+        print(p,":", packages[p])
 
     print("Done!")
