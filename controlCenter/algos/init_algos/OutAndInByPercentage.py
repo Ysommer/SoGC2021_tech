@@ -8,6 +8,7 @@ from utils import *
 from random import shuffle, randint, sample, shuffle, random
 import queue
 from collections import deque
+import time as ttt
 from dataCollection.Generator import *
 
 
@@ -336,13 +337,12 @@ class OutAndInByPercentage(InitAlgo):
                 return min_offset
 
     def tag_cells_v2(self):
-        print("Start tagging cells")
+        print("Start tagging cells", ttt.strftime("%d/%m/%Y-%H:%M:%S"))
         for pos in self.grid.grid:
             self.grid.grid[pos].extra_data = set()
 
         for i in self.out_of_boundaries_permutation:
             robot = self.robots[i]
-            print("Tag robot:", robot)
             min_offset = self.get_min_offset_v2(robot)
             robot.extra_data = min_offset
             next_pos = robot.pos
@@ -356,7 +356,7 @@ class OutAndInByPercentage(InitAlgo):
                 self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index)
                 self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index + 1)
 
-
+        print("Done tagging cells", ttt.strftime("%d/%m/%Y-%H:%M:%S"))
 
     def switch_phase_0_to_1_v2(self):
         def get_dist_from_grid(robot: Robot) -> int:

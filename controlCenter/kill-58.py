@@ -53,13 +53,13 @@ def main():
 def jj_control_center_initiate(instance, out_path, algo_id):
     control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=True)
     if algo_id == 5:
-        control_center.add_init_algo(OutAndInByPercentage, print_info=False,
+        control_center.add_init_algo(OutAndInByPercentage, print_info=True,
                                      data_bundle={"sync_insertion": True, "secondary_order": "dist_BFS",
                                                   "descending_order": True})
         return control_center
 
     if algo_id == 6:
-        control_center.add_init_algo(OutAndInByPercentage, print_info=False, data_bundle={"sync_insertion": True})
+        control_center.add_init_algo(OutAndInByPercentage, print_info=True, data_bundle={"sync_insertion": True})
         return control_center
 
     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
