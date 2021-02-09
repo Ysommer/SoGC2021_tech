@@ -50,6 +50,10 @@ class BFS_in_time(OptimizationAlgo):
         self.no_bs = data_bundle.get("no_bs", False)
         self.source_min = data_bundle.get("source_min", None)
 
+        print("grid limit:", self.max_grid_len)
+        print("no_bs:", self.no_bs)
+        print("source_min:", self.source_min)
+
         if data_bundle.get("get_limit", True):
             results_f = open("../results_table.json", "r")
             results_json = json.load(results_f)
