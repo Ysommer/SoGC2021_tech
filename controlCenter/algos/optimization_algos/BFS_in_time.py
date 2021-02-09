@@ -396,7 +396,7 @@ class BFS_in_time(OptimizationAlgo):
         robots_remaining = len(self.robots)
         goal_raise = self.goal_raise
         offset_from_last_step = 1
-        calc_tries = 300
+        calc_tries = 800
         num_improved = 0
         num_processed = 0
         for robot_id in arrival_order:
