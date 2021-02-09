@@ -61,7 +61,7 @@ class OutAndInByPercentage(InitAlgo):
             self.step_phase_1
         ]
         if self.sync_insertion:
-            self.phases[1] = self.step_phase_1_simultaneously
+            self.phases[1] = self.step_phase_1_simultaneously_v2
             self.name += "_sync_insertion"
 
         self.phases_timers = [
@@ -305,6 +305,59 @@ class OutAndInByPercentage(InitAlgo):
                 next_pos = sum_tuples(next_pos, directions_to_coords[dir])
                 self.grid.get_cell(next_pos).extra_data = min_offset + d_index + 1
 
+    def get_min_offset_v2(self, robot) -> int:
+        i = robot.robot_id
+
+        try:
+            min_offset = max(self.grid.get_cell(robot.target_pos).extra_data) - len(self.bfs_list[i]) + 1
+        except:
+            min_offset = 0
+
+        while True:
+            found = True
+            next_pos = robot.pos
+
+            for d_index in range(len(self.bfs_list[i])):
+                dir = self.bfs_list[i][d_index]
+                next_pos = sum_tuples(next_pos, directions_to_coords[dir])
+                turn_to_pass = min_offset + d_index
+
+                occupied_turns = self.grid.get_cell(next_pos).extra_data
+
+                try:
+                    if turn_to_pass in occupied_turns:
+                        min_offset += 1
+                        found = False
+                        break
+                except:
+                    self.grid.get_cell(next_pos).extra_data = set()
+
+            if found:
+                return min_offset
+
+    def tag_cells_v2(self):
+        print("Start tagging cells")
+        for pos in self.grid.grid:
+            self.grid.grid[pos].extra_data = set()
+
+        for i in self.out_of_boundaries_permutation:
+            robot = self.robots[i]
+            print("Tag robot:", robot)
+            min_offset = self.get_min_offset_v2(robot)
+            robot.extra_data = min_offset
+            next_pos = robot.pos
+
+            for d_index in range(len(self.bfs_list[i])):
+                dir = self.bfs_list[i][d_index]
+                next_pos = sum_tuples(next_pos, directions_to_coords[dir])
+
+                assert min_offset + d_index not in self.grid.get_cell(next_pos).extra_data, str(robot) + "\n" + str(min_offset + d_index)
+                self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index - 1)
+                self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index)
+                self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index + 1)
+
+
+
     def switch_phase_0_to_1_v2(self):
         def get_dist_from_grid(robot: Robot) -> int:
             res = {
@@ -346,6 +399,7 @@ class OutAndInByPercentage(InitAlgo):
 
             return extra_data
 
+        print("Switch phase - Current Turn:", self.current_turn)
         self.phase += 1
         blocked = set()
 
@@ -392,7 +446,7 @@ class OutAndInByPercentage(InitAlgo):
             blocked.add(robot.target_pos)
 
         if self.sync_insertion:
-            self.tag_cells()
+            self.tag_cells_v2()
             self.preprocess.generic_robots_sort(self.out_of_boundaries_permutation, "EXTRA", temp_robots)  # sort by turn offsets
 
         return True
@@ -428,6 +482,27 @@ class OutAndInByPercentage(InitAlgo):
 
             if robot.extra_data > self.phase_1_turns:
                 break
+
+            if self.q_getting_inside(robot):
+                moved += 1
+            else:
+                print(robot)
+                return 0
+
+        self.phase_1_turns += 1
+        return moved
+
+    def step_phase_1_simultaneously_v2(self):
+        moved = 0
+
+        # Set states
+        for i in self.out_of_boundaries_permutation:
+            robot = self.robots[i]
+            if robot.robot_arrived():
+                continue
+
+            if robot.extra_data > self.phase_1_turns:
+                continue
 
             if self.q_getting_inside(robot):
                 moved += 1
