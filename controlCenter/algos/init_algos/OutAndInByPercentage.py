@@ -310,7 +310,7 @@ class OutAndInByPercentage(InitAlgo):
         i = robot.robot_id
 
         try:
-            min_offset = max(max(self.grid.get_cell(robot.target_pos).extra_data) - len(self.bfs_list[i]) + 1, 0)
+            min_offset = max(max(self.grid.get_cell(robot.target_pos).extra_data, key=int) - len(self.bfs_list[i]) + 1, 0)
         except:
             min_offset = 0
 
@@ -323,15 +323,16 @@ class OutAndInByPercentage(InitAlgo):
                 next_pos = sum_tuples(next_pos, directions_to_coords[dir])
                 turn_to_pass = min_offset + d_index
 
-                occupied_turns = self.grid.get_cell(next_pos).extra_data
-
+                #occupied_turns = self.grid.get_cell(next_pos).extra_data
                 try:
-                    if turn_to_pass in occupied_turns:
+                    occupied_turn = self.grid.get_cell(next_pos).extra_data.get(turn_to_pass, dir)
+                    next_turn = self.grid.get_cell(next_pos).extra_data.get(turn_to_pass + 1, -1)
+                    if occupied_turn != dir or next_turn != -1:
                         min_offset += 1
                         found = False
                         break
                 except:
-                    self.grid.get_cell(next_pos).extra_data = set()
+                    self.grid.get_cell(next_pos).extra_data = dict()
 
             if found:
                 return min_offset
@@ -339,22 +340,24 @@ class OutAndInByPercentage(InitAlgo):
     def tag_cells_v2(self):
         print("Start tagging cells", ttt.strftime("%d/%m/%Y-%H:%M:%S"))
         for pos in self.grid.grid:
-            self.grid.grid[pos].extra_data = set()
+            self.grid.grid[pos].extra_data = dict()
 
         for i in self.out_of_boundaries_permutation:
             robot = self.robots[i]
             min_offset = self.get_min_offset_v2(robot)
             robot.extra_data = min_offset
+
             next_pos = robot.pos
 
             for d_index in range(len(self.bfs_list[i])):
                 dir = self.bfs_list[i][d_index]
+                prev_pos = next_pos
                 next_pos = sum_tuples(next_pos, directions_to_coords[dir])
 
-                assert min_offset + d_index not in self.grid.get_cell(next_pos).extra_data, str(robot) + "\n" + str(min_offset + d_index)
-                self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index - 1)
-                self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index)
-                self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index + 1)
+                #self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index - 1)
+                self.grid.get_cell(prev_pos).extra_data[min_offset + d_index] = dir
+                self.grid.get_cell(next_pos).extra_data[min_offset + d_index] = i
+                #self.grid.get_cell(next_pos).extra_data.add(min_offset + d_index + 1)
 
         print("Done tagging cells", ttt.strftime("%d/%m/%Y-%H:%M:%S"))
 
@@ -493,10 +496,20 @@ class OutAndInByPercentage(InitAlgo):
         return moved
 
     def step_phase_1_simultaneously_v2(self):
-        moved = 0
 
+        moved = self.step_phase_1_simultaneously_v2_rec(self.out_of_boundaries_permutation)
+
+        self.phase_1_turns += 1
+        return moved
+
+    def step_phase_1_simultaneously_v2_rec(self, temp_list) -> int:
+        if len(temp_list) == 0:
+            return 0
+
+        moved = 0
+        next_list = []
         # Set states
-        for i in self.out_of_boundaries_permutation:
+        for i in temp_list:
             robot = self.robots[i]
             if robot.robot_arrived():
                 continue
@@ -507,11 +520,9 @@ class OutAndInByPercentage(InitAlgo):
             if self.q_getting_inside(robot):
                 moved += 1
             else:
-                print("step_phase_1_simultaneously_v2\n", robot)
-                return 0
+                next_list.append(i)
 
-        self.phase_1_turns += 1
-        return moved
+        return moved + self.step_phase_1_simultaneously_v2_rec(next_list)
 
     # states
     def q_reaching_out(self, robot: Robot) -> int:
