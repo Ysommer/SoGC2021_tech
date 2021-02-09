@@ -41,27 +41,28 @@ def main():
         print("====================")
         print("Start instance: ", instance.name, "(number:" + str(id) + ")")
         out_path = "../solutions/" + instance.name + "/"
-        num_of_robots = instance.number_of_robots
-        max_makespan = 30 * num_of_robots
-        max_sum = 10 * max_makespan
 
         try:
-            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center = jj_control_center_initiate(instance, out_path, int(sys.argv[1]))
             control_center.run_all(print_only_success=False, stop_on_success=False, validate=False, opt_iters=1)
         except Exception as e:
             print(e)
             traceback.print_exc()
         print()
 
-def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
+def jj_control_center_initiate(instance, out_path, algo_id):
     control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=True)
     control_center.add_init_algo(OutAndInByPercentage, print_info=False,
                                  data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
                                               "descending_order": True})
-    control_center.add_opt_algo(BFS_in_time, data_bundle={"no_bs": False, "source_min": 135, "grid_limit": 15000, "goal_raise": 128})
-    #control_center.add_opt_algo(BFS_in_time, data_bundle={"no_bs": False, "source_min": 844, "grid_limit": 15000, "goal_raise": 32})
-    #control_center.add_opt_algo(BFS_in_time, data_bundle={"no_bs": True, "source_min": 844, "grid_limit": 15000, "goal_raise": 32})
-    #control_center.add_opt_algo(BFS_in_time, data_bundle={"no_bs": True, "source_min": 844, "grid_limit": 20000, "goal_raise": 64})
+    data_bundles = [
+        {"no_bs": False, "source_min": 135, "grid_limit": 35000, "goal_raise": 128},
+        {"no_bs": False, "source_min": 844, "grid_limit": 35000, "goal_raise": 32},
+        {"no_bs": True, "source_min": 844, "grid_limit": 35000, "goal_raise": 32},
+        {"no_bs": True, "source_min": 844, "grid_limit": 35000, "goal_raise": 64}
+    ]
+
+    control_center.add_opt_algo(BFS_in_time, data_bundle=data_bundles[algo_id])
     return control_center
 
 if __name__ == "__main__":
