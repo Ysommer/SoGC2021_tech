@@ -43,7 +43,7 @@ def main():
         out_path = "../solutions/" + instance.name + "/"
 
         try:
-            control_center = jj_control_center_initiate(instance, out_path, sys.argv[1])
+            control_center = jj_control_center_initiate(instance, out_path, int(sys.argv[1]))
             control_center.run_all(print_only_success=False, stop_on_success=False, validate=False, opt_iters=1)
         except Exception as e:
             print(e)
