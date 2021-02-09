@@ -56,10 +56,10 @@ def jj_control_center_initiate(instance, out_path, algo_id):
                                  data_bundle={"sync_insertion": False, "secondary_order": "dist_BFS",
                                               "descending_order": True})
     data_bundles = [
-        {"no_bs": False, "source_min": 135, "grid_limit": 35000, "goal_raise": 128},
-        {"no_bs": False, "source_min": 844, "grid_limit": 35000, "goal_raise": 32},
-        {"no_bs": True, "source_min": 844, "grid_limit": 35000, "goal_raise": 32},
-        {"no_bs": True, "source_min": 844, "grid_limit": 35000, "goal_raise": 64}
+        {"no_bs": False, "source_min": 135, "grid_limit": 40000, "goal_raise": 128},
+        {"no_bs": False, "source_min": 844, "grid_limit": 40000, "goal_raise": 64},
+        {"no_bs": True, "source_min": 844, "grid_limit": 40000, "goal_raise": 64},
+        {"no_bs": True, "source_min": 844, "grid_limit": 45000, "goal_raise": 128}
     ]
 
     control_center.add_opt_algo(BFS_in_time, data_bundle=data_bundles[algo_id])

@@ -75,6 +75,8 @@ class BFS_in_time(OptimizationAlgo):
                                                                              margin=8)
         self.num_to_improve = data_bundle.get("num_to_improve", 1)
         self.goal_raise = data_bundle.get("goal_raise", 32)
+        print("goal_raise:", self.goal_raise)
+
         if self.solution.out["algo_name"].find("BIT_BIT") != -1:
             self.solution.out["algo_name"] = self.solution.out["algo_name"][:(-1) * len("_BIT")]
             self.solution.out["extra"]["BIT_runs"] += 1
