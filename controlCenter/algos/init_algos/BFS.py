@@ -28,6 +28,9 @@ class BFS(InitAlgo):
             assert self.bfs_list[-1] is not None
 
         self.permutation = [i for i in range(len(self.robots))]
+
+        self.max_makespan = 5000
+        self.max_sum = 30000
     """
     def calc_bfs(self, i: int, blocked: list = None) -> list:
         if blocked is None:

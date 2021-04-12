@@ -22,6 +22,7 @@ class InitAlgo(abc.ABC):
         self.solution = Solution(instance_name, self.name)
         self.print_info = print_info
         self.run_timer = Timer(self.name + " runtime")
+        self.data_bundle = {}
 
         self.arrived_order = []
         self.time_arrived = [-1] * len(self.robots)

@@ -34,7 +34,7 @@ import numpy
 
 def main():
     # instances_id = [i for i in range(141, 180)]
-    instances_id = [3]
+    instances_id = [15]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -47,7 +47,7 @@ def main():
         max_sum = 10 * max_makespan
 
         try:
-            control_center = jj_control_center_initiate(instance, out_path, max_makespan, max_sum)
+            control_center = final_control_center_initiate(instance, out_path)
             control_center.run_all(print_only_success=False, stop_on_success=False, validate=False, opt_iters=1)
         except Exception as e:
             print(e)
@@ -58,6 +58,14 @@ def main():
 def make_a_zip():
     compress_solutions_and_validate()
 
+
+def final_control_center_initiate(instance, out_path):
+    control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=True)
+    control_center.add_init_algo(LeftPillar, print_info=True)
+    control_center.add_init_algo(BFS, print_info=True)
+    control_center.add_init_algo(OutAndInBFS, print_info=True)
+    control_center.add_init_algo(Chill, print_info=True, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1})
+    return control_center
 
 def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
     print_info = True
@@ -231,7 +239,7 @@ def generator_test():
 
 if __name__ == "__main__":
     clean_bad_solutions()
-    #main()
+    main()
     # compress_best_and_send()
 
     # analyze()
@@ -240,10 +248,10 @@ if __name__ == "__main__":
 
     # WishList.farm_instances(WishListPackagesTypes.TINY, 0)
 
-    packages = InstancesPackage.get_instances_packages()
+    """packages = InstancesPackage.get_instances_packages()
 
     for p in packages:
         print(len(packages[p]))
         print(p,":", packages[p])
 
-    print("Done!")
+    print("Done!")"""
