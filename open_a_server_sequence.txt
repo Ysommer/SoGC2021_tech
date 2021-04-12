@@ -11,12 +11,19 @@ python3.7 farm-server.py &
 python3.7 run-server.py type id > ../out_files/MEDIUM_LARGE_mixed.txt 2> ../out_files/MEDIUM_LARGE_mixed_err.txt &
 
 
-LARGE : [48, 49, 55, 56, 57, 58, 64, 65, 66, 77, 78, 100, 118, 119, 120, 127, 128, 137, 138, 139, 140, 188, 189, 190, 199, 200, 201]
+LARGE : [65, 66, 77, 78, 100, 118, 119]
 
 Sum:
-python3.7 farm-instance-s.py 38 15 0 100 > ../out_files/SUM_Large_1.txt 2> ../out_files/SUM_Large_1.txt &
-python3.7 farm-instance-s.py 39 15 0 100 > ../out_files/SUM_Large_2.txt 2> ../out_files/SUM_Large_2.txt &
-python3.7 farm-instance-s.py 47 15 0 100 > ../out_files/SUM_Large_3.txt 2> ../out_files/SUM_Large_3.txt &
+
+python3.7 farm-instance-s.py 190 3 0 100 > ../out_files/SUM_Large_1.txt 2> ../out_files/SUM_Large_1.txt &
+python3.7 farm-instance-s.py 199 3 0 100 > ../out_files/SUM_Large_2.txt 2> ../out_files/SUM_Large_2.txt &
+python3.7 farm-instance-s.py 200 3 0 100 > ../out_files/SUM_Large_3.txt 2> ../out_files/SUM_Large_3.txt &
+python3.7 farm-instance-s.py 201 2 0 100 > ../out_files/SUM_Large_5.txt 2> ../out_files/SUM_Large_5.txt &
+python3.7 farm-server-sum.py &
+
+python3.7 farm-instance-s.py 64 3 0 100 > ../out_files/SUM_Large_3.txt 2> ../out_files/SUM_Large_3.txt &
+python3.7 farm-server-sum.py &
+python3.7 farm-instance-s.py 189 15 0 100 > ../out_files/SUM_Large_4.txt 2> ../out_files/SUM_Large_3.txt &
 
 BIT
 python3.7 farm-instance.py 55 1 3 2 > ../out_files/55.txt 2> ../out_files/55_err.txt &
@@ -169,7 +176,7 @@ python3.7 farm-instance.py 3 1 10 5 > ../out_files/ML_3.txt 2> ../out_files/ML_3
 
 Large:
 
-python3.7 farm-instance.py 58 1 3 0 > ../out_files/Large_58.txt 2> ../out_files/Large_58_err.txt &
+python3.7 farm-instance.py 58 1 3 2 > ../out_files/Large_58.txt 2> ../out_files/Large_58_err.txt &
 python3.7 farm-instance.py 190 1 3 5 > ../out_files/Large_190.txt 2> ../out_files/Large_190_err.txt &
 
 Huge:
@@ -187,10 +194,26 @@ ps -o pid,user,%mem,command ax | sort -b -k3 -r | grep python3.7
 cat /proc/meminfo | grep Active
 cat ../out_files/
 
-python3.7 compress-best.py
-
 python3.7 update-solution-table.py
+
+python3.7 compress-best.py
 
 git commit -a -m "update table"
 
 git push origin main
+
+
+
+python3.7 farm-instance.py 29 1 1 4 > ../out_files/Huge_29.txt 2> ../out_files/Huge_29_err.txt &
+python3.7 farm-instance.py 137 1 1 4 > ../out_files/Large_137.txt 2> ../out_files/Large_137_err.txt &
+
+python3.7 farm-instance.py 58 1 1 0 > ../out_files/Large_58_0.txt 2> ../out_files/Large_58_0_err.txt &
+python3.7 farm-instance.py 58 1 1 1 > ../out_files/Large_58_1.txt 2> ../out_files/Large_58_1_err.txt &
+python3.7 farm-instance.py 58 1 1 2 > ../out_files/Large_58_2.txt 2> ../out_files/Large_58_2_err.txt &
+python3.7 farm-instance.py 58 1 1 3 > ../out_files/Large_58_3.txt 2> ../out_files/Large_58_3_err.txt &
+
+python3.7 farm-instance.py 128 1 1 4 > ../out_files/Large_128.txt 2> ../out_files/Large_128_err.txt &
+
+python3.7 farm-instance.py 111 1 1 5 > ../out_files/E5_111.txt 2> ../out_files/E5_111_err.txt &
+python3.7 farm-instance.py 111 1 1 6 > ../out_files/E6_111.txt 2> ../out_files/E6_111_err.txt &
+python3.7 farm-instance.py 111 1 1 7 > ../out_files/E7_111.txt 2> ../out_files/E7_111_err.txt &

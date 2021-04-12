@@ -68,7 +68,7 @@ class IterSum(OptimizationAlgo):
         self.time_arrived = self.solution.out["extra"].get("time_arrived", None)
         self.arrival_order = solution.out["extra"].get("arrival_order", None)
         self.boundaries = solution.out["extra"].get("boundaries", None)
-        if self.last_step_on_target is None or self.sum_per_robot is None or self.time_arrived is None or \
+        if True or self.last_step_on_target is None or self.sum_per_robot is None or self.time_arrived is None or \
                 self.arrival_order is None or self.boundaries is None:
             self.last_step_on_target, self.sum_per_robot, self.time_arrived, self.arrival_order, self.boundaries = self.calc_extra_stuff()
 
