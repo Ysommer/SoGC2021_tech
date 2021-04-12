@@ -62,9 +62,13 @@ def make_a_zip():
 def final_control_center_initiate(instance, out_path):
     control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=True)
     control_center.add_init_algo(LeftPillar, print_info=True)
-    control_center.add_init_algo(BFS, print_info=True)
+    #control_center.add_init_algo(BFS, print_info=True)
     control_center.add_init_algo(OutAndInBFS, print_info=True)
-    control_center.add_init_algo(Chill, print_info=True, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1})
+    control_center.add_init_algo(OutAndInByPercentage, print_info=True, data_bundle={"sync_insertion": True})
+    #control_center.add_init_algo(Chill, print_info=True, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1})
+
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0})
+    control_center.add_opt_algo(IterSum)
     return control_center
 
 def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
