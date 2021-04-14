@@ -111,7 +111,7 @@ class IterSum(OptimizationAlgo):
                 boundaries["S"] = min(boundaries["S"], new_pos[1])
             t += 1
 
-        arrival_order = sorted(range(len(self.time_arrived)), key=lambda x: self.time_arrived[x])
+        arrival_order = sorted(range(len(time_arrived)), key=lambda x: time_arrived[x])
         last_step_on_target = [last_step_grid.get(tuple(self.targets[i]), -1) for i in range(len(self.robots))]
         boundaries["E"] += 1
         boundaries["W"] -= 1
