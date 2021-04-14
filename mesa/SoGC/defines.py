@@ -27,9 +27,9 @@ Y_OFFSET = 30
 BOUNDARIES_FACTOR = 3
 
 Categories = ["uniform", "images", "manual"]
-Category = Categories[0]
-Instance_name = "medium_free_010_30x30_90_810"
-Sol_name = "medium_free_010_30x30_90_810_OutAndInByPercentage_BIT__SUCCESS_MSPAN135_SUM52432.json"
+Category = Categories[1]
+Instance_name = "algae_00003_50x50_40_969"
+Sol_name = "algae_00003_50x50_40_969_OutAndInByPercentage_sync_insertion_SUCCESS_MSPAN844_SUM64328.json"
 
 while Sol_name.find(".json.json") != -1:
     Sol_name = Sol_name[:(-1)*len(".json")]

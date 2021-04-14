@@ -23,7 +23,7 @@ class Cell(Agent):
 
     def step(self):
         if self.to_delay and self.id == 0:
-            for i in range(5, 0, -1):
+            for i in range(20, 0, -1):
                 print(i)
                 time.sleep(1)
             self.to_delay = False
