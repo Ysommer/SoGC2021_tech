@@ -34,7 +34,7 @@ import numpy
 
 def main():
     # instances_id = [i for i in range(141, 180)]
-    instances_id = [85]
+    instances_id = [30, 31]
     instances = load_all_instances()
 
     for id in instances_id:
@@ -48,7 +48,7 @@ def main():
 
         try:
             control_center = final_control_center_initiate(instance, out_path)
-            control_center.run_all(print_only_success=False, stop_on_success=False, validate=False, opt_iters=6)
+            control_center.run_all(print_only_success=False, stop_on_success=False, validate=False, opt_iters=1)
         except Exception as e:
             print(e)
             traceback.print_exc()
@@ -62,13 +62,13 @@ def make_a_zip():
 def final_control_center_initiate(instance, out_path):
     control_center = ControlCenter(instance, out_path, -1, -1, print_init_sol=True)
     #control_center.add_init_algo(LeftPillar, print_info=True)
-    #control_center.add_init_algo(BFS, print_info=True)
+    control_center.add_init_algo(BFS, print_info=True)
     #control_center.add_init_algo(OutAndInBFS, print_info=True)
     #control_center.add_init_algo(OutAndInByPercentage, print_info=True, data_bundle={"sync_insertion": True})
-    control_center.add_init_algo(Chill, print_info=True, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1})
+    #control_center.add_init_algo(Chill, print_info=True, data_bundle={"dynamic_percent_to_leave_inside": True, "factor_on_binary_search_result": 1})
 
     #control_center.add_opt_algo(BFS_in_time, data_bundle={"noise": 0})
-    control_center.add_opt_algo(IterSum)
+    #control_center.add_opt_algo(IterSum)
     return control_center
 
 def jj_control_center_initiate(instance, out_path, max_makespan, max_sum):
@@ -129,8 +129,7 @@ def ys_control_center_initiate(instance, out_path, max_makespan, max_sum):
     data_bundle = {"sync_insertion": False}
     control_center = ControlCenter(instance, out_path, max_makespan, max_sum)
     control_center.add_init_algo(OutAndInByPercentage, name="_sea_level_", print_info=False, data_bundle=data_bundle)
-    control_center.add_opt_algo(BFS_in_time, data_bundle={"no_bs": False, "source_min": 10})
-    # control_center.add_opt_algo(IterSum)
+    control_center.add_opt_algo(BFS_in_time, data_bundle={"no_bs": False, "source_min": None})
     # for i in range(1):
     #   control_center.add_init_algo(BFS, name="_"+str(i), print_info=True)
     return control_center

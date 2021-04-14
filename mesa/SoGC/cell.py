@@ -2,7 +2,7 @@ from mesa import Agent
 from .defines import RobotType
 from .defines import *
 from collections import deque
-
+import time
 
 class Cell(Agent):
 
@@ -16,11 +16,18 @@ class Cell(Agent):
         self.type = _type
         self.steps = deque()
         self.target = target
+        self.to_delay = True
 
     def addStep(self, step): # Why does a cell takes steps?
         self.steps.append(step)
 
     def step(self):
+        if self.to_delay and self.id == 0:
+            for i in range(5, 0, -1):
+                print(i)
+                time.sleep(1)
+            self.to_delay = False
+
         if len(self.steps) <= 0:
             return
         self.x += direction_to_val(self.steps[0])[0]
